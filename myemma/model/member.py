@@ -19,14 +19,14 @@ class Member(BaseApiModel):
         if not self._dict.has_key(u"email"):
             raise NoMemberEmailError()
         path = '/members/email/optout/%s' % self._dict[u"email"]
-        if self.adapter.put(path, {}):
+        if self.adapter.put(path):
             self._dict[u"status"] = u"opt-out"
 
     def get_opt_out_detail(self):
         if not self._dict.has_key(u"member_id"):
             raise NoMemberIdError()
         path = '/members/%s/optout' % self._dict[u"member_id"]
-        return self.adapter.get(path, {})
+        return self.adapter.get(path)
 
     def has_opted_out(self):
         if not self._dict.has_key(u"status"):
@@ -52,7 +52,7 @@ class MemberMailingCollection(Collection):
         if len(self) == 0:
             self._dict = dict(map(
                 lambda x: (x[u"mailing_id"], Mailing(self.adapter, x)),
-                self.adapter.get(path, {})
+                self.adapter.get(path)
             ))
         return self._dict
 
@@ -74,7 +74,7 @@ class MemberGroupCollection(Collection):
         if len(self) == 0:
             self._dict = dict(map(
                 lambda x: (x[u"group_name"], Group(self.adapter, x)),
-                self.adapter.get(path, {})
+                self.adapter.get(path)
             ))
         return self._dict
 

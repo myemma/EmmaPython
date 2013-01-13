@@ -1,11 +1,11 @@
-from myemma.adapter import V1Adapter
+from myemma.adapter import RequestsAdapter
 from collection import Collection
 from emma_import import EmmaImport
 from member import Member
 from field import Field
 
 class Account(object):
-    default_adapter = V1Adapter
+    default_adapter = RequestsAdapter
 
     def __init__(self, account_id, public_key, private_key):
         self.adapter = self.__class__.default_adapter({
@@ -29,7 +29,7 @@ class FieldCollection(Collection):
         if len(self) == 0:
             self._dict = dict(map(
                 lambda x: (x[u"field_id"], Field(self.adapter, x)),
-                self.adapter.get(path, {})
+                self.adapter.get(path)
             ))
         return self._dict
 
@@ -69,7 +69,7 @@ class MemberCollection(Collection):
         path = '/members/imports/%s/members' % import_id
         members = dict(map(
             lambda x: (x[u"member_id"], Member(self.adapter, x)),
-            self.adapter.get(path, {})
+            self.adapter.get(path)
         ))
         self.replace_all(members)
         return members
@@ -134,7 +134,7 @@ class ImportCollection(Collection):
         """
         path = '/members/imports/%s' % import_id
         if not self._dict.has_key(import_id):
-            emma_import = self.adapter.get(path, {})
+            emma_import = self.adapter.get(path)
             if emma_import is not None:
                 self._dict[emma_import[u"import_id"]] =\
                     EmmaImport(self.adapter, emma_import)

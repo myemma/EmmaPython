@@ -1,5 +1,5 @@
 import unittest
-from myemma.adapter import V1Adapter
+from myemma.adapter import RequestsAdapter
 from myemma.model.account import Account, FieldCollection, ImportCollection, MemberCollection
 from myemma.model.field import Field
 from myemma.model.emma_import import EmmaImport
@@ -16,25 +16,25 @@ class MockAdapter(object):
         self.called += 1
         self.call = (method, path, params)
 
-    def get(self, path, params):
+    def get(self, path, params={}):
         self._capture('GET', path, params)
         return self.__class__.expected
 
-    def post(self, path, params):
+    def post(self, path, params={}):
         self._capture('POST', path, params)
         return self.__class__.expected
 
-    def put(self, path, params):
+    def put(self, path, params={}):
         self._capture('PUT', path, params)
         return self.__class__.expected
 
-    def delete(self, path, params):
+    def delete(self, path, params={}):
         self._capture('DELETE', path, params)
         return self.__class__.expected
 
 class AccountDefaultAdapterTest(unittest.TestCase):
     def test_default_adapter_is_api_v1_adapter(self):
-        self.assertIs(Account.default_adapter, V1Adapter)
+        self.assertIs(Account.default_adapter, RequestsAdapter)
 
 class AccountTest(unittest.TestCase):
     def setUp(self):

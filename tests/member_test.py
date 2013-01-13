@@ -14,19 +14,19 @@ class MockAdapter(object):
         self.called += 1
         self.call = (method, path, params)
 
-    def get(self, path, params):
+    def get(self, path, params={}):
         self._capture('GET', path, params)
         return self.__class__.expected
 
-    def post(self, path, params):
+    def post(self, path, params={}):
         self._capture('POST', path, params)
         return self.__class__.expected
 
-    def put(self, path, params):
+    def put(self, path, params={}):
         self._capture('PUT', path, params)
         return self.__class__.expected
 
-    def delete(self, path, params):
+    def delete(self, path, params={}):
         self._capture('DELETE', path, params)
         return self.__class__.expected
 
