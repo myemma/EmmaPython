@@ -5,11 +5,26 @@ from member import Member
 from field import Field
 
 class Account(object):
+    """
+    Aggregate root for the API context
+
+    You will use this object to get all other information from the API::
+
+        acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+        acct.members.fetch_all() # get all members for this account
+
+    :param account_id: Your account identifier
+    :type account_id: :class:`int` or :class:`str`
+    :param public_key: Your public key
+    :type public_key: :class:`str`
+    :param private_key: Your private key
+    :type private_key: :class:`str`
+    """
     default_adapter = RequestsAdapter
 
     def __init__(self, account_id, public_key, private_key):
         self.adapter = self.__class__.default_adapter({
-            "account_id": account_id,
+            "account_id": "%s" % account_id,
             "public_key": public_key,
             "private_key": private_key
         })
@@ -19,11 +34,18 @@ class Account(object):
 
 class FieldCollection(Collection):
     """
-    Encapsulates operations for the set of fields of an account
+    Encapsulates operations for the set of :class:`Field` objects of an :class:`account`
     """
     def fetch_all(self):
         """
-        Lazy-loads the collection
+        Lazy-loads the full set of :class:`Field` objects
+
+        :rtype: :class:`list` of :class:`Field` objects
+
+        Usage::
+
+            acct.fields.fetch_all() # [Field, Field, ...]
+
         """
         path = '/fields'
         if len(self) == 0:
@@ -35,7 +57,7 @@ class FieldCollection(Collection):
 
 class MemberCollection(Collection):
     """
-    Encapsulates operations for the set of members of an account
+    Encapsulates operations for the set of :class:`Member` objects of an :class:`account`
     """
     def __getitem__(self, key):
         """
@@ -50,7 +72,16 @@ class MemberCollection(Collection):
 
     def fetch_all(self, deleted = False):
         """
-        Lazy-loads the collection
+        Lazy-loads the full set of :class:`Member` objects
+
+        :param deleted: Whether to include deleted members
+        :type deleted: :class:`bool`
+        :rtype: :class:`list` of :class:`Member` objects
+
+        Usage::
+
+            acct.members.fetch_all() # [Member, Member, ...]
+
         """
         path = '/members'
         params = {"deleted":True} if deleted else {}
@@ -63,8 +94,17 @@ class MemberCollection(Collection):
 
     def fetch_all_by_import_id(self, import_id):
         """
-        Refreshes the collection with the current dictionary of all members of a
-        given import, then returns that dictionary
+        Updates the collection with a dictionary of all members from a given
+        import. *Does not lazy-load*
+
+        :param import_id: The import identifier
+        :type import_id: :class:`int` or :class:`str`
+        :rtype: :class:`list` of :class:`Member` objects
+
+        Usage::
+
+            acct.members.fetch_all_by_import_id(123) # [Member, Member, ...]
+
         """
         path = '/members/imports/%s/members' % import_id
         members = dict(map(
@@ -76,7 +116,20 @@ class MemberCollection(Collection):
 
     def find_one_by_member_id(self, member_id, deleted = False):
         """
-        Lazy-loads a single Member that matches the member_id or None
+        Lazy-loads a single :class:`Member` by ID
+
+        :param member_id: The member identifier
+        :type member_id: :class:`int`
+        :param deleted: Whether to include deleted members
+        :type deleted: :class:`bool`
+        :rtype: :class:`Member` or :class:`None`
+
+        Usage::
+
+            acct.members.find_one_by_member_id(123) # Member or None
+            # -- or --
+            acct.members[123] # Member or None
+
         """
         path = '/members/%s' % member_id
         params = {"deleted":True} if deleted else {}
@@ -90,7 +143,20 @@ class MemberCollection(Collection):
 
     def find_one_by_email(self, email, deleted = False):
         """
-        Lazy-loads a single Member that matches the email or None
+        Lazy-loads a single :class:`Member` by email address
+
+        :param email: The email address
+        :type email: :class:`str`
+        :param deleted: Whether to include deleted members
+        :type deleted: :class:`bool`
+        :rtype: :class:`Member` or :class:`None`
+
+        Usage::
+
+            acct.members.find_one_by_email("test@example.com") # Member or None
+            # -- or --
+            acct.members["test@example.com"] # Member or None
+
         """
         path = '/members/email/%s' % email
         params = {"deleted":True} if deleted else {}
@@ -108,7 +174,7 @@ class MemberCollection(Collection):
 
 class ImportCollection(Collection):
     """
-    Encapsulates operations for the set of imports for an account
+    Encapsulates operations for the set of :class:`Import` objects of an :class:`account`
     """
     def __getitem__(self, key):
         """
@@ -118,7 +184,14 @@ class ImportCollection(Collection):
 
     def fetch_all(self):
         """
-        Lazy-loads the collection
+        Lazy-loads the full set of :class:`Import` objects
+
+        :rtype: :class:`list` of :class:`Import` objects
+
+        Usage::
+
+            acct.imports.fetch_all() # [Import, Import, ...]
+
         """
         path = '/members/imports'
         if len(self) == 0:
@@ -130,8 +203,20 @@ class ImportCollection(Collection):
 
     def find_one_by_import_id(self, import_id):
         """
-        Lazy-loads a single Import that matches the import_id or None
+        Lazy-loads a single :class:`Import` by ID
+
+        :param import_id: The import identifier
+        :type import_id: :class:`int` or :class:`str`
+        :rtype: :class:`Import` or :class:`None`
+
+        Usage::
+
+            acct.imports.find_one_by_import_id(123) # Import or None
+            # -- or --
+            acct.imports[123] # Import or None
+
         """
+        import_id = int(import_id)
         path = '/members/imports/%s' % import_id
         if not self._dict.has_key(import_id):
             emma_import = self.adapter.get(path)
@@ -142,4 +227,4 @@ class ImportCollection(Collection):
         else:
             return self._dict[import_id]
 
-__all__ = ['Account']
+__all__ = ['Account', 'FieldCollection', 'MemberCollection', 'ImportCollection']

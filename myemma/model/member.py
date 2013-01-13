@@ -3,12 +3,34 @@ from collection import Collection
 from group import Group
 from mailing import Mailing
 
-class NoMemberEmailError(Exception): pass
-class NoMemberIdError(Exception): pass
-class NoMemberStatusError(Exception): pass
+class NoMemberEmailError(Exception):
+    """
+    An API call was attempted with missing required parameters (email)
+    """
+    pass
+
+class NoMemberIdError(Exception):
+    """
+    An API call was attempted with missing required parameters (id)
+    """
+    pass
+
+class NoMemberStatusError(Exception):
+    """
+    An API call was attempted with missing required parameters (status)
+    """
+    pass
+
 
 class Member(BaseApiModel):
+    """
+    Encapsulates operations for a :class:`Member`
 
+    :param adapter: An HTTP client adapter from :mod:`myemma.adapter`
+    :type adapter: :class:`object`
+    :param raw: The raw values of this :class:`Member`
+    :type raw: :class:`dict`
+    """
     def __init__(self, adapter, raw = None):
         self.adapter = adapter
         self.groups = MemberGroupCollection(self.adapter, self)
@@ -16,6 +38,11 @@ class Member(BaseApiModel):
         self._dict = raw if raw is not None else {}
 
     def opt_out(self):
+        """
+        Opt-out this :class:`Member` from future mailings on this :class:`Account`
+
+        :rtype: :class:`None`
+        """
         if not self._dict.has_key(u"email"):
             raise NoMemberEmailError()
         path = '/members/email/optout/%s' % self._dict[u"email"]
@@ -23,12 +50,22 @@ class Member(BaseApiModel):
             self._dict[u"status"] = u"opt-out"
 
     def get_opt_out_detail(self):
+        """
+        Get details about this :class:`Member`'s opt-out history
+
+        :rtype: :class:`list`
+        """
         if not self._dict.has_key(u"member_id"):
             raise NoMemberIdError()
         path = '/members/%s/optout' % self._dict[u"member_id"]
         return self.adapter.get(path)
 
     def has_opted_out(self):
+        """
+        Check if this :class:`Member has opted-out
+
+        :rtype: :class:`bool`
+        """
         if not self._dict.has_key(u"status"):
             raise NoMemberStatusError()
         return self._dict[u"status"] == u"opt-out"
@@ -36,7 +73,12 @@ class Member(BaseApiModel):
 
 class MemberMailingCollection(Collection):
     """
-    Encapsulates operations for the set of mailings for a member
+    Encapsulates operations for the set of :class:`Mailing` objects of a :class:`Member`
+
+    :param adapter: An HTTP client adapter from :mod:`myemma.adapter`
+    :type adapter: :class:`object`
+    :param member: The parent for this collection
+    :type member: :class:`Member`
     """
     def __init__(self, adapter, member):
         self.member = member
@@ -44,7 +86,14 @@ class MemberMailingCollection(Collection):
 
     def fetch_all(self):
         """
-        Lazy-loads the collection
+        Lazy-loads the full set of :class:`Mailing` objects
+
+        :rtype: :class:`list` of :class:`Mailing` objects
+
+        Usage::
+
+            mem.mailings.fetch_all() # [Mailing, Mailing, ...]
+
         """
         if u"member_id" not in self.member:
             raise NoMemberIdError()
@@ -58,7 +107,12 @@ class MemberMailingCollection(Collection):
 
 class MemberGroupCollection(Collection):
     """
-    Encapsulates operations for the set of groups for a member
+    Encapsulates operations for the set of :class:`Group` objects of a :class:`Member`
+
+    :param adapter: An HTTP client adapter from :mod:`myemma.adapter`
+    :type adapter: :class:`object`
+    :param member: The parent for this collection
+    :type member: :class:`Member`
     """
     def __init__(self, adapter, member):
         self.member = member
@@ -66,7 +120,14 @@ class MemberGroupCollection(Collection):
 
     def fetch_all(self):
         """
-        Lazy-loads the collection
+        Lazy-loads the full set of :class:`Group` objects
+
+        :rtype: :class:`list` of :class:`Group` objects
+
+        Usage::
+
+            mem.groups.fetch_all() # [Group, Group, ...]
+
         """
         if u"member_id" not in self.member:
             raise NoMemberIdError()
@@ -78,4 +139,5 @@ class MemberGroupCollection(Collection):
             ))
         return self._dict
 
-__all__ = ['Member']
+__all__ = ['Member', 'MemberGroupCollection', 'MemberMailingCollection',
+           'NoMemberEmailError', 'NoMemberIdError', 'NoMemberStatusError']

@@ -1,3 +1,7 @@
+"""
+Emma API v1 Models
+"""
+
 from account import *
 from member import *
 
