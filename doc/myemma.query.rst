@@ -10,17 +10,3 @@ query Package
     :members:
     :show-inheritance:
 
-:mod:`operator` Module
-----------------------
-
-.. automodule:: myemma.query.operator
-    :members:
-    :show-inheritance:
-
-:mod:`spec` Module
-------------------
-
-.. automodule:: myemma.query.spec
-    :members:
-    :show-inheritance:
-
