@@ -1,7 +1,7 @@
-from base import BaseApiModel
+from . import BaseApiModel, Collection
 from group import Group
 from mailing import Mailing
-from myemma.model.base import Collection
+
 
 class NoMemberEmailError(Exception):
     """
@@ -9,11 +9,13 @@ class NoMemberEmailError(Exception):
     """
     pass
 
+
 class NoMemberIdError(Exception):
     """
     An API call was attempted with missing required parameters (id)
     """
     pass
+
 
 class NoMemberStatusError(Exception):
     """
@@ -27,7 +29,7 @@ class Member(BaseApiModel):
     Encapsulates operations for a :class:`Member`
 
     :param adapter: An HTTP client adapter from :mod:`myemma.adapter`
-    :type adapter: :class:`object`
+    :type adapter: :class:`AbstractAdapter`
     :param raw: The raw values of this :class:`Member`
     :type raw: :class:`dict`
     """
@@ -39,11 +41,12 @@ class Member(BaseApiModel):
 
     def opt_out(self):
         """
-        Opt-out this :class:`Member` from future mailings on this :class:`Account`
+        Opt-out this :class:`Member` from future mailings on this
+        :class:`Account`
 
         :rtype: :class:`None`
         """
-        if not self._dict.has_key(u"email"):
+        if u"email" not in self._dict:
             raise NoMemberEmailError()
         path = '/members/email/optout/%s' % self._dict[u"email"]
         if self.adapter.put(path):
@@ -55,7 +58,7 @@ class Member(BaseApiModel):
 
         :rtype: :class:`list`
         """
-        if not self._dict.has_key(u"member_id"):
+        if u"member_id" not in self._dict:
             raise NoMemberIdError()
         path = '/members/%s/optout' % self._dict[u"member_id"]
         return self.adapter.get(path)
@@ -66,17 +69,18 @@ class Member(BaseApiModel):
 
         :rtype: :class:`bool`
         """
-        if not self._dict.has_key(u"status"):
+        if u"status" not in self._dict:
             raise NoMemberStatusError()
         return self._dict[u"status"] == u"opt-out"
 
 
 class MemberMailingCollection(Collection):
     """
-    Encapsulates operations for the set of :class:`Mailing` objects of a :class:`Member`
+    Encapsulates operations for the set of :class:`Mailing` objects of a
+    :class:`Member`
 
     :param adapter: An HTTP client adapter from :mod:`myemma.adapter`
-    :type adapter: :class:`object`
+    :type adapter: :class:`AbstractAdapter`
     :param member: The parent for this collection
     :type member: :class:`Member`
     """
@@ -105,12 +109,14 @@ class MemberMailingCollection(Collection):
             ))
         return self._dict
 
+
 class MemberGroupCollection(Collection):
     """
-    Encapsulates operations for the set of :class:`Group` objects of a :class:`Member`
+    Encapsulates operations for the set of :class:`Group` objects of a
+    :class:`Member`
 
     :param adapter: An HTTP client adapter from :mod:`myemma.adapter`
-    :type adapter: :class:`object`
+    :type adapter: :class:`AbstractAdapter`
     :param member: The parent for this collection
     :type member: :class:`Member`
     """
@@ -138,6 +144,3 @@ class MemberGroupCollection(Collection):
                 self.adapter.get(path)
             ))
         return self._dict
-
-__all__ = ['Member', 'MemberGroupCollection', 'MemberMailingCollection',
-           'NoMemberEmailError', 'NoMemberIdError', 'NoMemberStatusError']

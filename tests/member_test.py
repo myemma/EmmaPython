@@ -1,6 +1,8 @@
 import unittest
 from myemma.adapter import AbstractAdapter
-from myemma.model.member import Member, MemberGroupCollection, MemberMailingCollection, NoMemberIdError, NoMemberStatusError, NoMemberEmailError
+from myemma.model.member import (Member, MemberGroupCollection,
+                                 MemberMailingCollection, NoMemberIdError,
+                                 NoMemberStatusError, NoMemberEmailError)
 from myemma.model.group import Group
 from myemma.model.mailing import Mailing
 

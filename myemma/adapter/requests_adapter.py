@@ -1,10 +1,11 @@
 import requests
-from requests.auth import HTTPBasicAuth
+import requests.auth
 from myemma.adapter import AbstractAdapter, ApiRequestFailed
 
 class RequestsAdapter(AbstractAdapter):
     """
-    Emma API Adapter for the `Requests Library <http://docs.python-requests.org/>`_
+    Emma API Adapter for the `Requests Library
+    <http://docs.python-requests.org/>`_
 
     :param auth: A dictionary with keys for your account id and public/private
                  keys
@@ -18,13 +19,15 @@ class RequestsAdapter(AbstractAdapter):
 
     """
     def __init__(self, auth):
-        self.auth = HTTPBasicAuth(auth['public_key'], auth['private_key'])
+        self.auth = requests.auth.HTTPBasicAuth(
+            auth['public_key'],
+            auth['private_key'])
         self.url = "https://api.e2ma.net/%s" % auth['account_id']
 
     def _process_response(self, response):
         if response.status_code == 404:
             return None
-        elif response.status_code >= 200:
+        elif response.status_code > 200:
             raise ApiRequestFailed(response)
 
         return response.json

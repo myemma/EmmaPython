@@ -1,8 +1,9 @@
+from . import Collection
 from emma_import import EmmaImport
 from member import Member
 from field import Field
-from myemma.adapter.requests_adapter import RequestsAdapter
-from myemma.model.base import Collection
+from  myemma.adapter.requests_adapter import RequestsAdapter
+
 
 class Account(object):
     """
@@ -32,9 +33,11 @@ class Account(object):
         self.members = MemberCollection(self.adapter)
         self.imports = ImportCollection(self.adapter)
 
+
 class FieldCollection(Collection):
     """
-    Encapsulates operations for the set of :class:`Field` objects of an :class:`account`
+    Encapsulates operations for the set of :class:`Field` objects of an
+    :class:`account`
     """
     def fetch_all(self):
         """
@@ -48,16 +51,18 @@ class FieldCollection(Collection):
 
         """
         path = '/fields'
-        if len(self) == 0:
+        if not self._dict:
             self._dict = dict(map(
                 lambda x: (x[u"field_id"], Field(self.adapter, x)),
                 self.adapter.get(path)
             ))
         return self._dict
 
+
 class MemberCollection(Collection):
     """
-    Encapsulates operations for the set of :class:`Member` objects of an :class:`account`
+    Encapsulates operations for the set of :class:`Member` objects of an
+    :class:`account`
     """
     def __getitem__(self, key):
         """
@@ -65,9 +70,7 @@ class MemberCollection(Collection):
         """
         if isinstance(key, int):
             return self.find_one_by_member_id(key)
-        if isinstance(key, str):
-            return self.find_one_by_email(key)
-        if isinstance(key, unicode):
+        if isinstance(key, str) or isinstance(key, unicode):
             return self.find_one_by_email(key)
 
     def fetch_all(self, deleted = False):
@@ -133,7 +136,7 @@ class MemberCollection(Collection):
         """
         path = '/members/%s' % member_id
         params = {"deleted":True} if deleted else {}
-        if member_id not in self._dict.keys():
+        if member_id not in self._dict:
             member = self.adapter.get(path, params)
             if member is not None:
                 self._dict[member[u"member_id"]] = Member(self.adapter, member)
@@ -166,15 +169,18 @@ class MemberCollection(Collection):
         if not members:
             member = self.adapter.get(path, params)
             if member is not None:
-                self._dict[member[u"member_id"]] = Member(self.adapter, member)
+                self._dict[member[u"member_id"]] = \
+                    Member(self.adapter, member)
                 return self._dict[member[u"member_id"]]
         else:
             member = members[0]
         return member
 
+
 class ImportCollection(Collection):
     """
-    Encapsulates operations for the set of :class:`Import` objects of an :class:`account`
+    Encapsulates operations for the set of :class:`Import` objects of an
+    :class:`account`
     """
     def __getitem__(self, key):
         """
@@ -221,10 +227,8 @@ class ImportCollection(Collection):
         if not self._dict.has_key(import_id):
             emma_import = self.adapter.get(path)
             if emma_import is not None:
-                self._dict[emma_import[u"import_id"]] =\
+                self._dict[emma_import[u"import_id"]] = \
                     EmmaImport(self.adapter, emma_import)
                 return self._dict[emma_import[u"import_id"]]
         else:
             return self._dict[import_id]
-
-__all__ = ['Account', 'FieldCollection', 'MemberCollection', 'ImportCollection']

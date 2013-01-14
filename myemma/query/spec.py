@@ -1,5 +1,3 @@
-__all__ = ['CompositeQuery', 'ConjunctionQuery', 'DisjunctionQuery',
-           'NegationQuery']
 
 class CompositeQuery(object):
     def conjoin(self, other):
@@ -17,6 +15,7 @@ class CompositeQuery(object):
     def __invert__(self):
         return self.negate()
 
+
 class ConjunctionQuery(CompositeQuery):
     def __init__(self, left, right):
         self.left = left
@@ -25,6 +24,7 @@ class ConjunctionQuery(CompositeQuery):
     def __str__(self):
         return '["and", %s, %s]' % (self.left, self.right)
 
+
 class DisjunctionQuery(CompositeQuery):
     def __init__(self, left, right):
         self.left = left
@@ -32,6 +32,7 @@ class DisjunctionQuery(CompositeQuery):
 
     def __str__(self):
         return '["or", %s, %s]' % (self.left, self.right)
+
 
 class NegationQuery(CompositeQuery):
     def __init__(self, query):

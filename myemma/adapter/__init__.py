@@ -9,6 +9,7 @@ class ApiRequestFailed(Exception):
     """
     pass
 
+
 class AbstractAdapter(object):
     """
     Abstract Adapter
@@ -25,6 +26,3 @@ class AbstractAdapter(object):
 
     def delete(self, path, params={}):
         raise NotImplementedError()
-
-from requests_adapter import RequestsAdapter
-__all__ = ['RequestsAdapter', 'ApiRequestFailed']

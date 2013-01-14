@@ -1,5 +1,6 @@
 from spec import CompositeQuery
 
+
 class EqualityQuery(CompositeQuery):
     def __init__(self, field, value):
         self.field = field
@@ -7,6 +8,7 @@ class EqualityQuery(CompositeQuery):
 
     def __str__(self):
         return '["%s", "eq", "%s"]' % (self.field, self.value)
+
 
 class LessThanQuery(CompositeQuery):
     def __init__(self, field, value):
@@ -16,6 +18,7 @@ class LessThanQuery(CompositeQuery):
     def __str__(self):
         return '["%s", "lt", %s]' % (self.field, self.value)
 
+
 class GreaterThanQuery(CompositeQuery):
     def __init__(self, field, value):
         self.field = field
@@ -23,6 +26,7 @@ class GreaterThanQuery(CompositeQuery):
 
     def __str__(self):
         return '["%s", "gt", %s]' % (self.field, self.value)
+
 
 class BetweenQuery(CompositeQuery):
     def __init__(self, field, low, high):
@@ -33,14 +37,18 @@ class BetweenQuery(CompositeQuery):
     def __str__(self):
         return '["%s", "between", %s, %s]' % (self.field, self.low, self.high)
 
+
 class InLastQuery(CompositeQuery):
     pass
+
 
 class InNextQuery(CompositeQuery):
     pass
 
+
 class DateMatchQuery(CompositeQuery):
     pass
+
 
 class ContainsQuery(CompositeQuery):
     def __init__(self, field, value):
@@ -50,6 +58,7 @@ class ContainsQuery(CompositeQuery):
     def __str__(self):
         return '["%s", "contains", "%s"]' % (self.field, self.value)
 
+
 class AnyQuery(CompositeQuery):
     def __init__(self, field, value):
         self.field = field
@@ -58,9 +67,6 @@ class AnyQuery(CompositeQuery):
     def __str__(self):
         return '["%s", "any", "%s"]' % (self.field, self.value)
 
+
 class ZipRadiusQuery(CompositeQuery):
     pass
-
-__all__ = ['EqualityQuery', 'GreaterThanQuery', 'LessThanQuery',
-           'BetweenQuery', 'InLastQuery', 'InNextQuery', 'DateMatchQuery',
-           'ContainsQuery', 'AnyQuery', 'ZipRadiusQuery']

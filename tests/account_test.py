@@ -1,7 +1,8 @@
 import unittest
 from myemma.adapter import AbstractAdapter
 from myemma.adapter.requests_adapter import RequestsAdapter
-from myemma.model.account import Account, FieldCollection, ImportCollection, MemberCollection
+from myemma.model.account import (Account, FieldCollection, ImportCollection,
+                                  MemberCollection)
 from myemma.model.field import Field
 from myemma.model.emma_import import EmmaImport
 from myemma.model.member import Member

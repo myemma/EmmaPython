@@ -1,4 +1,6 @@
-from operator import *
+from operator import (AnyQuery, BetweenQuery, ContainsQuery, EqualityQuery,
+                      GreaterThanQuery, LessThanQuery)
+
 
 class QueryFactory(object):
     """
@@ -6,7 +8,7 @@ class QueryFactory(object):
 
     Example Usage::
 
-        from myemma.query import QueryFactory as q
+        from myemma.query.factory import QueryFactory as q
 
         query1 = q.eq('member_field:foo', 1) & q.contains('member_field:bar', 2)
         "%s" % query1 # ["and", ["member_field:foo", "eq", 1], ["member_field:bar", "eq", 2]]
@@ -31,7 +33,7 @@ class QueryFactory(object):
 
         Example Usage::
 
-            from myemma.query import QueryFactory as q
+            from myemma.query.factory import QueryFactory as q
 
             query = q.eq('member_field:some_string_field', 'bar')
             "%s" % query # ["member_field:some_string_field", "eq", "bar"]
@@ -51,7 +53,7 @@ class QueryFactory(object):
 
         Example Usage::
 
-            from myemma.query import QueryFactory as q
+            from myemma.query.factory import QueryFactory as q
 
             query = q.lt('member_field:some_numeric_field', 10)
             "%s" % query # ["member_field:some_numeric_field", "lt", 10]
@@ -71,7 +73,7 @@ class QueryFactory(object):
 
         Example Usage::
 
-            from myemma.query import QueryFactory as q
+            from myemma.query.factory import QueryFactory as q
 
             query = q.gt('member_field:some_numeric_field', 5)
             "%s" % query # ["member_field:some_numeric_field", "gt", 5]
@@ -93,7 +95,7 @@ class QueryFactory(object):
 
         Example Usage::
 
-            from myemma.query import QueryFactory as q
+            from myemma.query.factory import QueryFactory as q
 
             query = q.between('member_field:some_numeric_field', 5, 10)
             "%s" % query # ["member_field:some_numeric_field", "between", 5, 10]
@@ -113,7 +115,7 @@ class QueryFactory(object):
 
         Example Usage::
 
-            from myemma.query import QueryFactory as q
+            from myemma.query.factory import QueryFactory as q
 
             query = q.contains('member_field:some_string_field', '*foo*')
             "%s" % query # ["member_field:some_string_field", "contains", "*foo*"]
@@ -133,7 +135,7 @@ class QueryFactory(object):
 
         Example Usage::
 
-            from myemma.query import QueryFactory as q
+            from myemma.query.factory import QueryFactory as q
 
             query = q.any('member_field:some_array_field', 'ten')
             "%s" % query # ["member_field:some_array_field", "any", "ten"]
