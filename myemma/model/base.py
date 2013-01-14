@@ -1,7 +1,5 @@
 import collections
 
-class ImmutableKeyError(Exception): pass
-
 class BaseApiModel(collections.MutableMapping):
     def __len__(self):
         return self._dict.__len__()

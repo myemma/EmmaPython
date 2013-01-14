@@ -62,7 +62,7 @@ class Member(BaseApiModel):
 
     def has_opted_out(self):
         """
-        Check if this :class:`Member has opted-out
+        Check if this :class:`Member` has opted-out
 
         :rtype: :class:`bool`
         """

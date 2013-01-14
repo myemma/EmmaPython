@@ -1,8 +1,8 @@
-from myemma.adapter import RequestsAdapter
 from collection import Collection
 from emma_import import EmmaImport
 from member import Member
 from field import Field
+from myemma.adapter.requests_adapter import RequestsAdapter
 
 class Account(object):
     """

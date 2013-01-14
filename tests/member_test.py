@@ -1,9 +1,10 @@
 import unittest
+from myemma.adapter import AbstractAdapter
 from myemma.model.member import Member, MemberGroupCollection, MemberMailingCollection, NoMemberIdError, NoMemberStatusError, NoMemberEmailError
 from myemma.model.group import Group
 from myemma.model.mailing import Mailing
 
-class MockAdapter(object):
+class MockAdapter(AbstractAdapter):
     expected = None
 
     def __init__(self, *args, **kwargs):
