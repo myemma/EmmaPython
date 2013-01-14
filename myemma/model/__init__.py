@@ -1,5 +1,5 @@
 """
-Emma API v1 Models
+Emma API Models
 """
 
 from account import *

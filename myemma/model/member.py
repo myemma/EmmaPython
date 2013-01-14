@@ -1,7 +1,7 @@
 from base import BaseApiModel
-from collection import Collection
 from group import Group
 from mailing import Mailing
+from myemma.model.base import Collection
 
 class NoMemberEmailError(Exception):
     """
@@ -98,7 +98,7 @@ class MemberMailingCollection(Collection):
         if u"member_id" not in self.member:
             raise NoMemberIdError()
         path = '/members/%s/mailings' % self.member[u"member_id"]
-        if len(self) == 0:
+        if not self._dict:
             self._dict = dict(map(
                 lambda x: (x[u"mailing_id"], Mailing(self.adapter, x)),
                 self.adapter.get(path)
@@ -132,7 +132,7 @@ class MemberGroupCollection(Collection):
         if u"member_id" not in self.member:
             raise NoMemberIdError()
         path = '/members/%s/groups' % self.member[u"member_id"]
-        if len(self) == 0:
+        if not self._dict:
             self._dict = dict(map(
                 lambda x: (x[u"group_name"], Group(self.adapter, x)),
                 self.adapter.get(path)

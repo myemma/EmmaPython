@@ -1,8 +1,8 @@
-from collection import Collection
 from emma_import import EmmaImport
 from member import Member
 from field import Field
 from myemma.adapter.requests_adapter import RequestsAdapter
+from myemma.model.base import Collection
 
 class Account(object):
     """
@@ -85,7 +85,7 @@ class MemberCollection(Collection):
         """
         path = '/members'
         params = {"deleted":True} if deleted else {}
-        if len(self) == 0:
+        if not self._dict:
             self._dict = dict(map(
                 lambda x: (x[u"member_id"], Member(self.adapter, x)),
                 self.adapter.get(path, params)
@@ -194,7 +194,7 @@ class ImportCollection(Collection):
 
         """
         path = '/members/imports'
-        if len(self) == 0:
+        if not self._dict:
             self._dict = dict(map(
                 lambda x: (x[u"import_id"], EmmaImport(self.adapter, x)),
                 self.adapter.get(path, {})

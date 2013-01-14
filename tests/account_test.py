@@ -225,6 +225,63 @@ class MemberCollectionTest(unittest.TestCase):
         self.members.fetch_all_by_import_id(100)
         self.assertEquals(1, len(self.members))
 
+    def test_fetch_all_by_import_id_updates_collection2(self):
+        self.members._dict = {
+            200: {u"member_id": 200, u"email": u"test1@example.com"},
+            201: {u"member_id": 201, u"email": u"test2@example.com"}
+        }
+        MockAdapter.expected = [
+            {u"member_id": 201, u"email": u"test3@example.com"}
+        ]
+        self.assertEquals(2, len(self.members))
+        self.members.fetch_all_by_import_id(100)
+        self.assertEquals(2, len(self.members))
+        self.assertDictEqual(
+            self.members._dict,
+            {
+                200: {u"member_id": 200, u"email": u"test1@example.com"},
+                201: {u"member_id": 201, u"email": u"test3@example.com"}
+            }
+        )
+
+    def test_fetch_all_by_import_id_updates_collection3(self):
+        self.members._dict = {
+            200: {u"member_id": 200, u"email": u"test1@example.com"},
+            201: {u"member_id": 201, u"email": u"test2@example.com"}
+        }
+        MockAdapter.expected = [
+            {u"member_id": 201, u"email": u"test3@example.com"},
+            {u"member_id": 202, u"email": u"test4@example.com"}
+        ]
+        self.assertEquals(2, len(self.members))
+        self.members.fetch_all_by_import_id(100)
+        self.assertEquals(3, len(self.members))
+        self.assertDictEqual(
+            self.members._dict,
+            {
+                200: {u"member_id": 200, u"email": u"test1@example.com"},
+                201: {u"member_id": 201, u"email": u"test3@example.com"},
+                202: {u"member_id": 202, u"email": u"test4@example.com"}
+            }
+        )
+
+    def test_fetch_all_by_import_id_updates_collection4(self):
+        self.members._dict = {
+            201: {u"member_id": 201, u"email": u"test2@example.com"}
+        }
+        MockAdapter.expected = [
+            {u"member_id": 201, u"email": u"test3@example.com"}
+        ]
+        self.assertEquals(1, len(self.members))
+        self.members.fetch_all_by_import_id(100)
+        self.assertEquals(1, len(self.members))
+        self.assertDictEqual(
+            self.members._dict,
+            {
+                201: {u"member_id": 201, u"email": u"test3@example.com"}
+            }
+        )
+
     def test_fetch_all_by_import_id_does_not_cache_results(self):
         MockAdapter.expected = [{u"member_id": 201}]
         self.members.fetch_all_by_import_id(100)
