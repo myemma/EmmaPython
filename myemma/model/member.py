@@ -1,27 +1,7 @@
-from . import BaseApiModel, Collection
+from . import (BaseApiModel, Collection, NoMemberEmailError, NoMemberIdError,
+               NoMemberStatusError)
 from group import Group
 from mailing import Mailing
-
-
-class NoMemberEmailError(Exception):
-    """
-    An API call was attempted with missing required parameters (email)
-    """
-    pass
-
-
-class NoMemberIdError(Exception):
-    """
-    An API call was attempted with missing required parameters (id)
-    """
-    pass
-
-
-class NoMemberStatusError(Exception):
-    """
-    An API call was attempted with missing required parameters (status)
-    """
-    pass
 
 
 class Member(BaseApiModel):
@@ -33,10 +13,10 @@ class Member(BaseApiModel):
     :param raw: The raw values of this :class:`Member`
     :type raw: :class:`dict`
     """
-    def __init__(self, adapter, raw = None):
-        self.adapter = adapter
-        self.groups = MemberGroupCollection(self.adapter, self)
-        self.mailings = MemberMailingCollection(self.adapter, self)
+    def __init__(self, account, raw = None):
+        self.account = account
+        self.groups = MemberGroupCollection(self)
+        self.mailings = MemberMailingCollection(self)
         self._dict = raw if raw is not None else {}
 
     def opt_out(self):
@@ -49,7 +29,7 @@ class Member(BaseApiModel):
         if u"email" not in self._dict:
             raise NoMemberEmailError()
         path = '/members/email/optout/%s' % self._dict[u"email"]
-        if self.adapter.put(path):
+        if self.account.adapter.put(path):
             self._dict[u"status"] = u"opt-out"
 
     def get_opt_out_detail(self):
@@ -61,7 +41,7 @@ class Member(BaseApiModel):
         if u"member_id" not in self._dict:
             raise NoMemberIdError()
         path = '/members/%s/optout' % self._dict[u"member_id"]
-        return self.adapter.get(path)
+        return self.account.adapter.get(path)
 
     def has_opted_out(self):
         """
@@ -72,6 +52,43 @@ class Member(BaseApiModel):
         if u"status" not in self._dict:
             raise NoMemberStatusError()
         return self._dict[u"status"] == u"opt-out"
+
+    def extract(self, top_level=None):
+        """
+        Extracts data from the model in a format suitable for using with the API
+
+        ;param top_level: Set of top-level attributes of the resulting JSON
+                          object. All other attributes will be treated as
+                          member fields.
+        :type top_level: :class:`list` of :class:`str` or :class:`None`
+        :rtype: :class:`dict`
+        """
+        if 'email' not in self._dict:
+            raise NoMemberEmailError
+
+        # Set some defaults
+        if top_level is None:
+            top_level = ['member_id', 'email']
+
+        def squash(d, t):
+            """squash a member tuple into member dictionary"""
+            if t[0] in top_level:
+                d[t[0]] = t[1]
+            else:
+                if 'fields' not in d:
+                    d['fields'] = {}
+                d['fields'][t[0]] = t[1]
+            return d
+
+        shortcuts = self.account.fields.export_shortcuts()
+
+        return dict(
+            reduce(
+                lambda x, y: squash(x, y),
+                filter(
+                    lambda x: x[0] in shortcuts + top_level,
+                    self._dict.items()),
+                {}))
 
 
 class MemberMailingCollection(Collection):
@@ -84,9 +101,9 @@ class MemberMailingCollection(Collection):
     :param member: The parent for this collection
     :type member: :class:`Member`
     """
-    def __init__(self, adapter, member):
+    def __init__(self, member):
         self.member = member
-        super(MemberMailingCollection, self).__init__(adapter)
+        super(MemberMailingCollection, self).__init__(member.account.adapter)
 
     def fetch_all(self):
         """
@@ -104,8 +121,8 @@ class MemberMailingCollection(Collection):
         path = '/members/%s/mailings' % self.member[u"member_id"]
         if not self._dict:
             self._dict = dict(map(
-                lambda x: (x[u"mailing_id"], Mailing(self.adapter, x)),
-                self.adapter.get(path)
+                lambda x: (x[u"mailing_id"], Mailing(self.member.account, x)),
+                self.member.account.adapter.get(path)
             ))
         return self._dict
 
@@ -120,9 +137,9 @@ class MemberGroupCollection(Collection):
     :param member: The parent for this collection
     :type member: :class:`Member`
     """
-    def __init__(self, adapter, member):
+    def __init__(self, member):
         self.member = member
-        super(MemberGroupCollection, self).__init__(adapter)
+        super(MemberGroupCollection, self).__init__(self.member.account.adapter)
 
     def fetch_all(self):
         """
@@ -140,7 +157,7 @@ class MemberGroupCollection(Collection):
         path = '/members/%s/groups' % self.member[u"member_id"]
         if not self._dict:
             self._dict = dict(map(
-                lambda x: (x[u"group_name"], Group(self.adapter, x)),
-                self.adapter.get(path)
+                lambda x: (x[u"group_name"], Group(self.member.account, x)),
+                self.member.account.adapter.get(path)
             ))
         return self._dict

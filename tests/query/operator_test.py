@@ -1,10 +1,9 @@
 import unittest
 import myemma.query.operator as op
-from myemma.query.spec import ConjunctionQuery, DisjunctionQuery, NegationQuery
 from myemma.query.factory import QueryFactory as q
 
-class EqualityQueryTest(unittest.TestCase):
 
+class EqualityQueryTest(unittest.TestCase):
     def test_can_build_a_simple_equality_query(self):
         query = op.EqualityQuery('member_field:some_string_field', 'bar')
         self.assertIsInstance(query, op.EqualityQuery)
@@ -15,6 +14,8 @@ class EqualityQueryTest(unittest.TestCase):
         self.assertIsInstance(query, op.EqualityQuery)
         self.assertEquals('["first_name", "eq", "Test"]', "%s" % query)
 
+
+class LessThanQueryTest(unittest.TestCase):
     def test_can_build_a_simple_less_than_query(self):
         query = op.LessThanQuery('member_field:some_numeric_field', 5)
         self.assertIsInstance(query, op.LessThanQuery)
@@ -25,6 +26,8 @@ class EqualityQueryTest(unittest.TestCase):
         self.assertIsInstance(query, op.LessThanQuery)
         self.assertEquals('["member_field:some_numeric_field", "lt", 5]', "%s" % query)
 
+
+class GreaterThanQueryTest(unittest.TestCase):
     def test_can_build_a_simple_greater_than_query(self):
         query = op.GreaterThanQuery('member_field:some_numeric_field', 5)
         self.assertIsInstance(query, op.GreaterThanQuery)
@@ -35,6 +38,8 @@ class EqualityQueryTest(unittest.TestCase):
         self.assertIsInstance(query, op.GreaterThanQuery)
         self.assertEquals('["member_field:some_numeric_field", "gt", 5]', "%s" % query)
 
+
+class BetweenQueryTest(unittest.TestCase):
     def test_can_build_a_simple_between_query(self):
         query = op.BetweenQuery('member_field:some_numeric_field', 5, 10)
         self.assertIsInstance(query, op.BetweenQuery)
@@ -45,6 +50,8 @@ class EqualityQueryTest(unittest.TestCase):
         self.assertIsInstance(query, op.BetweenQuery)
         self.assertEquals('["member_field:some_numeric_field", "between", 5, 10]', "%s" % query)
 
+
+class ContainsQueryTest(unittest.TestCase):
     def test_can_build_a_simple_contains_query(self):
         query = op.ContainsQuery('member_field:some_string_field', '*foo*')
         self.assertIsInstance(query, op.ContainsQuery)
@@ -55,6 +62,8 @@ class EqualityQueryTest(unittest.TestCase):
         self.assertIsInstance(query, op.ContainsQuery)
         self.assertEquals('["member_field:some_string_field", "contains", "*foo*"]', "%s" % query)
 
+
+class AnyQueryTest(unittest.TestCase):
     def test_can_build_a_simple_any_query(self):
         query = op.AnyQuery('member_field:some_array_field', 'ten')
         self.assertIsInstance(query, op.AnyQuery)
@@ -65,50 +74,3 @@ class EqualityQueryTest(unittest.TestCase):
         self.assertIsInstance(query, op.AnyQuery)
         self.assertEquals('["member_field:some_array_field", "any", "ten"]', "%s" % query)
 
-    def test_can_build_a_complex_equality_query_using_conjunction(self):
-        query = q.eq('first_name', 'TestFirst').conjoin(q.eq('last_name', 'TestLast'))
-        self.assertIsInstance(query, ConjunctionQuery)
-        self.assertEquals('["and", ["first_name", "eq", "TestFirst"], ["last_name", "eq", "TestLast"]]', "%s" % query)
-
-    def test_can_build_a_complex_equality_query_using_conjunction2(self):
-        query = q.eq('first_name', 'TestFirst') & q.eq('last_name', 'TestLast')
-        self.assertIsInstance(query, ConjunctionQuery)
-        self.assertEquals('["and", ["first_name", "eq", "TestFirst"], ["last_name", "eq", "TestLast"]]', "%s" % query)
-
-    def test_can_build_a_complex_equality_query_using_conjunction3(self):
-        query = q.eq('first_name', 'TestFirst')
-        query &= q.eq('last_name', 'TestLast')
-        self.assertIsInstance(query, ConjunctionQuery)
-        self.assertEquals('["and", ["first_name", "eq", "TestFirst"], ["last_name", "eq", "TestLast"]]', "%s" % query)
-
-    def test_can_build_a_complex_equality_query_using_disjunction(self):
-        query = q.eq('first_name', 'TestFirst').disjoin(q.eq('last_name', 'TestLast'))
-        self.assertIsInstance(query, DisjunctionQuery)
-        self.assertEquals('["or", ["first_name", "eq", "TestFirst"], ["last_name", "eq", "TestLast"]]', "%s" % query)
-
-    def test_can_build_a_complex_equality_query_using_disjunction2(self):
-        query = q.eq('first_name', 'TestFirst') | q.eq('last_name', 'TestLast')
-        self.assertIsInstance(query, DisjunctionQuery)
-        self.assertEquals('["or", ["first_name", "eq", "TestFirst"], ["last_name", "eq", "TestLast"]]', "%s" % query)
-
-    def test_can_build_a_complex_equality_query_using_disjunction3(self):
-        query = q.eq('first_name', 'TestFirst')
-        query |= q.eq('last_name', 'TestLast')
-        self.assertIsInstance(query, DisjunctionQuery)
-        self.assertEquals('["or", ["first_name", "eq", "TestFirst"], ["last_name", "eq", "TestLast"]]', "%s" % query)
-
-    def test_can_build_a_complex_equality_query_using_Negation(self):
-        query = q.eq('first_name', 'TestFirst').negate()
-        self.assertIsInstance(query, NegationQuery)
-        self.assertEquals('["not", ["first_name", "eq", "TestFirst"]]', "%s" % query)
-
-    def test_can_build_a_complex_equality_query_using_Negation2(self):
-        query = ~ q.eq('first_name', 'TestFirst')
-        self.assertIsInstance(query, NegationQuery)
-        self.assertEquals('["not", ["first_name", "eq", "TestFirst"]]', "%s" % query)
-
-    def test_can_build_a_complex_equality_query_using_Negation3(self):
-        query = q.eq('first_name', 'TestFirst')
-        query = ~ query
-        self.assertIsInstance(query, NegationQuery)
-        self.assertEquals('["not", ["first_name", "eq", "TestFirst"]]', "%s" % query)

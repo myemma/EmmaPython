@@ -21,18 +21,18 @@ class BaseApiModel(collections.MutableMapping):
         return self._dict.__contains__(key)
 
     def __repr__(self):
-        return repr(self._dict)
+        return " ".join(['<', self.__class__.__name__, repr(self._dict), '>'])
 
 
 class Collection(BaseApiModel):
     """
     An object representing a set of models, useful for group-level operations
 
-    :param adapter: An HTTP client adapter from :mod:`myemma.adapter`
-    :type adapter: :class:`AbstractAdapter`
+    :param account: The account which owns this collection
+    :type account: :class:`Account`
     """
-    def __init__(self, adapter):
-        self.adapter = adapter
+    def __init__(self, account):
+        self.account = account
         self._dict = {}
 
     def replace_all(self, items):
@@ -51,10 +51,31 @@ class Collection(BaseApiModel):
                 map(
                     lambda x: (
                         x[0],
-                        x[1] if x[0] not in items.keys() else items[x[0]]),
+                        x[1] if x[0] not in items else items[x[0]]),
                     self._dict.items()
                 ) + filter(
-                    lambda x: x[0] not in self._dict.keys(),
+                    lambda x: x[0] not in self._dict,
                     items.items()
                 )
             )
+
+
+class NoMemberEmailError(Exception):
+    """
+    An API call was attempted with missing required parameters (email)
+    """
+    pass
+
+
+class NoMemberIdError(Exception):
+    """
+    An API call was attempted with missing required parameters (id)
+    """
+    pass
+
+
+class NoMemberStatusError(Exception):
+    """
+    An API call was attempted with missing required parameters (status)
+    """
+    pass

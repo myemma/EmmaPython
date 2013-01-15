@@ -1,4 +1,4 @@
-from . import Collection
+from . import Collection, NoMemberEmailError
 from emma_import import EmmaImport
 from member import Member
 from field import Field
@@ -29,9 +29,9 @@ class Account(object):
             "public_key": public_key,
             "private_key": private_key
         })
-        self.fields = FieldCollection(self.adapter)
-        self.members = MemberCollection(self.adapter)
-        self.imports = ImportCollection(self.adapter)
+        self.fields = FieldCollection(self)
+        self.members = MemberCollection(self)
+        self.imports = ImportCollection(self)
 
 
 class FieldCollection(Collection):
@@ -43,7 +43,7 @@ class FieldCollection(Collection):
         """
         Lazy-loads the full set of :class:`Field` objects
 
-        :rtype: :class:`list` of :class:`Field` objects
+        :rtype: :class:`dict` of :class:`Field` objects
 
         Usage::
 
@@ -53,10 +53,21 @@ class FieldCollection(Collection):
         path = '/fields'
         if not self._dict:
             self._dict = dict(map(
-                lambda x: (x[u"field_id"], Field(self.adapter, x)),
-                self.adapter.get(path)
+                lambda x: (x[u"field_id"], Field(self.account, x)),
+                self.account.adapter.get(path)
             ))
         return self._dict
+
+    def export_shortcuts(self):
+        """
+        Get a :class:`list` of shortcut names for this account
+
+        :rtype: :class:`list` of :class:`str`
+        """
+        return map(
+            lambda x: x[u"shortcut_name"],
+            self.fetch_all().values()
+        )
 
 
 class MemberCollection(Collection):
@@ -73,13 +84,22 @@ class MemberCollection(Collection):
         if isinstance(key, str) or isinstance(key, unicode):
             return self.find_one_by_email(key)
 
+    def factory(self, raw={}):
+        """
+        New :class:`Member` factory
+        :param raw: Raw data with which to populate class
+        :type raw: :class:`dict`
+        :rtype: :class:`Member`
+        """
+        return Member(self.account, raw)
+
     def fetch_all(self, deleted = False):
         """
         Lazy-loads the full set of :class:`Member` objects
 
         :param deleted: Whether to include deleted members
         :type deleted: :class:`bool`
-        :rtype: :class:`list` of :class:`Member` objects
+        :rtype: :class:`dict` of :class:`Member` objects
 
         Usage::
 
@@ -90,8 +110,8 @@ class MemberCollection(Collection):
         params = {"deleted":True} if deleted else {}
         if not self._dict:
             self._dict = dict(map(
-                lambda x: (x[u"member_id"], Member(self.adapter, x)),
-                self.adapter.get(path, params)
+                lambda x: (x[u"member_id"], Member(self.account, x)),
+                self.account.adapter.get(path, params)
             ))
         return self._dict
 
@@ -102,7 +122,7 @@ class MemberCollection(Collection):
 
         :param import_id: The import identifier
         :type import_id: :class:`int` or :class:`str`
-        :rtype: :class:`list` of :class:`Member` objects
+        :rtype: :class:`dict` of :class:`Member` objects
 
         Usage::
 
@@ -111,8 +131,8 @@ class MemberCollection(Collection):
         """
         path = '/members/imports/%s/members' % import_id
         members = dict(map(
-            lambda x: (x[u"member_id"], Member(self.adapter, x)),
-            self.adapter.get(path)
+            lambda x: (x[u"member_id"], Member(self.account, x)),
+            self.account.adapter.get(path)
         ))
         self.replace_all(members)
         return members
@@ -137,9 +157,9 @@ class MemberCollection(Collection):
         path = '/members/%s' % member_id
         params = {"deleted":True} if deleted else {}
         if member_id not in self._dict:
-            member = self.adapter.get(path, params)
+            member = self.account.adapter.get(path, params)
             if member is not None:
-                self._dict[member[u"member_id"]] = Member(self.adapter, member)
+                self._dict[member[u"member_id"]] = Member(self.account, member)
                 return self._dict[member[u"member_id"]]
         else:
             return self._dict[member_id]
@@ -167,14 +187,47 @@ class MemberCollection(Collection):
             lambda x: x[u"email"] == email,
             self._dict.values())
         if not members:
-            member = self.adapter.get(path, params)
+            member = self.account.adapter.get(path, params)
             if member is not None:
                 self._dict[member[u"member_id"]] = \
-                    Member(self.adapter, member)
+                    Member(self.account, member)
                 return self._dict[member[u"member_id"]]
         else:
             member = members[0]
         return member
+
+    def save(self, members=[], filename=None, add_only=False,
+             group_ids=[]):
+        """
+        :param members: List of :class:`Member` objects to save
+        :type members: :class:`list` of :class:`Member` objects
+        :param filename: An arbitrary string to associate with this import
+        :type filename: :class:`str`
+        :param add_only: Only add new members, ignore existing members
+        :type add_only: :class:`bool`
+        :param group_ids: Add imported members to this list of groups
+        :type group_ids: :class:`list`
+        :rtype: :class:`int` or :class:`None`
+        """
+
+        if not members and (not self._dict or add_only) :
+            return None
+
+        path = '/members'
+        params = {
+            'members': (
+                map(lambda x: x.extract(), members)
+                + ([]
+                   if add_only
+                   else map(lambda x: x.extract(), self._dict.values())))
+        }
+        if add_only:
+            params['add_only'] = add_only
+        if filename:
+            params['filename'] = filename
+        if group_ids:
+            params['group_ids'] = group_ids
+        return self.account.adapter.post(path, params)
 
 
 class ImportCollection(Collection):
@@ -192,7 +245,7 @@ class ImportCollection(Collection):
         """
         Lazy-loads the full set of :class:`Import` objects
 
-        :rtype: :class:`list` of :class:`Import` objects
+        :rtype: :class:`dict` of :class:`Import` objects
 
         Usage::
 
@@ -202,8 +255,8 @@ class ImportCollection(Collection):
         path = '/members/imports'
         if not self._dict:
             self._dict = dict(map(
-                lambda x: (x[u"import_id"], EmmaImport(self.adapter, x)),
-                self.adapter.get(path, {})
+                lambda x: (x[u"import_id"], EmmaImport(self.account, x)),
+                self.account.adapter.get(path, {})
             ))
         return self._dict
 
@@ -225,10 +278,10 @@ class ImportCollection(Collection):
         import_id = int(import_id)
         path = '/members/imports/%s' % import_id
         if not self._dict.has_key(import_id):
-            emma_import = self.adapter.get(path)
+            emma_import = self.account.adapter.get(path)
             if emma_import is not None:
                 self._dict[emma_import[u"import_id"]] = \
-                    EmmaImport(self.adapter, emma_import)
+                    EmmaImport(self.account, emma_import)
                 return self._dict[emma_import[u"import_id"]]
         else:
             return self._dict[import_id]

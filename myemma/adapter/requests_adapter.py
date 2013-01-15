@@ -1,3 +1,4 @@
+import json
 import requests
 import requests.auth
 from myemma.adapter import AbstractAdapter, ApiRequestFailed
@@ -32,21 +33,22 @@ class RequestsAdapter(AbstractAdapter):
 
         return response.json
 
-    def post(self, path, params={}):
+    def post(self, path, data=None):
         """
         Takes an effective path (portion after https://api.e2ma.net/:account_id)
         and a parameter dictionary, then passes these to :func:`requests.post`
 
         :param path: The path portion of a URL
         :type path: :class:`str`
-        :param params: The dictionary of HTTP parameters to encode
-        :type params: :class:`dict`
+        :param data: The content to encode
+        :type data: :class:`object`
         :rtype: JSON-encoded value or None (if 404)
         """
+        print(repr(data))
         return self._process_response(
             requests.post(
                 self.url + "%s" % path,
-                params=params,
+                data=json.dumps(data),
                 auth=self.auth))
 
     def get(self, path, params={}):
