@@ -73,6 +73,9 @@ class Member(BaseApiModel):
 
             >>> mbr.has_opted_out()
             False
+            >>> mbr.opt_out()
+            >>> mbr.has_opted_out()
+            True
         """
         if u"status" not in self._dict:
             raise NoMemberStatusError()

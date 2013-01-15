@@ -97,6 +97,7 @@ class MemberCollection(Collection):
     def factory(self, raw={}):
         """
         New :class:`Member` factory
+
         :param raw: Raw data with which to populate class
         :type raw: :class:`dict`
         :rtype: :class:`Member`
@@ -228,7 +229,7 @@ class MemberCollection(Collection):
         :type add_only: :class:`bool`
         :param group_ids: Add imported members to this list of groups
         :type group_ids: :class:`list`
-        :rtype: :class:`int` or :class:`None`
+        :rtype: :class:`int` representing an import identifier or :class:`None`
 
         Usage::
 
