@@ -42,9 +42,9 @@ class MemberTest(unittest.TestCase):
         self.member = Member(
             Account(account_id="100", public_key="xxx", private_key="yyy"),
             {
-                u"member_id":1000,
-                u"email":u"test@example.com",
-                u"status":u"opt-out"
+                'member_id':1000,
+                'email':u"test@example.com",
+                'status':u"opt-out"
             }
         )
         self.member.account.fields._dict = {
@@ -88,9 +88,9 @@ class MemberTest(unittest.TestCase):
         member = Member(
             self.member.account,
             {
-                u"member_id":1000,
-                u"email":u"test@example.com",
-                u"status":u"active"
+                'member_id':1000,
+                'email':u"test@example.com",
+                'status':u"active"
             }
         )
         has_opted_out = member.has_opted_out()
@@ -114,9 +114,9 @@ class MemberTest(unittest.TestCase):
         member = Member(
             self.member.account,
             {
-                u"member_id":1000,
-                u"email":u"test@example.com",
-                u"status":u"active"
+                'member_id':1000,
+                'email':u"test@example.com",
+                'status':u"active"
             }
         )
         MockAdapter.expected = True
@@ -129,6 +129,65 @@ class MemberTest(unittest.TestCase):
             ('PUT', '/members/email/optout/test@example.com', {}))
         self.assertTrue(member.has_opted_out())
 
+    def test_can_save_a_member(self):
+        mbr = Member(self.member.account, {'email':u"test@example.com"})
+        MockAdapter.expected = {
+            'status': u"a",
+            'added': True,
+            'member_id': 1024
+        }
+        result = mbr.save()
+        self.assertIsNone(result)
+        self.assertEquals(mbr.account.adapter.called, 1)
+        self.assertEquals(
+            mbr.account.adapter.call,
+            ('POST', '/members/add', {'email':u"test@example.com"}))
+        self.assertEquals(1024, mbr['member_id'])
+        self.assertEquals(u"a", mbr['status_code'])
+
+    def test_can_save_a_member2(self):
+        mbr = Member(
+            self.member.account,
+            {'email':u"test@example.com",
+             'first_name':u"Emma"})
+        MockAdapter.expected = {
+            'status': u"a",
+            'added': True,
+            'member_id': 1024
+        }
+        result = mbr.save()
+        self.assertIsNone(result)
+        self.assertEquals(mbr.account.adapter.called, 1)
+        self.assertEquals(
+            mbr.account.adapter.call,
+            ('POST', '/members/add', {'email':u"test@example.com",
+                                      'fields': {'first_name': u"Emma"}}))
+        self.assertEquals(1024, mbr['member_id'])
+        self.assertEquals(u"a", mbr['status_code'])
+
+    def test_can_save_a_member3(self):
+        mbr = Member(
+            self.member.account,
+            {'email':u"test@example.com",
+             'first_name':u"Emma"})
+        MockAdapter.expected = {
+            'status': u"a",
+            'added': True,
+            'member_id': 1024
+        }
+        result = mbr.save(signup_form_id=u"http://example.com/signup")
+        self.assertIsNone(result)
+        self.assertEquals(mbr.account.adapter.called, 1)
+        self.assertEquals(
+            mbr.account.adapter.call,
+            ('POST', '/members/add', {
+                'email':u"test@example.com",
+                'fields': {'first_name': u"Emma"},
+                'signup_form_id': u"http://example.com/signup"}
+            ))
+        self.assertEquals(1024, mbr['member_id'])
+        self.assertEquals(u"a", mbr['status_code'])
+
 
 class MemberGroupCollectionTest(unittest.TestCase):
     def setUp(self):
@@ -136,9 +195,9 @@ class MemberGroupCollectionTest(unittest.TestCase):
         self.groups =  Member(
             Account(account_id="100", public_key="xxx", private_key="yyy"),
             {
-                u"member_id":1000,
-                u"email":u"test@example.com",
-                u"status":u"opt-out"
+                'member_id':1000,
+                'email':u"test@example.com",
+                'status':u"opt-out"
             }
         ).groups
 
@@ -149,7 +208,7 @@ class MemberGroupCollectionTest(unittest.TestCase):
         self.assertEquals(groups.member.account.adapter.called, 0)
 
     def test_fetch_all_returns_a_dictionary2(self):
-        MockAdapter.expected = [{u"group_name": u"Test Group"}]
+        MockAdapter.expected = [{'group_name': u"Test Group"}]
         self.assertIsInstance(self.groups.fetch_all(), dict)
         self.assertEquals(self.groups.member.account.adapter.called, 1)
         self.assertEquals(
@@ -157,19 +216,19 @@ class MemberGroupCollectionTest(unittest.TestCase):
             ('GET', '/members/1000/groups', {}))
 
     def test_fetch_all_populates_collection(self):
-        MockAdapter.expected = [{u"group_name": u"Test Group"}]
+        MockAdapter.expected = [{'group_name': u"Test Group"}]
         self.assertEquals(0, len(self.groups))
         self.groups.fetch_all()
         self.assertEquals(1, len(self.groups))
 
     def test_fetch_all_caches_results(self):
-        MockAdapter.expected = [{u"group_name": u"Test Group"}]
+        MockAdapter.expected = [{'group_name': u"Test Group"}]
         self.groups.fetch_all()
         self.groups.fetch_all()
         self.assertEquals(self.groups.member.account.adapter.called, 1)
 
     def test_collection_can_be_accessed_like_a_dictionary(self):
-        MockAdapter.expected = [{u"group_name": u"Test Group"}]
+        MockAdapter.expected = [{'group_name': u"Test Group"}]
         self.groups.fetch_all()
         self.assertIsInstance(self.groups, MemberGroupCollection)
         self.assertEquals(1, len(self.groups))
@@ -182,9 +241,9 @@ class MemberMailingCollectionTest(unittest.TestCase):
         self.mailings =  Member(
             Account(account_id="100", public_key="xxx", private_key="yyy"),
             {
-                u"member_id":1000,
-                u"email":u"test@example.com",
-                u"status":u"opt-out"
+                'member_id':1000,
+                'email':u"test@example.com",
+                'status':u"opt-out"
             }
         ).mailings
 
@@ -196,7 +255,7 @@ class MemberMailingCollectionTest(unittest.TestCase):
         self.assertEquals(mailings.member.account.adapter.called, 0)
 
     def test_fetch_all_returns_a_dictionary2(self):
-        MockAdapter.expected = [{u"mailing_id": 201}]
+        MockAdapter.expected = [{'mailing_id': 201}]
         self.assertIsInstance(self.mailings.fetch_all(), dict)
         self.assertEquals(self.mailings.member.account.adapter.called, 1)
         self.assertEquals(
@@ -204,19 +263,19 @@ class MemberMailingCollectionTest(unittest.TestCase):
             ('GET', '/members/1000/mailings', {}))
 
     def test_fetch_all_populates_collection(self):
-        MockAdapter.expected = [{u"mailing_id": 201}]
+        MockAdapter.expected = [{'mailing_id': 201}]
         self.assertEquals(0, len(self.mailings))
         self.mailings.fetch_all()
         self.assertEquals(1, len(self.mailings))
 
     def test_fetch_all_caches_results(self):
-        MockAdapter.expected = [{u"mailing_id": 201}]
+        MockAdapter.expected = [{'mailing_id': 201}]
         self.mailings.fetch_all()
         self.mailings.fetch_all()
         self.assertEquals(self.mailings.member.account.adapter.called, 1)
 
     def test_collection_can_be_accessed_like_a_dictionary(self):
-        MockAdapter.expected = [{u"mailing_id": 201}]
+        MockAdapter.expected = [{'mailing_id': 201}]
         self.mailings.fetch_all()
         self.assertIsInstance(self.mailings, MemberMailingCollection)
         self.assertEquals(1, len(self.mailings))

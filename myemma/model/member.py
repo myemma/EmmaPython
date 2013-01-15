@@ -44,11 +44,11 @@ class Member(BaseApiModel):
             >>> mbr.opt_out()
             None
         """
-        if u"email" not in self._dict:
+        if 'email' not in self._dict:
             raise NoMemberEmailError()
-        path = '/members/email/optout/%s' % self._dict[u"email"]
+        path = '/members/email/optout/%s' % self._dict['email']
         if self.account.adapter.put(path):
-            self._dict[u"status"] = u"opt-out"
+            self._dict['status'] = u"opt-out"
 
     def get_opt_out_detail(self):
         """
@@ -63,9 +63,9 @@ class Member(BaseApiModel):
             >>> mbr.get_opt_out_detail()
             [...]
         """
-        if u"member_id" not in self._dict:
+        if 'member_id' not in self._dict:
             raise NoMemberIdError()
-        path = '/members/%s/optout' % self._dict[u"member_id"]
+        path = '/members/%s/optout' % self._dict['member_id']
         return self.account.adapter.get(path)
 
     def has_opted_out(self):
@@ -84,9 +84,9 @@ class Member(BaseApiModel):
             >>> mbr.has_opted_out()
             True
         """
-        if u"status" not in self._dict:
+        if 'status' not in self._dict:
             raise NoMemberStatusError()
-        return self._dict[u"status"] == u"opt-out"
+        return self._dict['status'] == u"opt-out"
 
     def extract(self, top_level=None):
         """
@@ -131,6 +131,35 @@ class Member(BaseApiModel):
                     self._dict.items()),
                 {}))
 
+    def save(self, signup_form_id=None):
+        """
+        Add or update this :class:`Member`
+
+        :rtype: :class:`None`
+
+        Usage::
+
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> mbr = acct.members[123]
+            >>> mbr['last_name'] = u"New-Name"
+            >>> mbr.save()
+            None
+            >>> mbr = acct.members.factory({'email': u"new@example.com"})
+            >>> mbr.save()
+            None
+        """
+        path = '/members/add'
+        data = self.extract()
+        if len(self.groups):
+            data['group_ids'] = self.groups.fetch_all().keys()
+        if signup_form_id:
+            data['signup_form_id'] = signup_form_id
+
+        outcome = self.account.adapter.post(path, data)
+        self['status_code'] = outcome['status']
+        if outcome['added']:
+            self['member_id'] = outcome['member_id']
+
 
 class MemberMailingCollection(Collection):
     """
@@ -150,22 +179,22 @@ class MemberMailingCollection(Collection):
         """
         Lazy-loads the full set of :class:`Mailing` objects
 
-        :rtype: :class:`list` of :class:`Mailing` objects
+        :rtype: :class:`dict` of :class:`Mailing` objects
 
         Usage::
 
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.mailings.fetch_all()
-            [<Mailing>, <Mailing>, ...]
+            {123: <Mailing>, 321: <Mailing>, ...}
 
         """
-        if u"member_id" not in self.member:
+        if 'member_id' not in self.member:
             raise NoMemberIdError()
-        path = '/members/%s/mailings' % self.member[u"member_id"]
+        path = '/members/%s/mailings' % self.member['member_id']
         if not self._dict:
             self._dict = dict(map(
-                lambda x: (x[u"mailing_id"], Mailing(self.member.account, x)),
+                lambda x: (x['mailing_id'], Mailing(self.member.account, x)),
                 self.member.account.adapter.get(path)
             ))
         return self._dict
@@ -189,22 +218,22 @@ class MemberGroupCollection(Collection):
         """
         Lazy-loads the full set of :class:`Group` objects
 
-        :rtype: :class:`list` of :class:`Group` objects
+        :rtype: :class:`dict` of :class:`Group` objects
 
         Usage::
 
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.groups.fetch_all()
-            [<Group>, <Group>, ...]
+            {123: <Group>, 321: <Group>, ...}
 
         """
-        if u"member_id" not in self.member:
+        if 'member_id' not in self.member:
             raise NoMemberIdError()
-        path = '/members/%s/groups' % self.member[u"member_id"]
+        path = '/members/%s/groups' % self.member['member_id']
         if not self._dict:
             self._dict = dict(map(
-                lambda x: (x[u"group_name"], Group(self.member.account, x)),
+                lambda x: (x['group_name'], Group(self.member.account, x)),
                 self.member.account.adapter.get(path)
             ))
         return self._dict

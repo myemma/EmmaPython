@@ -11,7 +11,7 @@ class QueryFactory(object):
         >>> qf = QueryFactory
         >>> query1 = qf.eq('member_field:foo', 1) & qf.contains('member_field:bar', 2)
         >>> print("%s" % query1)
-        ["and", ["member_field:foo", "eq", 1], ["member_field:bar", "eq", 2]]
+        ["and", ["member_field:foo", "eq", 1], ["member_field:bar", "contains", 2]]
 
         >>> query2 = qf.eq('member_field:foo', 1) | qf.contains('member_field:bar', 2)
         >>> print("%s" % query2)
