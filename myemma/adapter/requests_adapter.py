@@ -12,11 +12,14 @@ class RequestsAdapter(AbstractAdapter):
                  keys
     :type auth: :class:`dict`
 
-    Example auth :class:`dict`::
+    Usage::
 
-        {"account_id": "1234",
-         "public_key": "08192a3b4c5d6e7f",
-         "private_key": "f7e6d5c4b3a29180"}
+        >>> adptr = RequestsAdapter({
+        ...     "account_id": "1234",
+        ...     "public_key": "08192a3b4c5d6e7f",
+        ...     "private_key": "f7e6d5c4b3a29180"})
+        >>> adptr
+        <RequestsAdapter>
 
     """
     def __init__(self, auth):
@@ -43,6 +46,15 @@ class RequestsAdapter(AbstractAdapter):
         :param data: The content to encode
         :type data: :class:`object`
         :rtype: JSON-encoded value or None (if 404)
+
+        Usage::
+
+            >>> adptr = RequestsAdapter({
+            ...     "account_id": "1234",
+            ...     "public_key": "08192a3b4c5d6e7f",
+            ...     "private_key": "f7e6d5c4b3a29180"})
+            >>> adptr.post('/members', {...})
+            {u'import_id': 2001}
         """
         return self._process_response(
             requests.post(
@@ -60,6 +72,15 @@ class RequestsAdapter(AbstractAdapter):
         :param params: The dictionary of HTTP parameters to encode
         :type params: :class:`dict`
         :rtype: JSON-encoded value or None (if 404)
+
+        Usage::
+
+            >>> adptr = RequestsAdapter({
+            ...     "account_id": "1234",
+            ...     "public_key": "08192a3b4c5d6e7f",
+            ...     "private_key": "f7e6d5c4b3a29180"})
+            >>> adptr.get('/members', {...})
+            [{...}, {...}, ...]
         """
         return self._process_response(
             requests.get(
@@ -77,6 +98,15 @@ class RequestsAdapter(AbstractAdapter):
         :param params: The dictionary of HTTP parameters to encode
         :type params: :class:`dict`
         :rtype: JSON-encoded value or None (if 404)
+
+        Usage::
+
+            >>> adptr = RequestsAdapter({
+            ...     "account_id": "1234",
+            ...     "public_key": "08192a3b4c5d6e7f",
+            ...     "private_key": "f7e6d5c4b3a29180"})
+            >>> adptr.put('/members/email/optout/test@example.com')
+            True
         """
         return self._process_response(
             requests.put(
@@ -94,6 +124,15 @@ class RequestsAdapter(AbstractAdapter):
         :param params: The dictionary of HTTP parameters to encode
         :type params: :class:`dict`
         :rtype: JSON-encoded value or None (if 404)
+
+        Usage::
+
+            >>> adptr = RequestsAdapter({
+            ...     "account_id": "1234",
+            ...     "public_key": "08192a3b4c5d6e7f",
+            ...     "private_key": "f7e6d5c4b3a29180"})
+            >>> adptr.delete('/members/123')
+            True
         """
         return self._process_response(
             requests.delete(

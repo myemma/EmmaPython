@@ -15,7 +15,8 @@ class Member(BaseApiModel):
 
     Usage::
 
-        >>> mbr = acct.members.factory()
+        >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+        >>> mbr = acct.members[123]
         >>> mbr
         <Member>
         >>> mbr.groups
@@ -23,7 +24,7 @@ class Member(BaseApiModel):
         >>> mbr.mailings
         <MemberMailingCollection>
     """
-    def __init__(self, account, raw = None):
+    def __init__(self, account, raw=None):
         self.account = account
         self.groups = MemberGroupCollection(self)
         self.mailings = MemberMailingCollection(self)
@@ -38,6 +39,8 @@ class Member(BaseApiModel):
 
         Usage::
 
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> mbr = acct.members[123]
             >>> mbr.opt_out()
             None
         """
@@ -55,6 +58,8 @@ class Member(BaseApiModel):
 
         Usage::
 
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> mbr = acct.members[123]
             >>> mbr.get_opt_out_detail()
             [...]
         """
@@ -71,6 +76,8 @@ class Member(BaseApiModel):
 
         Usage::
 
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> mbr = acct.members[123]
             >>> mbr.has_opted_out()
             False
             >>> mbr.opt_out()
@@ -92,6 +99,8 @@ class Member(BaseApiModel):
 
         Usage::
 
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> mbr = acct.members[123]
             >>> mbr.extract()
             {'member_id':123, 'email':u"test@example.org", 'fields':{...}}
         """
@@ -145,6 +154,8 @@ class MemberMailingCollection(Collection):
 
         Usage::
 
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> mbr = acct.members[123]
             >>> mbr.mailings.fetch_all()
             [<Mailing>, <Mailing>, ...]
 
@@ -182,6 +193,8 @@ class MemberGroupCollection(Collection):
 
         Usage::
 
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> mbr = acct.members[123]
             >>> mbr.groups.fetch_all()
             [<Group>, <Group>, ...]
 

@@ -1,4 +1,4 @@
-from . import Collection, NoMemberEmailError
+from . import Collection
 from emma_import import EmmaImport
 from member import Member
 from field import Field
@@ -52,8 +52,9 @@ class FieldCollection(Collection):
 
         Usage::
 
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.fields.fetch_all()
-            [<Field>, <Field>, ...]
+            {123: <Field>, 321: <Field>, ...}
         """
         path = '/fields'
         if not self._dict:
@@ -71,6 +72,7 @@ class FieldCollection(Collection):
 
         Usage::
 
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.fields.export_shortcuts()
             ["first_name", "last_name", ...]
         """
@@ -104,6 +106,7 @@ class MemberCollection(Collection):
 
         Usage::
 
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.factory()
             <Member{}>
             >>> acct.members.factory({'email': u"test@example.com"})
@@ -111,7 +114,7 @@ class MemberCollection(Collection):
         """
         return Member(self.account, raw)
 
-    def fetch_all(self, deleted = False):
+    def fetch_all(self, deleted=False):
         """
         Lazy-loads the full set of :class:`Member` objects
 
@@ -121,8 +124,9 @@ class MemberCollection(Collection):
 
         Usage::
 
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.fetch_all()
-            [<Member>, <Member>, ...]
+            {123: <Member>, 321: <Member>, ...}
         """
         path = '/members'
         params = {"deleted":True} if deleted else {}
@@ -144,8 +148,9 @@ class MemberCollection(Collection):
 
         Usage::
 
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.fetch_all_by_import_id(123)
-            [<Member>, <Member>, ...]
+            {123: <Member>, 321: <Member>, ...}
         """
         path = '/members/imports/%s/members' % import_id
         members = dict(map(
@@ -155,7 +160,7 @@ class MemberCollection(Collection):
         self.replace_all(members)
         return members
 
-    def find_one_by_member_id(self, member_id, deleted = False):
+    def find_one_by_member_id(self, member_id, deleted=False):
         """
         Lazy-loads a single :class:`Member` by ID
 
@@ -167,6 +172,7 @@ class MemberCollection(Collection):
 
         Usage::
 
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.find_one_by_member_id(0) # does not exist
             None
             >>> acct.members.find_one_by_member_id(123)
@@ -184,7 +190,7 @@ class MemberCollection(Collection):
         else:
             return self._dict[member_id]
 
-    def find_one_by_email(self, email, deleted = False):
+    def find_one_by_email(self, email, deleted=False):
         """
         Lazy-loads a single :class:`Member` by email address
 
@@ -196,6 +202,7 @@ class MemberCollection(Collection):
 
         Usage::
 
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.find_one_by_email("null@example.com") # does not exist
             None
             >>> acct.members.find_one_by_email("test@example.com")
@@ -233,6 +240,7 @@ class MemberCollection(Collection):
 
         Usage::
 
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.save() # no changes
             None
             >>> acct.members[123]['first_name'] = u"Emma"
@@ -285,8 +293,9 @@ class ImportCollection(Collection):
 
         Usage::
 
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.imports.fetch_all()
-            [<Import>, <Import>, ...]
+            {123: <Import>, 321: <Import>, ...}
 
         """
         path = '/members/imports'
@@ -307,6 +316,7 @@ class ImportCollection(Collection):
 
         Usage::
 
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.imports.find_one_by_import_id(0) # does not exist
             None
             >>> acct.imports.find_one_by_import_id(123)

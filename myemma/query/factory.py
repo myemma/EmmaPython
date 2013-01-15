@@ -4,20 +4,22 @@ from operator import (AnyQuery, BetweenQuery, ContainsQuery, EqualityQuery,
 
 class QueryFactory(object):
     """
-    Collection Search Query Factories
+    A collection of search query factories
 
-    Example Usage::
+    Usage::
 
-        from myemma.query.factory import QueryFactory as q
+        >>> qf = QueryFactory
+        >>> query1 = qf.eq('member_field:foo', 1) & qf.contains('member_field:bar', 2)
+        >>> print("%s" % query1)
+        ["and", ["member_field:foo", "eq", 1], ["member_field:bar", "eq", 2]]
 
-        query1 = q.eq('member_field:foo', 1) & q.contains('member_field:bar', 2)
-        "%s" % query1 # ["and", ["member_field:foo", "eq", 1], ["member_field:bar", "eq", 2]]
+        >>> query2 = qf.eq('member_field:foo', 1) | qf.contains('member_field:bar', 2)
+        >>> print("%s" % query2)
+        ["or", ["member_field:foo", "eq", 1], ["member_field:bar", "eq", 2]]
 
-        query2 = q.eq('member_field:foo', 1) | q.contains('member_field:bar', 2)
-        "%s" % query2 # ["or", ["member_field:foo", "eq", 1], ["member_field:bar", "eq", 2]]
-
-        query3 = ~ q.eq('member_field:foo', 1)
-        "%s" % query3 # ["not", ["member_field:foo", "eq", 1]]
+        >>> query3 = ~ qf.eq('member_field:foo', 1)
+        >>> print("%s" % query3)
+        ["not", ["member_field:foo", "eq", 1]]
 
     """
     @staticmethod
@@ -31,12 +33,12 @@ class QueryFactory(object):
         :type value: :class:`str` or :class:`int`
         :rtype: :class:`CompositeQuery`
 
-        Example Usage::
+        Usage::
 
-            from myemma.query.factory import QueryFactory as q
-
-            query = q.eq('member_field:some_string_field', 'bar')
-            "%s" % query # ["member_field:some_string_field", "eq", "bar"]
+            >>> qf = QueryFactory
+            >>> query = qf.eq('member_field:some_string_field', 'bar')
+            >>> print("%s" % query)
+            ["member_field:some_string_field", "eq", "bar"]
 
         """
         return EqualityQuery(field, value)
@@ -51,12 +53,12 @@ class QueryFactory(object):
         :type value: :class:`int`
         :rtype: :class:`CompositeQuery`
 
-        Example Usage::
+        Usage::
 
-            from myemma.query.factory import QueryFactory as q
-
-            query = q.lt('member_field:some_numeric_field', 10)
-            "%s" % query # ["member_field:some_numeric_field", "lt", 10]
+            >>> qf = QueryFactory
+            >>> query = qf.lt('member_field:some_numeric_field', 10)
+            >>> print("%s" % query)
+            ["member_field:some_numeric_field", "lt", 10]
 
         """
         return LessThanQuery(field, value)
@@ -71,12 +73,12 @@ class QueryFactory(object):
         :type value: :class:`int`
         :rtype: :class:`CompositeQuery`
 
-        Example Usage::
+        Usage::
 
-            from myemma.query.factory import QueryFactory as q
-
-            query = q.gt('member_field:some_numeric_field', 5)
-            "%s" % query # ["member_field:some_numeric_field", "gt", 5]
+            >>> qf = QueryFactory
+            >>> query = qf.gt('member_field:some_numeric_field', 5)
+            >>> print("%s" % query)
+            ["member_field:some_numeric_field", "gt", 5]
 
         """
         return GreaterThanQuery(field, value)
@@ -93,12 +95,12 @@ class QueryFactory(object):
         :type high: :class:`int`
         :rtype: :class:`CompositeQuery`
 
-        Example Usage::
+        Usage::
 
-            from myemma.query.factory import QueryFactory as q
-
-            query = q.between('member_field:some_numeric_field', 5, 10)
-            "%s" % query # ["member_field:some_numeric_field", "between", 5, 10]
+            >>> qf = QueryFactory
+            >>> query = qf.between('member_field:some_numeric_field', 5, 10)
+            >>> print("%s" % query)
+            ["member_field:some_numeric_field", "between", 5, 10]
 
         """
         return BetweenQuery(field, low, high)
@@ -113,12 +115,12 @@ class QueryFactory(object):
         :type value: :class:`str`
         :rtype: :class:`CompositeQuery`
 
-        Example Usage::
+        Usage::
 
-            from myemma.query.factory import QueryFactory as q
-
-            query = q.contains('member_field:some_string_field', '*foo*')
-            "%s" % query # ["member_field:some_string_field", "contains", "*foo*"]
+            >>> qf = QueryFactory
+            >>> query = qf.contains('member_field:some_string_field', '*foo*')
+            >>> print("%s" % query)
+            ["member_field:some_string_field", "contains", "*foo*"]
 
         """
         return ContainsQuery(field, value)
@@ -135,10 +137,10 @@ class QueryFactory(object):
 
         Example Usage::
 
-            from myemma.query.factory import QueryFactory as q
-
-            query = q.any('member_field:some_array_field', 'ten')
-            "%s" % query # ["member_field:some_array_field", "any", "ten"]
+            >>> qf = QueryFactory
+            >>> query = qf.any('member_field:some_array_field', 'ten')
+            >>> print("%s" % query)
+            ["member_field:some_array_field", "any", "ten"]
 
         """
         return AnyQuery(field, value)
