@@ -9,17 +9,22 @@ class Account(object):
     """
     Aggregate root for the API context
 
-    You will use this object to get all other information from the API::
-
-        acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
-        acct.members.fetch_all() # get all members for this account
-
     :param account_id: Your account identifier
     :type account_id: :class:`int` or :class:`str`
     :param public_key: Your public key
     :type public_key: :class:`str`
     :param private_key: Your private key
     :type private_key: :class:`str`
+
+    Usage::
+
+        >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+        >>> acct.fields
+        <FieldCollection>
+        >>> acct.imports
+        <ImportCollection>
+        >>> acct.members
+        <MemberCollection>
     """
     default_adapter = RequestsAdapter
 
@@ -30,8 +35,8 @@ class Account(object):
             "private_key": private_key
         })
         self.fields = FieldCollection(self)
-        self.members = MemberCollection(self)
         self.imports = ImportCollection(self)
+        self.members = MemberCollection(self)
 
 
 class FieldCollection(Collection):
@@ -47,8 +52,8 @@ class FieldCollection(Collection):
 
         Usage::
 
-            acct.fields.fetch_all() # [Field, Field, ...]
-
+            >>> acct.fields.fetch_all()
+            [<Field>, <Field>, ...]
         """
         path = '/fields'
         if not self._dict:
@@ -63,6 +68,11 @@ class FieldCollection(Collection):
         Get a :class:`list` of shortcut names for this account
 
         :rtype: :class:`list` of :class:`str`
+
+        Usage::
+
+            >>> acct.fields.export_shortcuts()
+            ["first_name", "last_name", ...]
         """
         return map(
             lambda x: x[u"shortcut_name"],
@@ -90,6 +100,13 @@ class MemberCollection(Collection):
         :param raw: Raw data with which to populate class
         :type raw: :class:`dict`
         :rtype: :class:`Member`
+
+        Usage::
+
+            >>> acct.members.factory()
+            <Member{}>
+            >>> acct.members.factory({'email': u"test@example.com"})
+            <Member{'email': u"test@example.com"}>
         """
         return Member(self.account, raw)
 
@@ -103,8 +120,8 @@ class MemberCollection(Collection):
 
         Usage::
 
-            acct.members.fetch_all() # [Member, Member, ...]
-
+            >>> acct.members.fetch_all()
+            [<Member>, <Member>, ...]
         """
         path = '/members'
         params = {"deleted":True} if deleted else {}
@@ -126,8 +143,8 @@ class MemberCollection(Collection):
 
         Usage::
 
-            acct.members.fetch_all_by_import_id(123) # [Member, Member, ...]
-
+            >>> acct.members.fetch_all_by_import_id(123)
+            [<Member>, <Member>, ...]
         """
         path = '/members/imports/%s/members' % import_id
         members = dict(map(
@@ -149,10 +166,12 @@ class MemberCollection(Collection):
 
         Usage::
 
-            acct.members.find_one_by_member_id(123) # Member or None
-            # -- or --
-            acct.members[123] # Member or None
-
+            >>> acct.members.find_one_by_member_id(0) # does not exist
+            None
+            >>> acct.members.find_one_by_member_id(123)
+            <Member{'member_id': 123, 'email': u"test@example.com", ...}>
+            >>> acct.members[123]
+            <Member{'member_id': 123, 'email': u"test@example.com", ...}>
         """
         path = '/members/%s' % member_id
         params = {"deleted":True} if deleted else {}
@@ -176,10 +195,12 @@ class MemberCollection(Collection):
 
         Usage::
 
-            acct.members.find_one_by_email("test@example.com") # Member or None
-            # -- or --
-            acct.members["test@example.com"] # Member or None
-
+            >>> acct.members.find_one_by_email("null@example.com") # does not exist
+            None
+            >>> acct.members.find_one_by_email("test@example.com")
+            <Member{'member_id': 123, 'email': u"test@example.com", ...}>
+            >>> acct.members["test@example.com"]
+            <Member{'member_id': 123, 'email': u"test@example.com", ...}>
         """
         path = '/members/email/%s' % email
         params = {"deleted":True} if deleted else {}
@@ -208,6 +229,20 @@ class MemberCollection(Collection):
         :param group_ids: Add imported members to this list of groups
         :type group_ids: :class:`list`
         :rtype: :class:`int` or :class:`None`
+
+        Usage::
+
+            >>> acct.members.save() # no changes
+            None
+            >>> acct.members[123]['first_name'] = u"Emma"
+            >>> acct.members.save()
+            2001
+            >>> acct.members.save([
+            ...     acct.members.factory({'email': u"new1@example.com"}),
+            ...     acct.members.factory({'email': u"new2@example.com"}),
+            ...     acct.members.factory({'email': u"new3@example.com"})
+            ... ])
+            2002
         """
 
         if not members and (not self._dict or add_only) :
@@ -249,7 +284,8 @@ class ImportCollection(Collection):
 
         Usage::
 
-            acct.imports.fetch_all() # [Import, Import, ...]
+            >>> acct.imports.fetch_all()
+            [<Import>, <Import>, ...]
 
         """
         path = '/members/imports'
@@ -270,10 +306,12 @@ class ImportCollection(Collection):
 
         Usage::
 
-            acct.imports.find_one_by_import_id(123) # Import or None
-            # -- or --
-            acct.imports[123] # Import or None
-
+            >>> acct.imports.find_one_by_import_id(0) # does not exist
+            None
+            >>> acct.imports.find_one_by_import_id(123)
+            <Import>
+            >>> acct.imports[123]
+            <Import>
         """
         import_id = int(import_id)
         path = '/members/imports/%s' % import_id

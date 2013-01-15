@@ -12,6 +12,16 @@ class Member(BaseApiModel):
     :type adapter: :class:`AbstractAdapter`
     :param raw: The raw values of this :class:`Member`
     :type raw: :class:`dict`
+
+    Usage::
+
+        >>> mbr = acct.members.factory()
+        >>> mbr
+        <Member>
+        >>> mbr.groups
+        <MemberGroupCollection>
+        >>> mbr.mailings
+        <MemberMailingCollection>
     """
     def __init__(self, account, raw = None):
         self.account = account
@@ -25,6 +35,11 @@ class Member(BaseApiModel):
         :class:`Account`
 
         :rtype: :class:`None`
+
+        Usage::
+
+            >>> mbr.opt_out()
+            None
         """
         if u"email" not in self._dict:
             raise NoMemberEmailError()
@@ -37,6 +52,11 @@ class Member(BaseApiModel):
         Get details about this :class:`Member`'s opt-out history
 
         :rtype: :class:`list`
+
+        Usage::
+
+            >>> mbr.get_opt_out_detail()
+            [...]
         """
         if u"member_id" not in self._dict:
             raise NoMemberIdError()
@@ -48,6 +68,11 @@ class Member(BaseApiModel):
         Check if this :class:`Member` has opted-out
 
         :rtype: :class:`bool`
+
+        Usage::
+
+            >>> mbr.has_opted_out()
+            False
         """
         if u"status" not in self._dict:
             raise NoMemberStatusError()
@@ -58,10 +83,14 @@ class Member(BaseApiModel):
         Extracts data from the model in a format suitable for using with the API
 
         ;param top_level: Set of top-level attributes of the resulting JSON
-                          object. All other attributes will be treated as
-                          member fields.
+        object. All other attributes will be treated as member fields.
         :type top_level: :class:`list` of :class:`str` or :class:`None`
         :rtype: :class:`dict`
+
+        Usage::
+
+            >>> mbr.extract()
+            {'member_id':123, 'email':u"test@example.org", 'fields':{...}}
         """
         if 'email' not in self._dict:
             raise NoMemberEmailError
@@ -71,7 +100,7 @@ class Member(BaseApiModel):
             top_level = ['member_id', 'email']
 
         def squash(d, t):
-            """squash a member tuple into member dictionary"""
+            #squash a member tuple into member dictionary
             if t[0] in top_level:
                 d[t[0]] = t[1]
             else:
@@ -113,7 +142,8 @@ class MemberMailingCollection(Collection):
 
         Usage::
 
-            mem.mailings.fetch_all() # [Mailing, Mailing, ...]
+            >>> mbr.mailings.fetch_all()
+            [<Mailing>, <Mailing>, ...]
 
         """
         if u"member_id" not in self.member:
@@ -149,7 +179,8 @@ class MemberGroupCollection(Collection):
 
         Usage::
 
-            mem.groups.fetch_all() # [Group, Group, ...]
+            >>> mbr.groups.fetch_all()
+            [<Group>, <Group>, ...]
 
         """
         if u"member_id" not in self.member:
