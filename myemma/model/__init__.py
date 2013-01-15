@@ -21,7 +21,7 @@ class BaseApiModel(collections.MutableMapping):
         return self._dict.__contains__(key)
 
     def __repr__(self):
-        return " ".join(['<', self.__class__.__name__, repr(self._dict), '>'])
+        return "".join(['<', self.__class__.__name__, repr(self._dict), '>'])
 
 
 class Collection(BaseApiModel):

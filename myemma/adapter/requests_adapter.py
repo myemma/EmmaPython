@@ -44,7 +44,6 @@ class RequestsAdapter(AbstractAdapter):
         :type data: :class:`object`
         :rtype: JSON-encoded value or None (if 404)
         """
-        print(repr(data))
         return self._process_response(
             requests.post(
                 self.url + "%s" % path,
