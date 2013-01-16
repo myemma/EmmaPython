@@ -28,8 +28,8 @@ class MockAdapter(AbstractAdapter):
         self._capture('POST', path, data)
         return self.__class__.expected
 
-    def put(self, path, params={}):
-        self._capture('PUT', path, params)
+    def put(self, path, data={}):
+        self._capture('PUT', path, data)
         return self.__class__.expected
 
     def delete(self, path, params={}):
@@ -45,7 +45,8 @@ class MemberTest(unittest.TestCase):
             {
                 'member_id':1000,
                 'email':u"test@example.com",
-                'status':u"opt-out"
+                'status':u"opt-out",
+                'member_status_id':u"o"
             }
         )
         self.member.account.fields._dict = {
@@ -75,6 +76,12 @@ class MemberTest(unittest.TestCase):
         with self.assertRaises(NoMemberIdError):
             member.get_opt_out_detail()
         self.assertEquals(member.account.adapter.called, 0)
+
+    def test_can_get_opt_out_detail_for_member3(self):
+        MockAdapter.expected = []
+        self.member['status'] = Active
+        self.member.get_opt_out_detail()
+        self.assertEquals(self.member.account.adapter.called, 0)
 
     def test_can_ask_if_member_has_opted_out(self):
         has_opted_out = self.member.has_opted_out()
