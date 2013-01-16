@@ -1,6 +1,34 @@
 import collections
 
 
+class NoMemberEmailError(Exception):
+    """
+    An API call was attempted with missing required parameters (email)
+    """
+    pass
+
+
+class NoMemberIdError(Exception):
+    """
+    An API call was attempted with missing required parameters (id)
+    """
+    pass
+
+
+class NoMemberStatusError(Exception):
+    """
+    An API call was attempted with missing required parameters (status)
+    """
+    pass
+
+
+class MemberDeleteError(Exception):
+    """
+    The API call to delete a member did not complete correctly
+    """
+    pass
+
+
 class BaseApiModel(collections.MutableMapping):
     def __len__(self):
         return self._dict.__len__()
@@ -58,24 +86,3 @@ class Collection(BaseApiModel):
                     items.items()
                 )
             )
-
-
-class NoMemberEmailError(Exception):
-    """
-    An API call was attempted with missing required parameters (email)
-    """
-    pass
-
-
-class NoMemberIdError(Exception):
-    """
-    An API call was attempted with missing required parameters (id)
-    """
-    pass
-
-
-class NoMemberStatusError(Exception):
-    """
-    An API call was attempted with missing required parameters (status)
-    """
-    pass

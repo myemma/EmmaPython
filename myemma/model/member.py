@@ -92,7 +92,7 @@ class Member(BaseApiModel):
         """
         Extracts data from the model in a format suitable for using with the API
 
-        ;param top_level: Set of top-level attributes of the resulting JSON
+        :param top_level: Set of top-level attributes of the resulting JSON
         object. All other attributes will be treated as member fields.
         :type top_level: :class:`list` of :class:`str` or :class:`None`
         :rtype: :class:`dict`

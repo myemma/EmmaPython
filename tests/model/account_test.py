@@ -1,7 +1,7 @@
 import unittest
 from myemma.adapter import AbstractAdapter
 from myemma.adapter.requests_adapter import RequestsAdapter
-from myemma.model import NoMemberEmailError
+from myemma.model import NoMemberEmailError, MemberDeleteError
 from myemma.model.account import (Account, FieldCollection, ImportCollection,
                                   MemberCollection)
 from myemma.model.field import Field
@@ -791,3 +791,84 @@ class MemberCollectionTest(unittest.TestCase):
                 'group_ids': [300, 301, 302]
             }
         ))
+
+    def test_can_delete_members_in_bulk(self):
+        # Setup
+        MockAdapter.expected = False
+        self.members._dict = {
+            200: Member(self.members.account, {
+                'member_id': 200,
+                'email': u"test1@example.com",
+                'does_not_exist': u"A member field which does not exist"
+            }),
+            201: Member(self.members.account, {
+                'member_id': 201,
+                'email': u"test2@example.com",
+                'first_name': u"Emma"
+            })
+        }
+
+        with self.assertRaises(MemberDeleteError):
+            self.members.delete([123])
+
+        self.assertEquals(2, len(self.members))
+        self.assertEquals(self.members.account.adapter.called, 1)
+        self.assertEquals(self.members.account.adapter.call, (
+            'PUT',
+            '/members/delete',
+            {'member_ids': [123]}
+        ))
+
+    def test_can_delete_members_in_bulk2(self):
+        # Setup
+        MockAdapter.expected = True
+        self.members._dict = {
+            200: Member(self.members.account, {
+                'member_id': 200,
+                'email': u"test1@example.com",
+                'does_not_exist': u"A member field which does not exist"
+            }),
+            201: Member(self.members.account, {
+                'member_id': 201,
+                'email': u"test2@example.com",
+                'first_name': u"Emma"
+            })
+        }
+
+        self.members.delete([200])
+
+        self.assertEquals(self.members.account.adapter.called, 1)
+        self.assertEquals(self.members.account.adapter.call, (
+            'PUT',
+            '/members/delete',
+            {'member_ids': [200]}
+        ))
+        self.assertEquals(1, len(self.members))
+        self.assertNotIn(200, self.members)
+        self.assertIsInstance(self.members[201], Member)
+
+    def test_can_delete_members_in_bulk3(self):
+        # Setup
+        MockAdapter.expected = True
+        self.members._dict = {
+            200: Member(self.members.account, {
+                'member_id': 200,
+                'email': u"test1@example.com",
+                'does_not_exist': u"A member field which does not exist"
+            }),
+            201: Member(self.members.account, {
+                'member_id': 201,
+                'email': u"test2@example.com",
+                'first_name': u"Emma"
+            })
+        }
+
+        self.members.delete([200, 201])
+
+        self.assertEquals(self.members.account.adapter.called, 1)
+        self.assertEquals(self.members.account.adapter.call, (
+            'PUT',
+            '/members/delete',
+            {'member_ids': [200, 201]}
+            ))
+        self.assertEquals(0, len(self.members))

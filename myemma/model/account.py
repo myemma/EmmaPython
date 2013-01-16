@@ -1,4 +1,4 @@
-from . import Collection
+from . import Collection, MemberDeleteError
 from emma_import import EmmaImport
 from member import Member
 from field import Field
@@ -258,7 +258,7 @@ class MemberCollection(Collection):
             return None
 
         path = '/members'
-        params = {
+        data = {
             'members': (
                 map(lambda x: x.extract(), members)
                 + ([]
@@ -266,12 +266,43 @@ class MemberCollection(Collection):
                    else map(lambda x: x.extract(), self._dict.values())))
         }
         if add_only:
-            params['add_only'] = add_only
+            data['add_only'] = add_only
         if filename:
-            params['filename'] = filename
+            data['filename'] = filename
         if group_ids:
-            params['group_ids'] = group_ids
-        return self.account.adapter.post(path, params)
+            data['group_ids'] = group_ids
+        return self.account.adapter.post(path, data)
+
+    def _delete_all(self):
+        # Update internal dictionary
+        self._dict = {}
+
+    def _delete_list(self, members_ids):
+        path = '/members/delete'
+        data = {'member_ids': members_ids}
+        if not self.account.adapter.put(path, data):
+            raise MemberDeleteError()
+
+        # Update internal dictionary
+        self._dict = dict(filter(
+            lambda x: x[0] not in members_ids,
+            self._dict.items()))
+
+    def delete(self, member_ids=[]):
+        """
+        :param member_ids: Set of member identifiers to delete
+        :type member_ids: :class:`list` of :class:`int`
+        :rtype: :class:`None`
+
+        Usage::
+
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.members.delete([123, 321]) # Deletes members 123, and 321
+            None
+            >>> acct.members.delete() # Deletes all members on the account
+            None
+        """
+        return self._delete_all() if not member_ids else self._delete_list(member_ids)
 
 
 class ImportCollection(Collection):

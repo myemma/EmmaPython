@@ -34,7 +34,7 @@ class RequestsAdapter(AbstractAdapter):
         elif response.status_code > 200:
             raise ApiRequestFailed(response)
 
-        return response.json
+        return response.json()
 
     def post(self, path, data=None):
         """
@@ -88,15 +88,15 @@ class RequestsAdapter(AbstractAdapter):
                 params=params,
                 auth=self.auth))
 
-    def put(self, path, params={}):
+    def put(self, path, data={}):
         """
         Takes an effective path (portion after https://api.e2ma.net/:account_id)
         and a parameter dictionary, then passes these to :func:`requests.put`
 
         :param path: The path portion of a URL
         :type path: :class:`str`
-        :param params: The dictionary of HTTP parameters to encode
-        :type params: :class:`dict`
+        :param data: The content to encode
+        :type data: :class:`object`
         :rtype: JSON-encoded value or None (if 404)
 
         Usage::
@@ -111,7 +111,7 @@ class RequestsAdapter(AbstractAdapter):
         return self._process_response(
             requests.put(
                 self.url + "%s" % path,
-                params=params,
+                data=json.dumps(data),
                 auth=self.auth))
 
     def delete(self, path, params={}):
