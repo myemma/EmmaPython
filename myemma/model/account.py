@@ -1,8 +1,9 @@
-from . import Collection, MemberDeleteError
+from myemma.adapter.requests_adapter import RequestsAdapter
+from . import Collection, MemberDeleteError, MemberChangeStatusError
 from emma_import import EmmaImport
 from member import Member
 from field import Field
-from  myemma.adapter.requests_adapter import RequestsAdapter
+from status import Active
 
 
 class Account(object):
@@ -277,15 +278,15 @@ class MemberCollection(Collection):
         # Update internal dictionary
         self._dict = {}
 
-    def _delete_list(self, members_ids):
+    def _delete_list(self, member_ids):
         path = '/members/delete'
-        data = {'member_ids': members_ids}
+        data = {'member_ids': member_ids}
         if not self.account.adapter.put(path, data):
             raise MemberDeleteError()
 
         # Update internal dictionary
         self._dict = dict(filter(
-            lambda x: x[0] not in members_ids,
+            lambda x: x[0] not in member_ids,
             self._dict.items()))
 
     def delete(self, member_ids=[]):
@@ -303,6 +304,33 @@ class MemberCollection(Collection):
             None
         """
         return self._delete_all() if not member_ids else self._delete_list(member_ids)
+
+    def change_status(self, member_ids=[], status_to=Active):
+        """
+        :param member_ids: Set of member identifiers to change
+        :type member_ids: :class:`list` of :class:`int`
+        :param status_to: The new status
+        :type status_to: :class:`Status`
+        :rtype: :class:`None`
+
+        Usage::
+
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.members.change_status([123, 321], Active)
+            None
+        """
+        if not member_ids:
+            return None
+
+        path = '/members/status'
+        data = {'member_ids': member_ids, 'status_to': status_to.get_code()}
+        if not self.account.adapter.put(path, data):
+            raise MemberChangeStatusError()
+
+        # Update internal dictionary
+        for id in self._dict:
+            if id in member_ids:
+                self._dict[id]['status'] = status_to
 
 
 class ImportCollection(Collection):

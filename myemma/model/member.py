@@ -2,6 +2,7 @@ from . import (BaseApiModel, Collection, NoMemberEmailError, NoMemberIdError,
                NoMemberStatusError)
 from group import Group
 from mailing import Mailing
+from status import Status, Active, Error, Forwarded, OptOut
 
 
 class Member(BaseApiModel):
@@ -28,7 +29,14 @@ class Member(BaseApiModel):
         self.account = account
         self.groups = MemberGroupCollection(self)
         self.mailings = MemberMailingCollection(self)
-        self._dict = raw if raw is not None else {}
+        self._dict = self._parse_raw(raw) if raw is not None else {}
+
+    def _parse_raw(self, raw):
+        if 'status' in raw:
+            raw['status'] = Status.factory(raw['status'])
+        if 'member_status_id' in raw:
+            del(raw['member_status_id'])
+        return raw
 
     def opt_out(self):
         """
@@ -48,7 +56,7 @@ class Member(BaseApiModel):
             raise NoMemberEmailError()
         path = '/members/email/optout/%s' % self._dict['email']
         if self.account.adapter.put(path):
-            self._dict['status'] = u"opt-out"
+            self._dict['status'] = OptOut
 
     def get_opt_out_detail(self):
         """
@@ -65,6 +73,9 @@ class Member(BaseApiModel):
         """
         if 'member_id' not in self._dict:
             raise NoMemberIdError()
+        if self._dict['status'] != OptOut:
+            return []
+
         path = '/members/%s/optout' % self._dict['member_id']
         return self.account.adapter.get(path)
 
@@ -86,7 +97,8 @@ class Member(BaseApiModel):
         """
         if 'status' not in self._dict:
             raise NoMemberStatusError()
-        return self._dict['status'] == u"opt-out"
+        print(repr(self._dict['status']))
+        return self._dict['status'] == OptOut
 
     def extract(self, top_level=None):
         """
@@ -156,7 +168,7 @@ class Member(BaseApiModel):
             data['signup_form_id'] = signup_form_id
 
         outcome = self.account.adapter.post(path, data)
-        self['status_code'] = outcome['status']
+        self['status'] = Status.factory(outcome['status'])
         if outcome['added']:
             self['member_id'] = outcome['member_id']
 

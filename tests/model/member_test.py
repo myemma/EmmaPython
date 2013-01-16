@@ -6,6 +6,7 @@ from myemma.model.member import (Member, MemberGroupCollection,
                                  MemberMailingCollection  )
 from myemma.model.group import Group
 from myemma.model.mailing import Mailing
+from myemma.model.status import Active
 
 
 class MockAdapter(AbstractAdapter):
@@ -67,9 +68,6 @@ class MemberTest(unittest.TestCase):
         detail = self.member.get_opt_out_detail()
         self.assertIsInstance(detail, list)
         self.assertEquals(self.member.account.adapter.called, 1)
-        self.assertEquals(
-            self.member.account.adapter.call,
-            ('GET', '/members/1000/optout', {}))
 
     def test_can_get_opt_out_detail_for_member2(self):
         MockAdapter.expected = []
@@ -143,7 +141,7 @@ class MemberTest(unittest.TestCase):
             mbr.account.adapter.call,
             ('POST', '/members/add', {'email':u"test@example.com"}))
         self.assertEquals(1024, mbr['member_id'])
-        self.assertEquals(u"a", mbr['status_code'])
+        self.assertEquals(Active, mbr['status'])
 
     def test_can_save_a_member2(self):
         mbr = Member(
@@ -163,7 +161,7 @@ class MemberTest(unittest.TestCase):
             ('POST', '/members/add', {'email':u"test@example.com",
                                       'fields': {'first_name': u"Emma"}}))
         self.assertEquals(1024, mbr['member_id'])
-        self.assertEquals(u"a", mbr['status_code'])
+        self.assertEquals(Active, mbr['status'])
 
     def test_can_save_a_member3(self):
         mbr = Member(
@@ -186,7 +184,7 @@ class MemberTest(unittest.TestCase):
                 'signup_form_id': u"http://example.com/signup"}
             ))
         self.assertEquals(1024, mbr['member_id'])
-        self.assertEquals(u"a", mbr['status_code'])
+        self.assertEquals(Active, mbr['status'])
 
 
 class MemberGroupCollectionTest(unittest.TestCase):

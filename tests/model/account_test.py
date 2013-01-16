@@ -1,12 +1,14 @@
 import unittest
 from myemma.adapter import AbstractAdapter
 from myemma.adapter.requests_adapter import RequestsAdapter
-from myemma.model import NoMemberEmailError, MemberDeleteError
+from myemma.model import (NoMemberEmailError, MemberDeleteError,
+                          MemberChangeStatusError)
 from myemma.model.account import (Account, FieldCollection, ImportCollection,
                                   MemberCollection)
 from myemma.model.field import Field
 from myemma.model.emma_import import EmmaImport
 from myemma.model.member import Member
+from myemma.model.status import Active, Error, Forwarded, OptOut
 
 
 class MockAdapter(AbstractAdapter):
@@ -809,14 +811,14 @@ class MemberCollectionTest(unittest.TestCase):
         }
 
         with self.assertRaises(MemberDeleteError):
-            self.members.delete([123])
+            self.members.delete([200, 201])
 
         self.assertEquals(2, len(self.members))
         self.assertEquals(self.members.account.adapter.called, 1)
         self.assertEquals(self.members.account.adapter.call, (
             'PUT',
             '/members/delete',
-            {'member_ids': [123]}
+            {'member_ids': [200, 201]}
         ))
 
     def test_can_delete_members_in_bulk2(self):
@@ -872,3 +874,89 @@ class MemberCollectionTest(unittest.TestCase):
             {'member_ids': [200, 201]}
             ))
         self.assertEquals(0, len(self.members))
+
+    def test_can_change_status_of_members_in_bulk(self):
+        self.members.change_status()
+        self.assertEquals(self.members.account.adapter.called, 0)
+
+    def test_can_change_status_of_members_in_bulk2(self):
+        # Setup
+        MockAdapter.expected = False
+        self.members._dict = {
+            200: Member(self.members.account, {
+                'member_id': 200,
+                'email': u"test1@example.com",
+                'status': Active
+            }),
+            201: Member(self.members.account, {
+                'member_id': 201,
+                'email': u"test2@example.com",
+                'status': Active
+            })
+        }
+
+        with self.assertRaises(MemberChangeStatusError):
+            self.members.change_status([200, 201], OptOut)
+
+        self.assertEquals(self.members.account.adapter.called, 1)
+        self.assertEquals(self.members.account.adapter.call, (
+            'PUT',
+            '/members/status',
+            {'member_ids': [200, 201], 'status_to': u"o"}
+        ))
+
+    def test_can_change_status_of_members_in_bulk3(self):
+        # Setup
+        MockAdapter.expected = True
+        self.members._dict = {
+            200: Member(self.members.account, {
+                'member_id': 200,
+                'email': u"test1@example.com",
+                'status': Active
+            }),
+            201: Member(self.members.account, {
+                'member_id': 201,
+                'email': u"test2@example.com",
+                'status': Active
+            })
+        }
+
+        self.members.change_status([200], OptOut)
+
+        self.assertEquals(self.members.account.adapter.called, 1)
+        self.assertEquals(self.members.account.adapter.call, (
+            'PUT',
+            '/members/status',
+            {'member_ids': [200], 'status_to': u"o"}
+        ))
+        self.assertEquals(2, len(self.members))
+        self.assertEquals(OptOut, self.members[200]['status'])
+        self.assertEquals(Active, self.members[201]['status'])
+
+    def test_can_change_status_of_members_in_bulk4(self):
+        # Setup
+        MockAdapter.expected = True
+        self.members._dict = {
+            200: Member(self.members.account, {
+                'member_id': 200,
+                'email': u"test1@example.com",
+                'status': Active
+            }),
+            201: Member(self.members.account, {
+                'member_id': 201,
+                'email': u"test2@example.com",
+                'status': Active
+            })
+        }
+
+        self.members.change_status([200, 201], OptOut)
+
+        self.assertEquals(self.members.account.adapter.called, 1)
+        self.assertEquals(self.members.account.adapter.call, (
+            'PUT',
+            '/members/status',
+            {'member_ids': [200, 201], 'status_to': u"o"}
+            ))
+        self.assertEquals(2, len(self.members))
+        self.assertEquals(OptOut, self.members[200]['status'])
+        self.assertEquals(OptOut, self.members[201]['status'])
