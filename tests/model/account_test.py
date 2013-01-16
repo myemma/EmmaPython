@@ -30,8 +30,8 @@ class MockAdapter(AbstractAdapter):
         self._capture('POST', path, data)
         return self.__class__.expected
 
-    def put(self, path, params={}):
-        self._capture('PUT', path, params)
+    def put(self, path, data={}):
+        self._capture('PUT', path, data)
         return self.__class__.expected
 
     def delete(self, path, params={}):

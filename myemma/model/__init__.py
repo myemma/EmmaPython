@@ -36,6 +36,13 @@ class MemberChangeStatusError(Exception):
     pass
 
 
+class MemberUpdateError(Exception):
+    """
+    The API call to update a member's information did not complete correctly
+    """
+    pass
+
+
 class BaseApiModel(collections.MutableMapping):
     def __len__(self):
         return self._dict.__len__()

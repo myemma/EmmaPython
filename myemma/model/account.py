@@ -328,9 +328,9 @@ class MemberCollection(Collection):
             raise MemberChangeStatusError()
 
         # Update internal dictionary
-        for id in self._dict:
-            if id in member_ids:
-                self._dict[id]['status'] = status_to
+        for member_id in self._dict:
+            if member_id in member_ids:
+                self._dict[member_id]['status'] = status_to
 
 
 class ImportCollection(Collection):

@@ -1,5 +1,6 @@
+import copy
 from . import (BaseApiModel, Collection, NoMemberEmailError, NoMemberIdError,
-               NoMemberStatusError)
+               NoMemberStatusError, MemberUpdateError)
 from group import Group
 from mailing import Mailing
 from status import Status, Active, Error, Forwarded, OptOut
@@ -36,6 +37,9 @@ class Member(BaseApiModel):
             raw['status'] = Status.factory(raw['status'])
         if 'member_status_id' in raw:
             del(raw['member_status_id'])
+        if 'fields' in raw:
+            raw.update(raw['fields'])
+            del(raw['fields'])
         return raw
 
     def opt_out(self):
@@ -143,6 +147,27 @@ class Member(BaseApiModel):
                     self._dict.items()),
                 {}))
 
+    def _add(self, signup_form_id):
+        path = '/members/add'
+        data = self.extract()
+        if len(self.groups):
+            data['group_ids'] = self.groups.fetch_all().keys()
+        if signup_form_id:
+            data['signup_form_id'] = signup_form_id
+
+        outcome = self.account.adapter.post(path, data)
+        self['status'] = Status.factory(outcome['status'])
+        if outcome['added']:
+            self['member_id'] = outcome['member_id']
+
+    def _update(self):
+        path = "/members/%s" % self._dict['member_id']
+        data = self.extract()
+        if self._dict['status'] in (Active, Error, OptOut):
+            data['status_to'] = self._dict['status'].get_code()
+        if not self.account.adapter.put(path, data):
+            raise MemberUpdateError()
+
     def save(self, signup_form_id=None):
         """
         Add or update this :class:`Member`
@@ -160,17 +185,10 @@ class Member(BaseApiModel):
             >>> mbr.save()
             None
         """
-        path = '/members/add'
-        data = self.extract()
-        if len(self.groups):
-            data['group_ids'] = self.groups.fetch_all().keys()
-        if signup_form_id:
-            data['signup_form_id'] = signup_form_id
-
-        outcome = self.account.adapter.post(path, data)
-        self['status'] = Status.factory(outcome['status'])
-        if outcome['added']:
-            self['member_id'] = outcome['member_id']
+        if 'member_id' not in self._dict:
+            return self._add(signup_form_id)
+        else:
+            return self._update()
 
 
 class MemberMailingCollection(Collection):

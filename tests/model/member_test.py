@@ -1,9 +1,10 @@
 import unittest
 from myemma.adapter import AbstractAdapter
-from myemma.model import NoMemberEmailError, NoMemberIdError, NoMemberStatusError
+from myemma.model import (NoMemberEmailError, NoMemberIdError,
+                          NoMemberStatusError, MemberUpdateError)
 from myemma.model.account import Account
 from myemma.model.member import (Member, MemberGroupCollection,
-                                 MemberMailingCollection  )
+                                 MemberMailingCollection)
 from myemma.model.group import Group
 from myemma.model.mailing import Mailing
 from myemma.model.status import Active
@@ -192,6 +193,57 @@ class MemberTest(unittest.TestCase):
             ))
         self.assertEquals(1024, mbr['member_id'])
         self.assertEquals(Active, mbr['status'])
+
+    def test_can_save_a_member4(self):
+        mbr = Member(
+            self.member.account,
+            {
+                'member_id': 200,
+                'email':u"test@example.com",
+                'first_name':u"Emma",
+                'status': Active
+            })
+        MockAdapter.expected = False
+
+        with self.assertRaises(MemberUpdateError):
+            mbr.save()
+        self.assertEquals(mbr.account.adapter.called, 1)
+        self.assertEquals(mbr.account.adapter.call,
+            (
+                'PUT',
+                '/members/200',
+                {
+                    'member_id': 200,
+                    'email':u"test@example.com",
+                    'fields': {'first_name': u"Emma"},
+                    'status_to': mbr['status'].get_code()
+                }
+            ))
+
+    def test_can_save_a_member5(self):
+        mbr = Member(
+            self.member.account,
+            {
+                'member_id': 200,
+                'email':u"test@example.com",
+                'first_name':u"Emma",
+                'status': Active
+            })
+        MockAdapter.expected = True
+        result = mbr.save()
+        self.assertIsNone(result)
+        self.assertEquals(mbr.account.adapter.called, 1)
+        self.assertEquals(mbr.account.adapter.call,
+            (
+                'PUT',
+                '/members/200',
+                {
+                    'member_id': 200,
+                    'email':u"test@example.com",
+                    'fields': {'first_name': u"Emma"},
+                    'status_to': mbr['status'].get_code()
+                }
+            ))
 
 
 class MemberGroupCollectionTest(unittest.TestCase):
