@@ -1,6 +1,7 @@
-import copy
-from . import (BaseApiModel, Collection, NoMemberEmailError, NoMemberIdError,
-               NoMemberStatusError, MemberUpdateError)
+from datetime import datetime
+from . import (SERIALIZED_DATE_FORMAT, BaseApiModel, Collection,
+               NoMemberEmailError, NoMemberIdError, NoMemberStatusError,
+               MemberUpdateError)
 from group import Group
 from mailing import Mailing
 from status import Status, Active, Error, Forwarded, OptOut
@@ -33,6 +34,12 @@ class Member(BaseApiModel):
         self._dict = self._parse_raw(raw) if raw is not None else {}
 
     def _parse_raw(self, raw):
+        def parse_date(key):
+            if key in raw and raw[key]:
+                raw[key] = datetime.strptime(
+                    raw[key],
+                    SERIALIZED_DATE_FORMAT)
+
         if 'status' in raw:
             raw['status'] = Status.factory(raw['status'])
         if 'member_status_id' in raw:
@@ -40,6 +47,8 @@ class Member(BaseApiModel):
         if 'fields' in raw:
             raw.update(raw['fields'])
             del(raw['fields'])
+        for key in ['last_modified_at', 'member_since', 'deleted_at']:
+            parse_date(key)
         return raw
 
     def opt_out(self):
@@ -189,6 +198,46 @@ class Member(BaseApiModel):
             return self._add(signup_form_id)
         else:
             return self._update()
+
+    def is_deleted(self):
+        """
+        Whether a member has been deleted
+
+        :rtype: :class:`bool`
+
+        Usage::
+
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> mbr = acct.members[123]
+            >>> mbr.is_deleted()
+            False
+            >>> mbr.delete()
+            >>> mbr.is_deleted()
+            True
+        """
+        return 'deleted_at' in self._dict and self._dict['deleted_at']
+
+    def delete(self):
+        """
+        Delete this member
+
+        :rtype: :class:`None`
+
+        Usage::
+
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> mbr = acct.members[123]
+            >>> mbr.delete()
+            None
+        """
+        if not 'member_id' in self._dict:
+            raise NoMemberIdError()
+        if self.is_deleted():
+            return None
+
+        path = "/members/%s" % self._dict['member_id']
+        if self.account.adapter.delete(path):
+            self._dict['deleted_at'] = True
 
 
 class MemberMailingCollection(Collection):

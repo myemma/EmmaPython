@@ -1,6 +1,9 @@
 import collections
 
 
+SERIALIZED_DATE_FORMAT = "@D:%Y-%m-%dT%H:%M:%S"
+
+
 class NoMemberEmailError(Exception):
     """
     An API call was attempted with missing required parameters (email)

@@ -1,7 +1,9 @@
+from datetime import datetime
 import unittest
 from myemma.adapter import AbstractAdapter
-from myemma.model import (NoMemberEmailError, NoMemberIdError,
-                          NoMemberStatusError, MemberUpdateError)
+from myemma.model import (SERIALIZED_DATE_FORMAT, NoMemberEmailError,
+                          NoMemberIdError, NoMemberStatusError,
+                          MemberUpdateError)
 from myemma.model.account import Account
 from myemma.model.member import (Member, MemberGroupCollection,
                                  MemberMailingCollection)
@@ -244,6 +246,49 @@ class MemberTest(unittest.TestCase):
                     'status_to': mbr['status'].get_code()
                 }
             ))
+
+    def test_can_delete_a_member(self):
+        mbr = Member(self.member.account, {'email':u"test@example.com"})
+
+        with self.assertRaises(NoMemberIdError):
+            mbr.delete()
+        self.assertEquals(self.member.account.adapter.called, 0)
+        self.assertFalse(self.member.is_deleted())
+
+    def test_can_delete_a_member2(self):
+        MockAdapter.expected = None
+        mbr = Member(
+            self.member.account,
+            {
+                'member_id': 200,
+                'email':u"test@example.com",
+                'deleted_at': datetime.now().strftime(SERIALIZED_DATE_FORMAT)
+            })
+
+        result = mbr.delete()
+
+        self.assertIsNone(result)
+        self.assertEquals(mbr.account.adapter.called, 0)
+        self.assertTrue(mbr.is_deleted())
+
+    def test_can_delete_a_member3(self):
+        MockAdapter.expected = True
+        mbr = Member(
+            self.member.account,
+            {
+                'member_id': 200,
+                'email':u"test@example.com",
+                'deleted_at': None
+            })
+
+        result = mbr.delete()
+
+        self.assertIsNone(result)
+        self.assertEquals(mbr.account.adapter.called, 1)
+        self.assertEquals(
+            mbr.account.adapter.call,
+            ('DELETE', '/members/200', {}))
+        self.assertTrue(mbr.is_deleted())
 
 
 class MemberGroupCollectionTest(unittest.TestCase):
