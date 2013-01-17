@@ -81,6 +81,14 @@ class Collection(BaseApiModel):
         self.account = account
         self._dict = {}
 
+    def truncate(self):
+        """
+        Remove all items in this collection
+
+        :rtype: :class:`None`
+        """
+        self._dict = {}
+
     def replace_all(self, items):
         """
         Update internal dictionary with newer items
@@ -88,7 +96,6 @@ class Collection(BaseApiModel):
         :param items: Dictionary of items to use as replacements
         :type items: :class:`dict`
         :rtype: :class:`None`
-
         """
         if not self._dict:
             self._dict = items

@@ -254,7 +254,6 @@ class MemberCollection(Collection):
             ... ])
             2002
         """
-
         if not members and (not self._dict or add_only) :
             return None
 

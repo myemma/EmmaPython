@@ -336,6 +336,50 @@ class MemberGroupCollectionTest(unittest.TestCase):
         self.assertEquals(1, len(self.groups))
         self.assertIsInstance(self.groups[u"Test Group"], Group)
 
+    def test_factory_produces_a_group(self):
+        grp = self.groups.factory()
+        self.assertIsInstance(grp, Group)
+        self.assertEquals(0, len(grp))
+
+    def test_factory_produces_a_group2(self):
+        grp = self.groups.factory({'group_id':1024})
+        self.assertIsInstance(grp, Group)
+        self.assertEquals(1, len(grp))
+        self.assertEquals(1024, grp['group_id'])
+
+    def test_can_add_groups_to_a_member(self):
+        mbr = Member(self.groups.member.account)
+
+        with self.assertRaises(NoMemberIdError):
+            mbr.groups.save([
+                mbr.groups.factory({'group_id':1024})
+            ])
+        self.assertEquals(self.groups.member.account.adapter.called, 0)
+
+    def test_can_add_groups_to_a_member2(self):
+        MockAdapter.expected = []
+        self.groups.save([])
+        self.assertEquals(self.groups.member.account.adapter.called, 0)
+
+    def test_can_add_groups_to_a_member3(self):
+        MockAdapter.expected = [300, 301]
+        self.groups.save([
+            self.groups.factory({'group_id': 300}),
+            self.groups.factory({'group_id': 301})
+        ])
+        self.assertEquals(self.groups.member.account.adapter.called, 1)
+        self.assertEquals(
+            self.groups.member.account.adapter.call,
+            ('PUT', '/members/1000/groups', {'group_ids': [300, 301]}))
+
+    def test_can_add_groups_to_a_member4(self):
+        MockAdapter.expected = [300, 301]
+        self.groups.member.add_groups([300, 301])
+        self.assertEquals(self.groups.member.account.adapter.called, 1)
+        self.assertEquals(
+            self.groups.member.account.adapter.call,
+            ('PUT', '/members/1000/groups', {'group_ids': [300, 301]}))
+
 
 class MemberMailingCollectionTest(unittest.TestCase):
     def setUp(self):

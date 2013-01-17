@@ -234,6 +234,26 @@ class Member(BaseApiModel, ModelWithDateFields):
         if self.account.adapter.delete(path):
             self._dict['deleted_at'] = True
 
+    def add_groups(self, group_ids=[]):
+        """
+        Convenience method for adding groups to a Member
+
+        :param group_ids: Set of Group identifiers to add
+        :type group_ids: :class:`list` of :class:`int`
+        :rtype: :class:`None`
+
+        Usage::
+
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> mbr = acct.members[123]
+            >>> mbr.add_groups([1024, 1025])
+            None
+        """
+        return self.groups.save(map(
+            lambda x: self.groups.factory({'group_id': x}),
+            group_ids
+        ))
+
 
 class MemberMailingCollection(Collection):
     """
@@ -288,6 +308,23 @@ class MemberGroupCollection(Collection):
         self.member = member
         super(MemberGroupCollection, self).__init__(self.member.account.adapter)
 
+    def factory(self, raw={}):
+        """
+        Creates a :class:`Group`
+
+        :rtype: :class:`Group`
+
+        Usage::
+
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> mbr = acct.members[123]
+            >>> mbr.groups.factory()
+            <Group{}>
+            >>> mbr.groups.factory({'group_id':1024})
+            <Group{'group_id':1024}>
+        """
+        return Group(self.account, raw)
+
     def fetch_all(self):
         """
         Lazy-loads the full set of :class:`Group` objects
@@ -311,3 +348,30 @@ class MemberGroupCollection(Collection):
                 self.member.account.adapter.get(path)
             ))
         return self._dict
+
+    def save(self, groups=[]):
+        """
+        :param groups: List of :class:`Group` objects to save
+        :type groups: :class:`list` of :class:`Group` objects
+        :rtype: :class:`None`
+
+        Usage::
+
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> grps = acct.members[123].groups
+            >>> grps.save([
+            ...     grps.factory({'group_id': 300}),
+            ...     grps.factory({'group_id': 301}),
+            ...     grps.factory({'group_id': 302})
+            ... ])
+            None
+        """
+        if 'member_id' not in self.member:
+            raise NoMemberIdError()
+        if not groups:
+            return None
+
+        path = '/members/%s/groups' % self.member['member_id']
+        data = {'group_ids': map(lambda x: x['group_id'], groups)}
+        if self.member.account.adapter.put(path, data):
+            self.member.groups.clear()
