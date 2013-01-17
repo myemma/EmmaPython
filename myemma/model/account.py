@@ -273,19 +273,26 @@ class MemberCollection(Collection):
             data['group_ids'] = group_ids
         return self.account.adapter.post(path, data)
 
-    def _delete_all(self):
-        # Update internal dictionary
-        self._dict = {}
+    def delete_by_status(self, status):
+        """
+        :param status: Members with this status will be deleted
+        :type status: :class:`Status`
+        :rtype: :class:`None`
 
-    def _delete_list(self, member_ids):
-        path = '/members/delete'
-        data = {'member_ids': member_ids}
-        if not self.account.adapter.put(path, data):
+        Usage::
+
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.members.delete_by_status(OptOut)
+            None
+        """
+        path = '/members'
+        params = {'member_status_id': status.get_code()}
+        if not self.account.adapter.delete(path, params):
             raise MemberDeleteError()
 
         # Update internal dictionary
         self._dict = dict(filter(
-            lambda x: x[0] not in member_ids,
+            lambda x: x[1]['status'] != status,
             self._dict.items()))
 
     def delete(self, member_ids=[]):
@@ -302,7 +309,15 @@ class MemberCollection(Collection):
             >>> acct.members.delete() # Deletes all members on the account
             None
         """
-        return self._delete_all() if not member_ids else self._delete_list(member_ids)
+        path = '/members/delete'
+        data = {'member_ids': member_ids}
+        if not self.account.adapter.put(path, data):
+            raise MemberDeleteError()
+
+        # Update internal dictionary
+        self._dict = dict(filter(
+            lambda x: x[0] not in member_ids,
+            self._dict.items()))
 
     def change_status(self, member_ids=[], status_to=Active):
         """

@@ -875,6 +875,59 @@ class MemberCollectionTest(unittest.TestCase):
             ))
         self.assertEquals(0, len(self.members))
 
+    def test_can_delete_members_by_status(self):
+        # Setup
+        MockAdapter.expected = False
+        self.members._dict = {
+            200: Member(self.members.account, {
+                'member_id': 200,
+                'email': u"test1@example.com",
+                'status': Active.get_name()
+            }),
+            201: Member(self.members.account, {
+                'member_id': 201,
+                'email': u"test2@example.com",
+                'status': OptOut.get_name()
+            })
+        }
+
+        with self.assertRaises(MemberDeleteError):
+            self.members.delete_by_status(OptOut)
+
+        self.assertEquals(2, len(self.members))
+        self.assertEquals(self.members.account.adapter.called, 1)
+        self.assertEquals(
+            self.members.account.adapter.call,
+            ('DELETE', '/members', {'member_status_id': u"o"})
+        )
+
+    def test_can_delete_members_by_status2(self):
+        # Setup
+        MockAdapter.expected = True
+        self.members._dict = {
+            200: Member(self.members.account, {
+                'member_id': 200,
+                'email': u"test1@example.com",
+                'status': Active.get_name()
+            }),
+            201: Member(self.members.account, {
+                'member_id': 201,
+                'email': u"test2@example.com",
+                'status': OptOut.get_name()
+            })
+        }
+
+        result = self.members.delete_by_status(OptOut)
+
+        self.assertIsNone(result)
+        self.assertEquals(self.members.account.adapter.called, 1)
+        self.assertEquals(
+            self.members.account.adapter.call,
+            ('DELETE', '/members', {'member_status_id': u"o"})
+        )
+        self.assertEquals(1, len(self.members))
+        self.assertIsInstance(self.members[200], Member)
+
     def test_can_change_status_of_members_in_bulk(self):
         self.members.change_status()
         self.assertEquals(self.members.account.adapter.called, 0)
