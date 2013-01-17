@@ -1,5 +1,6 @@
 from myemma.adapter.requests_adapter import RequestsAdapter
-from . import Collection, MemberDeleteError, MemberChangeStatusError
+from . import (Collection, MemberDeleteError, MemberChangeStatusError,
+               MemberDropGroupError)
 from emma_import import EmmaImport
 from member import Member
 from field import Field
@@ -345,6 +346,30 @@ class MemberCollection(Collection):
         for member_id in self._dict:
             if member_id in member_ids:
                 self._dict[member_id]['status'] = status_to
+
+    def drop_groups(self, member_ids=[], group_ids=[]):
+        """
+        Drop specified groups for specified members
+
+        :param member_ids: Set of Member identifiers to affect
+        :type member_ids: :class:`list` of :class:`int`
+        :param group_ids: Set of Group identifiers to drop
+        :type group_ids: :class:`list` of :class:`int`
+        :rtype: :class:`None`
+
+        Usage::
+
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.members.drop_groups([200, 201], [1024, 1025])
+            None
+        """
+        if not member_ids or not group_ids:
+            return None
+
+        path = '/members/groups/remove'
+        data = {'member_ids': member_ids, 'group_ids': group_ids}
+        if not self.account.adapter.put(path, data):
+            raise MemberDropGroupError()
 
 
 class ImportCollection(Collection):

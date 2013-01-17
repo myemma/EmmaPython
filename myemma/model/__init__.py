@@ -47,6 +47,13 @@ class MemberUpdateError(Exception):
     pass
 
 
+class MemberDropGroupError(Exception):
+    """
+    The API call to drop groups from a member did not complete correctly
+    """
+    pass
+
+
 class BaseApiModel(collections.MutableMapping):
     def __len__(self):
         return self._dict.__len__()

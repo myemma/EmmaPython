@@ -2,7 +2,7 @@ import unittest
 from myemma.adapter import AbstractAdapter
 from myemma.adapter.requests_adapter import RequestsAdapter
 from myemma.model import (NoMemberEmailError, MemberDeleteError,
-                          MemberChangeStatusError)
+                          MemberChangeStatusError, MemberDropGroupError)
 from myemma.model.account import (Account, FieldCollection, ImportCollection,
                                   MemberCollection)
 from myemma.model.field import Field
@@ -1013,3 +1013,41 @@ class MemberCollectionTest(unittest.TestCase):
         self.assertEquals(2, len(self.members))
         self.assertEquals(OptOut, self.members[200]['status'])
         self.assertEquals(OptOut, self.members[201]['status'])
+
+    def test_can_drop_groups_of_members_in_bulk(self):
+        self.members.drop_groups()
+        self.assertEquals(self.members.account.adapter.called, 0)
+
+    def test_can_drop_groups_of_members_in_bulk2(self):
+        self.members.drop_groups([123, 321])
+        self.assertEquals(self.members.account.adapter.called, 0)
+
+    def test_can_drop_groups_of_members_in_bulk3(self):
+        self.members.drop_groups([], [1024, 1025])
+        self.assertEquals(self.members.account.adapter.called, 0)
+
+    def test_can_drop_groups_of_members_in_bulk4(self):
+        MockAdapter.expected = False
+
+        with self.assertRaises(MemberDropGroupError):
+            self.members.drop_groups([123, 321], [1024, 1025])
+
+        self.assertEquals(self.members.account.adapter.called, 1)
+        self.assertEquals(self.members.account.adapter.call, (
+            'PUT',
+            '/members/groups/remove',
+            {'member_ids': [123, 321], 'group_ids': [1024, 1025]}
+        ))
+
+    def test_can_drop_groups_of_members_in_bulk5(self):
+        MockAdapter.expected = True
+
+        result = self.members.drop_groups([123, 321], [1024, 1025])
+
+        self.assertIsNone(result)
+        self.assertEquals(self.members.account.adapter.called, 1)
+        self.assertEquals(self.members.account.adapter.call, (
+            'PUT',
+            '/members/groups/remove',
+            {'member_ids': [123, 321], 'group_ids': [1024, 1025]}
+            ))
