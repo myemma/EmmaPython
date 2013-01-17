@@ -266,7 +266,9 @@ class Member(BaseApiModel, ModelWithDateFields):
 
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
-            >>> mbr.drop_groups([1024, 1025])
+            >>> mbr.drop_groups([1024, 1025]) # Drop a specific list of groups
+            None
+            >>> mbr.drop_groups() # Drop all groups
             None
         """
         return self.groups.delete(group_ids)
@@ -393,6 +395,19 @@ class MemberGroupCollection(Collection):
         if self.member.account.adapter.put(path, data):
             self.clear()
 
+    def _delete_by_list(self, group_ids):
+        path = '/members/%s/groups/remove' % self.member['member_id']
+        data = {'group_ids': group_ids}
+        if self.member.account.adapter.put(path, data):
+            self._dict = dict(filter(
+                lambda x: x[0] not in group_ids,
+                self._dict.items()))
+
+    def _delete_all_groups(self):
+        path = '/members/%s/groups' % self.member['member_id']
+        if self.member.account.adapter.delete(path, {}):
+            self._dict = {}
+
     def delete(self, group_ids=[]):
         """
         :param group_ids: List of group identifiers to delete
@@ -403,17 +418,15 @@ class MemberGroupCollection(Collection):
 
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> grps = acct.members[123].groups
-            >>> grps.delete([300, 301])
+            >>> grps.delete([300, 301]) # Delete a specific list of groups
+            None
+            >>> grps.delete() # Delete all groups
             None
         """
         if 'member_id' not in self.member:
             raise NoMemberIdError()
-        if not group_ids:
-            return None
 
-        path = '/members/%s/groups/remove' % self.member['member_id']
-        data = {'group_ids': group_ids}
-        if self.member.account.adapter.put(path, data):
-            self._dict = dict(filter(
-                lambda x: x[0] not in group_ids,
-                self._dict.items()))
+        return (self._delete_by_list(group_ids)
+                if group_ids
+                else self._delete_all_groups())
+

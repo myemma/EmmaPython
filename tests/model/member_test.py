@@ -388,16 +388,14 @@ class MemberGroupCollectionTest(unittest.TestCase):
         self.assertEquals(self.groups.member.account.adapter.called, 0)
 
     def test_can_drop_groups_from_a_member2(self):
-        self.groups._dict = {
-            300: self.groups.factory({'member_group_id': 300}),
-            301: self.groups.factory({'member_group_id': 301}),
-            302: self.groups.factory({'member_group_id': 302})
-        }
+        self.groups.delete()
 
-        self.groups.delete([])
-
-        self.assertEquals(self.groups.member.account.adapter.called, 0)
-        self.assertEquals(3, len(self.groups))
+        self.assertEquals(self.groups.member.account.adapter.called, 1)
+        self.assertEquals(
+            self.groups.member.account.adapter.call,
+            ('DELETE', '/members/1000/groups', {})
+        )
+        self.assertEquals(0, len(self.groups))
 
     def test_can_drop_groups_from_a_member3(self):
         MockAdapter.expected = [300, 301]
@@ -438,6 +436,38 @@ class MemberGroupCollectionTest(unittest.TestCase):
                 {'group_ids': [300, 301]}))
         self.assertEquals(1, len(self.groups))
         self.assertIsInstance(self.groups[302], Group)
+
+    def test_can_drop_groups_from_a_member5(self):
+        self.groups._dict = {
+            300: self.groups.factory({'member_group_id': 300}),
+            301: self.groups.factory({'member_group_id': 301}),
+            302: self.groups.factory({'member_group_id': 302})
+        }
+
+        self.groups.delete()
+
+        self.assertEquals(self.groups.member.account.adapter.called, 1)
+        self.assertEquals(
+            self.groups.member.account.adapter.call,
+            ('DELETE', '/members/1000/groups', {})
+        )
+        self.assertEquals(0, len(self.groups))
+
+    def test_can_drop_groups_from_a_member6(self):
+        self.groups._dict = {
+            300: self.groups.factory({'member_group_id': 300}),
+            301: self.groups.factory({'member_group_id': 301}),
+            302: self.groups.factory({'member_group_id': 302})
+        }
+
+        self.groups.member.drop_groups()
+
+        self.assertEquals(self.groups.member.account.adapter.called, 1)
+        self.assertEquals(
+            self.groups.member.account.adapter.call,
+            ('DELETE', '/members/1000/groups', {})
+        )
+        self.assertEquals(0, len(self.groups))
 
 
 class MemberMailingCollectionTest(unittest.TestCase):
