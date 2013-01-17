@@ -310,7 +310,7 @@ class MemberGroupCollectionTest(unittest.TestCase):
         self.assertEquals(groups.member.account.adapter.called, 0)
 
     def test_fetch_all_returns_a_dictionary2(self):
-        MockAdapter.expected = [{'group_name': u"Test Group"}]
+        MockAdapter.expected = [{'member_group_id': 200}]
         self.assertIsInstance(self.groups.fetch_all(), dict)
         self.assertEquals(self.groups.member.account.adapter.called, 1)
         self.assertEquals(
@@ -318,23 +318,23 @@ class MemberGroupCollectionTest(unittest.TestCase):
             ('GET', '/members/1000/groups', {}))
 
     def test_fetch_all_populates_collection(self):
-        MockAdapter.expected = [{'group_name': u"Test Group"}]
+        MockAdapter.expected = [{'member_group_id': 200}]
         self.assertEquals(0, len(self.groups))
         self.groups.fetch_all()
         self.assertEquals(1, len(self.groups))
 
     def test_fetch_all_caches_results(self):
-        MockAdapter.expected = [{'group_name': u"Test Group"}]
+        MockAdapter.expected = [{'member_group_id': 200}]
         self.groups.fetch_all()
         self.groups.fetch_all()
         self.assertEquals(self.groups.member.account.adapter.called, 1)
 
     def test_collection_can_be_accessed_like_a_dictionary(self):
-        MockAdapter.expected = [{'group_name': u"Test Group"}]
+        MockAdapter.expected = [{'member_group_id': 200}]
         self.groups.fetch_all()
         self.assertIsInstance(self.groups, MemberGroupCollection)
         self.assertEquals(1, len(self.groups))
-        self.assertIsInstance(self.groups[u"Test Group"], Group)
+        self.assertIsInstance(self.groups[200], Group)
 
     def test_factory_produces_a_group(self):
         grp = self.groups.factory()
@@ -342,17 +342,17 @@ class MemberGroupCollectionTest(unittest.TestCase):
         self.assertEquals(0, len(grp))
 
     def test_factory_produces_a_group2(self):
-        grp = self.groups.factory({'group_id':1024})
+        grp = self.groups.factory({'member_group_id':1024})
         self.assertIsInstance(grp, Group)
         self.assertEquals(1, len(grp))
-        self.assertEquals(1024, grp['group_id'])
+        self.assertEquals(1024, grp['member_group_id'])
 
     def test_can_add_groups_to_a_member(self):
         mbr = Member(self.groups.member.account)
 
         with self.assertRaises(NoMemberIdError):
             mbr.groups.save([
-                mbr.groups.factory({'group_id':1024})
+                mbr.groups.factory({'member_group_id':1024})
             ])
         self.assertEquals(self.groups.member.account.adapter.called, 0)
 
@@ -364,8 +364,8 @@ class MemberGroupCollectionTest(unittest.TestCase):
     def test_can_add_groups_to_a_member3(self):
         MockAdapter.expected = [300, 301]
         self.groups.save([
-            self.groups.factory({'group_id': 300}),
-            self.groups.factory({'group_id': 301})
+            self.groups.factory({'member_group_id': 300}),
+            self.groups.factory({'member_group_id': 301})
         ])
         self.assertEquals(self.groups.member.account.adapter.called, 1)
         self.assertEquals(
@@ -379,6 +379,65 @@ class MemberGroupCollectionTest(unittest.TestCase):
         self.assertEquals(
             self.groups.member.account.adapter.call,
             ('PUT', '/members/1000/groups', {'group_ids': [300, 301]}))
+
+    def test_can_drop_groups_from_a_member(self):
+        mbr = Member(self.groups.member.account)
+
+        with self.assertRaises(NoMemberIdError):
+            mbr.groups.delete([300, 301])
+        self.assertEquals(self.groups.member.account.adapter.called, 0)
+
+    def test_can_drop_groups_from_a_member2(self):
+        self.groups._dict = {
+            300: self.groups.factory({'member_group_id': 300}),
+            301: self.groups.factory({'member_group_id': 301}),
+            302: self.groups.factory({'member_group_id': 302})
+        }
+
+        self.groups.delete([])
+
+        self.assertEquals(self.groups.member.account.adapter.called, 0)
+        self.assertEquals(3, len(self.groups))
+
+    def test_can_drop_groups_from_a_member3(self):
+        MockAdapter.expected = [300, 301]
+        self.groups._dict = {
+            300: self.groups.factory({'member_group_id': 300}),
+            301: self.groups.factory({'member_group_id': 301}),
+            302: self.groups.factory({'member_group_id': 302})
+        }
+
+        self.groups.delete([300, 301])
+
+        self.assertEquals(self.groups.member.account.adapter.called, 1)
+        self.assertEquals(
+            self.groups.member.account.adapter.call,
+            (
+                'PUT',
+                '/members/1000/groups/remove',
+                {'group_ids': [300, 301]}))
+        self.assertEquals(1, len(self.groups))
+        self.assertIsInstance(self.groups[302], Group)
+
+    def test_can_drop_groups_from_a_member4(self):
+        MockAdapter.expected = [300, 301]
+        self.groups._dict = {
+            300: self.groups.factory({'member_group_id': 300}),
+            301: self.groups.factory({'member_group_id': 301}),
+            302: self.groups.factory({'member_group_id': 302})
+        }
+
+        self.groups.member.drop_groups([300, 301])
+
+        self.assertEquals(self.groups.member.account.adapter.called, 1)
+        self.assertEquals(
+            self.groups.member.account.adapter.call,
+            (
+                'PUT',
+                '/members/1000/groups/remove',
+                {'group_ids': [300, 301]}))
+        self.assertEquals(1, len(self.groups))
+        self.assertIsInstance(self.groups[302], Group)
 
 
 class MemberMailingCollectionTest(unittest.TestCase):

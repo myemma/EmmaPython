@@ -250,9 +250,26 @@ class Member(BaseApiModel, ModelWithDateFields):
             None
         """
         return self.groups.save(map(
-            lambda x: self.groups.factory({'group_id': x}),
+            lambda x: self.groups.factory({'member_group_id': x}),
             group_ids
         ))
+
+    def drop_groups(self, group_ids=[]):
+        """
+        Convenience method for dropping groups from a Member
+
+        :param group_ids: Set of Group identifiers to drop
+        :type group_ids: :class:`list` of :class:`int`
+        :rtype: :class:`None`
+
+        Usage::
+
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> mbr = acct.members[123]
+            >>> mbr.drop_groups([1024, 1025])
+            None
+        """
+        return self.groups.delete(group_ids)
 
 
 class MemberMailingCollection(Collection):
@@ -320,8 +337,8 @@ class MemberGroupCollection(Collection):
             >>> mbr = acct.members[123]
             >>> mbr.groups.factory()
             <Group{}>
-            >>> mbr.groups.factory({'group_id':1024})
-            <Group{'group_id':1024}>
+            >>> mbr.groups.factory({'member_group_id':1024})
+            <Group{'member_group_id':1024}>
         """
         return Group(self.account, raw)
 
@@ -344,7 +361,7 @@ class MemberGroupCollection(Collection):
         path = '/members/%s/groups' % self.member['member_id']
         if not self._dict:
             self._dict = dict(map(
-                lambda x: (x['group_name'], Group(self.member.account, x)),
+                lambda x: (x['member_group_id'], Group(self.member.account, x)),
                 self.member.account.adapter.get(path)
             ))
         return self._dict
@@ -360,9 +377,9 @@ class MemberGroupCollection(Collection):
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> grps = acct.members[123].groups
             >>> grps.save([
-            ...     grps.factory({'group_id': 300}),
-            ...     grps.factory({'group_id': 301}),
-            ...     grps.factory({'group_id': 302})
+            ...     grps.factory({'member_group_id': 300}),
+            ...     grps.factory({'member_group_id': 301}),
+            ...     grps.factory({'member_group_id': 302})
             ... ])
             None
         """
@@ -372,6 +389,31 @@ class MemberGroupCollection(Collection):
             return None
 
         path = '/members/%s/groups' % self.member['member_id']
-        data = {'group_ids': map(lambda x: x['group_id'], groups)}
+        data = {'group_ids': map(lambda x: x['member_group_id'], groups)}
         if self.member.account.adapter.put(path, data):
-            self.member.groups.clear()
+            self.clear()
+
+    def delete(self, group_ids=[]):
+        """
+        :param group_ids: List of group identifiers to delete
+        :type group_ids: :class:`list` of :class:`int`
+        :rtype: :class:`None`
+
+        Usage::
+
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> grps = acct.members[123].groups
+            >>> grps.delete([300, 301])
+            None
+        """
+        if 'member_id' not in self.member:
+            raise NoMemberIdError()
+        if not group_ids:
+            return None
+
+        path = '/members/%s/groups/remove' % self.member['member_id']
+        data = {'group_ids': group_ids}
+        if self.member.account.adapter.put(path, data):
+            self._dict = dict(filter(
+                lambda x: x[0] not in group_ids,
+                self._dict.items()))
