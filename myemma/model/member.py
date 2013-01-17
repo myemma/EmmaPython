@@ -1,5 +1,5 @@
 from datetime import datetime
-from . import (SERIALIZED_DATE_FORMAT, BaseApiModel, Collection,
+from . import (BaseApiModel, Collection, ModelWithDateFields,
                NoMemberEmailError, NoMemberIdError, NoMemberStatusError,
                MemberUpdateError)
 from group import Group
@@ -7,7 +7,7 @@ from mailing import Mailing
 from status import Status, Active, Error, Forwarded, OptOut
 
 
-class Member(BaseApiModel):
+class Member(BaseApiModel, ModelWithDateFields):
     """
     Encapsulates operations for a :class:`Member`
 
@@ -34,12 +34,6 @@ class Member(BaseApiModel):
         self._dict = self._parse_raw(raw) if raw is not None else {}
 
     def _parse_raw(self, raw):
-        def parse_date(key):
-            if key in raw and raw[key]:
-                raw[key] = datetime.strptime(
-                    raw[key],
-                    SERIALIZED_DATE_FORMAT)
-
         if 'status' in raw:
             raw['status'] = Status.factory(raw['status'])
         if 'member_status_id' in raw:
@@ -47,8 +41,9 @@ class Member(BaseApiModel):
         if 'fields' in raw:
             raw.update(raw['fields'])
             del(raw['fields'])
-        for key in ['last_modified_at', 'member_since', 'deleted_at']:
-            parse_date(key)
+        self._str_fields_to_datetime(
+            ['last_modified_at', 'member_since', 'deleted_at'],
+            raw)
         return raw
 
     def opt_out(self):
@@ -160,7 +155,7 @@ class Member(BaseApiModel):
         path = '/members/add'
         data = self.extract()
         if len(self.groups):
-            data['group_ids'] = self.groups.fetch_all().keys()
+            data['group_ids'] = self.groups.keys()
         if signup_form_id:
             data['signup_form_id'] = signup_form_id
 

@@ -1,7 +1,7 @@
 from datetime import datetime
 import unittest
 from myemma.adapter import AbstractAdapter
-from myemma.model import (SERIALIZED_DATE_FORMAT, NoMemberEmailError,
+from myemma.model import (SERIALIZED_DATETIME_FORMAT, NoMemberEmailError,
                           NoMemberIdError, NoMemberStatusError,
                           MemberUpdateError)
 from myemma.model.account import Account
@@ -228,7 +228,7 @@ class MemberTest(unittest.TestCase):
             {
                 'member_id': 200,
                 'email':u"test@example.com",
-                'first_name':u"Emma",
+                'fields': {'first_name':u"Emma"},
                 'status': Active
             })
         MockAdapter.expected = True
@@ -262,7 +262,7 @@ class MemberTest(unittest.TestCase):
             {
                 'member_id': 200,
                 'email':u"test@example.com",
-                'deleted_at': datetime.now().strftime(SERIALIZED_DATE_FORMAT)
+                'deleted_at': datetime.now().strftime(SERIALIZED_DATETIME_FORMAT)
             })
 
         result = mbr.delete()

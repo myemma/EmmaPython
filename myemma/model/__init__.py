@@ -1,7 +1,8 @@
 import collections
+import datetime
 
 
-SERIALIZED_DATE_FORMAT = "@D:%Y-%m-%dT%H:%M:%S"
+SERIALIZED_DATETIME_FORMAT = "@D:%Y-%m-%dT%H:%M:%S"
 
 
 class NoMemberEmailError(Exception):
@@ -103,3 +104,11 @@ class Collection(BaseApiModel):
                     items.items()
                 )
             )
+
+class ModelWithDateFields(object):
+    def _str_fields_to_datetime(self, fields, raw):
+        for field in fields:
+            if field in raw and raw[field]:
+                raw[field] = datetime.datetime.strptime(
+                    raw[field],
+                    SERIALIZED_DATETIME_FORMAT)
