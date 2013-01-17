@@ -8,7 +8,7 @@ from myemma.model.account import (Account, FieldCollection, ImportCollection,
 from myemma.model.field import Field
 from myemma.model.emma_import import EmmaImport
 from myemma.model.member import Member
-from myemma.model.status import Active, Error, Forwarded, OptOut
+from myemma.model.member_status import Active, Error, Forwarded, OptOut
 
 
 class MockAdapter(AbstractAdapter):

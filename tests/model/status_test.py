@@ -1,5 +1,5 @@
 import unittest
-from myemma.model.status import (Active, Error, Forwarded, OptOut)
+from myemma.model.member_status import (Active, Error, Forwarded, OptOut)
 
 
 class StatusTest(unittest.TestCase):

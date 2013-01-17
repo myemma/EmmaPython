@@ -4,7 +4,7 @@ from . import (BaseApiModel, Collection, ModelWithDateFields,
                MemberUpdateError)
 from group import Group
 from mailing import Mailing
-from status import Status, Active, Error, Forwarded, OptOut
+from member_status import MemberStatus, Active, Error, Forwarded, OptOut
 
 
 class Member(BaseApiModel, ModelWithDateFields):
@@ -35,7 +35,7 @@ class Member(BaseApiModel, ModelWithDateFields):
 
     def _parse_raw(self, raw):
         if 'status' in raw:
-            raw['status'] = Status.factory(raw['status'])
+            raw['status'] = MemberStatus.factory(raw['status'])
         if 'member_status_id' in raw:
             del(raw['member_status_id'])
         if 'fields' in raw:
@@ -160,7 +160,7 @@ class Member(BaseApiModel, ModelWithDateFields):
             data['signup_form_id'] = signup_form_id
 
         outcome = self.account.adapter.post(path, data)
-        self['status'] = Status.factory(outcome['status'])
+        self['status'] = MemberStatus.factory(outcome['status'])
         if outcome['added']:
             self['member_id'] = outcome['member_id']
 
@@ -393,7 +393,7 @@ class MemberGroupCollection(Collection):
         path = '/members/%s/groups' % self.member['member_id']
         data = {'group_ids': map(lambda x: x['member_group_id'], groups)}
         if self.member.account.adapter.put(path, data):
-            self.clear()
+            self.truncate()
 
     def _delete_by_list(self, group_ids):
         path = '/members/%s/groups/remove' % self.member['member_id']

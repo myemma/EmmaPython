@@ -4,7 +4,7 @@ from . import (Collection, MemberDeleteError, MemberChangeStatusError,
 from emma_import import EmmaImport
 from member import Member
 from field import Field
-from status import Active
+from member_status import Active
 
 
 class Account(object):

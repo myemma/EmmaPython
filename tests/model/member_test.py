@@ -9,7 +9,8 @@ from myemma.model.member import (Member, MemberGroupCollection,
                                  MemberMailingCollection)
 from myemma.model.group import Group
 from myemma.model.mailing import Mailing
-from myemma.model.status import Active
+from myemma.model.member_status import Active
+from myemma.model.delivery_type import Delivered
 
 
 class MockAdapter(AbstractAdapter):
@@ -244,6 +245,37 @@ class MemberTest(unittest.TestCase):
                     'email':u"test@example.com",
                     'fields': {'first_name': u"Emma"},
                     'status_to': mbr['status'].get_code()
+                }
+            ))
+
+    def test_can_save_a_member6(self):
+        mbr = Member(
+            self.member.account,
+            {
+                'email':u"test@example.com",
+                'fields': {'first_name':u"Emma"}
+            })
+        mbr.groups._dict = {
+            1025: mbr.groups.factory()
+        }
+        MockAdapter.expected = {
+            'status': u"a",
+            'added': True,
+            'member_id': 1024
+        }
+
+        result = mbr.save()
+
+        self.assertIsNone(result)
+        self.assertEquals(mbr.account.adapter.called, 1)
+        self.assertEquals(mbr.account.adapter.call,
+            (
+                'POST',
+                '/members/add',
+                {
+                    'email':u"test@example.com",
+                    'fields': {'first_name': u"Emma"},
+                    'group_ids': [1025]
                 }
             ))
 
@@ -490,7 +522,7 @@ class MemberMailingCollectionTest(unittest.TestCase):
         self.assertEquals(mailings.member.account.adapter.called, 0)
 
     def test_fetch_all_returns_a_dictionary2(self):
-        MockAdapter.expected = [{'mailing_id': 201}]
+        MockAdapter.expected = [{'mailing_id': 201, 'delivery_type':u"d"}]
         self.assertIsInstance(self.mailings.fetch_all(), dict)
         self.assertEquals(self.mailings.member.account.adapter.called, 1)
         self.assertEquals(
@@ -498,20 +530,22 @@ class MemberMailingCollectionTest(unittest.TestCase):
             ('GET', '/members/1000/mailings', {}))
 
     def test_fetch_all_populates_collection(self):
-        MockAdapter.expected = [{'mailing_id': 201}]
+        MockAdapter.expected = [{'mailing_id': 201, 'delivery_type':u"d"}]
         self.assertEquals(0, len(self.mailings))
         self.mailings.fetch_all()
         self.assertEquals(1, len(self.mailings))
 
     def test_fetch_all_caches_results(self):
-        MockAdapter.expected = [{'mailing_id': 201}]
+        MockAdapter.expected = [{'mailing_id': 201, 'delivery_type':u"d"}]
         self.mailings.fetch_all()
         self.mailings.fetch_all()
         self.assertEquals(self.mailings.member.account.adapter.called, 1)
 
     def test_collection_can_be_accessed_like_a_dictionary(self):
-        MockAdapter.expected = [{'mailing_id': 201}]
+        MockAdapter.expected = [{'mailing_id': 201, 'delivery_type':u"d"}]
         self.mailings.fetch_all()
         self.assertIsInstance(self.mailings, MemberMailingCollection)
         self.assertEquals(1, len(self.mailings))
         self.assertIsInstance(self.mailings[201], Mailing)
+        self.assertEquals(self.mailings[201]['mailing_id'], 201)
+        self.assertEquals(self.mailings[201]['delivery_type'], Delivered)

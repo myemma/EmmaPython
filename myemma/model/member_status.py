@@ -1,4 +1,4 @@
-class Status(object):
+class MemberStatus(object):
     @classmethod
     def get_code(cls):
         return cls._code
@@ -24,18 +24,21 @@ class Status(object):
             OptOut._name: OptOut
         }[status_or_name_or_code]
 
-class Active(Status):
+
+class Active(MemberStatus):
     _code = u"a"
     _name = u"active"
 
-class Error(Status):
+
+class Error(MemberStatus):
     _code = u"e"
     _name = u"error"
 
-class Forwarded(Status):
+
+class Forwarded(MemberStatus):
     _code = u"f"
     _name = u"forwarded"
 
-class OptOut(Status):
+class OptOut(MemberStatus):
     _code = u"o"
     _name = u"opt-out"
