@@ -1,3 +1,5 @@
+"""You need models. We got models."""
+
 import collections
 import datetime
 
@@ -5,7 +7,17 @@ import datetime
 SERIALIZED_DATETIME_FORMAT = "@D:%Y-%m-%dT%H:%M:%S"
 
 
+def str_fields_to_datetime(fields, raw):
+    """Parses Emma date fields to :class:`datetime` objects"""
+    for field in fields:
+        if field in raw and raw[field]:
+            raw[field] = datetime.datetime.strptime(
+                raw[field],
+                SERIALIZED_DATETIME_FORMAT)
+
+
 class BaseApiModel(collections.MutableMapping):
+    """Creates a model with dictionary access"""
     def __init__(self, raw=None):
         self._dict = self._parse_raw(raw) if raw else {}
 
@@ -31,6 +43,7 @@ class BaseApiModel(collections.MutableMapping):
         return "".join(['<', self.__class__.__name__, repr(self._dict), '>'])
 
     def _replace_all(self, items):
+        """Update the internal :class:`dict` with matching items provided"""
         is_new = lambda x: x[0] not in self._dict
         replace = lambda x: (x[0], x[1] if x[0] not in items else items[x[0]])
 
@@ -38,17 +51,10 @@ class BaseApiModel(collections.MutableMapping):
             self._dict = items
         else:
             self._dict = dict(
-                map(replace, self._dict.items())
-                + filter(is_new, items.items())
+                [replace(x) for x in self._dict.items()]
+                + [x for x in items.items() if is_new(x)]
             )
 
     def _parse_raw(self, raw):
+        """Placeholder, will normally be overridden"""
         return raw
-
-class ModelWithDateFields(object):
-    def _str_fields_to_datetime(self, fields, raw):
-        for field in fields:
-            if field in raw and raw[field]:
-                raw[field] = datetime.datetime.strptime(
-                    raw[field],
-                    SERIALIZED_DATETIME_FORMAT)

@@ -1,13 +1,15 @@
+"""Audience member models"""
+
 from datetime import datetime
-from . import (BaseApiModel, ModelWithDateFields  )
-from group import Group
-from mailing import Mailing
-import member_change_type
-import member_status
-from myemma.adapter import MemberUpdateError, NoMemberEmailError, NoMemberIdError, NoMemberStatusError
+from myemma.adapter import (MemberUpdateError, NoMemberEmailError,
+                            NoMemberIdError, NoMemberStatusError)
+from myemma.model import (BaseApiModel, str_fields_to_datetime,
+                          member_change_type, member_status)
+from myemma.model.group import Group
+from myemma.model.mailing import Mailing
 
 
-class Member(BaseApiModel, ModelWithDateFields):
+class Member(BaseApiModel):
     """
     Encapsulates operations for a :class:`Member`
 
@@ -45,7 +47,7 @@ class Member(BaseApiModel, ModelWithDateFields):
         if 'fields' in raw:
             raw.update(raw['fields'])
             del(raw['fields'])
-        self._str_fields_to_datetime(
+        str_fields_to_datetime(
             ['last_modified_at', 'member_since', 'deleted_at'],
             raw)
         return raw
@@ -115,13 +117,10 @@ class Member(BaseApiModel, ModelWithDateFields):
         print(repr(self._dict['status']))
         return self._dict['status'] == member_status.OptOut
 
-    def extract(self, top_level=None):
+    def extract(self):
         """
         Extracts data from the model in a format suitable for using with the API
 
-        :param top_level: Set of top-level attributes of the resulting JSON
-        object. All other attributes will be treated as member fields.
-        :type top_level: :class:`list` of :class:`str` or :class:`None`
         :rtype: :class:`dict`
 
         Usage::
@@ -135,31 +134,17 @@ class Member(BaseApiModel, ModelWithDateFields):
         if 'email' not in self._dict:
             raise NoMemberEmailError
 
-        # Set some defaults
-        if top_level is None:
-            top_level = ['member_id', 'email']
+        extracted = dict(x for x in self._dict.items()
+            if x[0] in ['member_id', 'email'])
+        fields = dict(x for x in self._dict.items()
+            if x[0] in self.account.fields.export_shortcuts())
+        if fields:
+            extracted['fields'] = fields
 
-        def squash(d, t):
-            #squash a member tuple into member dictionary
-            if t[0] in top_level:
-                d[t[0]] = t[1]
-            else:
-                if 'fields' not in d:
-                    d['fields'] = {}
-                d['fields'][t[0]] = t[1]
-            return d
-
-        shortcuts = self.account.fields.export_shortcuts()
-
-        return dict(
-            reduce(
-                lambda x, y: squash(x, y),
-                filter(
-                    lambda x: x[0] in shortcuts + top_level,
-                    self._dict.items()),
-                {}))
+        return extracted
 
     def _add(self, signup_form_id):
+        """Add a single member"""
         path = '/members/add'
         data = self.extract()
         if len(self.groups):
@@ -173,6 +158,7 @@ class Member(BaseApiModel, ModelWithDateFields):
             self['member_id'] = outcome['member_id']
 
     def _update(self):
+        """Update a single member"""
         path = "/members/%s" % self._dict['member_id']
         data = self.extract()
         if self._dict['status'] in (member_status.Active, member_status.Error,
@@ -262,10 +248,8 @@ class Member(BaseApiModel, ModelWithDateFields):
             >>> mbr.add_groups([1024, 1025])
             None
         """
-        return self.groups.save(map(
-            lambda x: self.groups.factory({'member_group_id': x}),
-            group_ids
-        ))
+        return self.groups.save(
+            [self.groups.factory({'member_group_id': x}) for x in group_ids])
 
     def drop_groups(self, group_ids=None):
         """
@@ -300,7 +284,8 @@ class MemberMailingCollection(BaseApiModel):
         self.member = member
         super(MemberMailingCollection, self).__init__()
 
-    def __delitem__(self, key): pass
+    def __delitem__(self, key):
+        pass
 
     def fetch_all(self):
         """
@@ -321,10 +306,9 @@ class MemberMailingCollection(BaseApiModel):
             raise NoMemberIdError()
         path = '/members/%s/mailings' % self.member['member_id']
         if not self._dict:
-            self._dict = dict(map(
-                lambda x: (x['mailing_id'], Mailing(self.member.account, x)),
-                self.member.account.adapter.get(path)
-            ))
+            self._dict = dict(
+                (x['mailing_id'], Mailing(self.member.account, x))
+                    for x in self.member.account.adapter.get(path))
         return self._dict
 
 
@@ -380,10 +364,9 @@ class MemberGroupCollection(BaseApiModel):
             raise NoMemberIdError()
         path = '/members/%s/groups' % self.member['member_id']
         if not self._dict:
-            self._dict = dict(map(
-                lambda x: (x['member_group_id'], Group(self.member.account, x)),
-                self.member.account.adapter.get(path)
-            ))
+            self._dict = dict(
+                (x['member_group_id'], Group(self.member.account, x))
+                    for x in self.member.account.adapter.get(path))
         return self._dict
 
     def save(self, groups=None):
@@ -410,19 +393,20 @@ class MemberGroupCollection(BaseApiModel):
             return None
 
         path = '/members/%s/groups' % self.member['member_id']
-        data = {'group_ids': map(lambda x: x['member_group_id'], groups)}
+        data = {'group_ids': [x['member_group_id'] for x in groups]}
         if self.member.account.adapter.put(path, data):
             self.clear()
 
     def _delete_by_list(self, group_ids):
+        """Drop groups by list of identifiers"""
         path = '/members/%s/groups/remove' % self.member['member_id']
         data = {'group_ids': group_ids}
         if self.member.account.adapter.put(path, data):
-            self._dict = dict(filter(
-                lambda x: x[0] not in group_ids,
-                self._dict.items()))
+            self._dict = dict(x for x in self._dict.items()
+                if x[0] not in group_ids)
 
     def _delete_all_groups(self):
+        """Drop all groups"""
         path = '/members/%s/groups' % self.member['member_id']
         if self.member.account.adapter.delete(path, {}):
             self._dict = {}

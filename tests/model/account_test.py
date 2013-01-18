@@ -3,8 +3,7 @@ from myemma.adapter import ImportDeleteError, MemberChangeStatusError, MemberDel
 from myemma.adapter.requests_adapter import RequestsAdapter
 from myemma.model.account import (Account, AccountFieldCollection,
                                   AccountImportCollection,
-                                  AccountMemberCollection,
-                                  AccountGroupCollection)
+                                  AccountGroupCollection, AccountMemberCollection)
 from myemma.model.field import Field
 from myemma.model.group import Group
 from myemma.model.member_import import MemberImport

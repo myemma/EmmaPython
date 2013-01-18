@@ -1,3 +1,5 @@
+"""Audience field models"""
+
 from datetime import datetime
 from myemma.adapter import NoFieldIdError
 from . import BaseApiModel

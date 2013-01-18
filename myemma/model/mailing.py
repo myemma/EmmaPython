@@ -1,8 +1,9 @@
-from . import BaseApiModel, ModelWithDateFields
-from delivery_type import DeliveryType
+"""Audience mailing models"""
+
+from myemma.model import BaseApiModel, str_fields_to_datetime, delivery_type
 
 
-class Mailing(BaseApiModel, ModelWithDateFields):
+class Mailing(BaseApiModel):
     """
     Encapsulates operations for a :class:`Mailing`
 
@@ -25,8 +26,9 @@ class Mailing(BaseApiModel, ModelWithDateFields):
 
     def _parse_raw(self, raw):
         if 'delivery_type' in raw:
-            raw['delivery_type'] = DeliveryType.factory(raw['delivery_type'])
-        self._str_fields_to_datetime(
+            raw['delivery_type'] = delivery_type.DeliveryType.factory(
+                raw['delivery_type'])
+        str_fields_to_datetime(
             ['clicked', 'opened', 'delivery_ts', 'forwarded', 'shared', 'sent'],
             raw)
         return raw

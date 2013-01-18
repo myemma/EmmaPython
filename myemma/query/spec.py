@@ -1,3 +1,4 @@
+"""A simple implementation of the specification patter"""
 
 class CompositeQuery(object):
     def conjoin(self, other):

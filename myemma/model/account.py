@@ -1,11 +1,13 @@
-from myemma.adapter import ImportDeleteError, MemberChangeStatusError, MemberDeleteError, MemberDropGroupError
+"""The aggregate root (Account) and collections owned by the root"""
+
+from myemma.adapter import (ImportDeleteError, MemberDeleteError,
+                            MemberChangeStatusError, MemberDropGroupError)
 from myemma.adapter.requests_adapter import RequestsAdapter
-from . import (BaseApiModel  )
-from member_import import MemberImport
-from member import Member
-from field import Field
-from group import Group
-import member_status
+from myemma.model import BaseApiModel, member_status
+from myemma.model.member import Member
+from myemma.model.member_import import MemberImport
+from myemma.model.field import Field
+from myemma.model.group import Group
 
 
 class Account(object):
@@ -43,7 +45,6 @@ class Account(object):
         self.imports = AccountImportCollection(self)
         self.members = AccountMemberCollection(self)
 
-
 class AccountFieldCollection(BaseApiModel):
     """
     Encapsulates operations for the set of :class:`Field` objects of an
@@ -75,10 +76,9 @@ class AccountFieldCollection(BaseApiModel):
         """
         path = '/fields'
         if not self._dict:
-            self._dict = dict(map(
-                lambda x: (x['field_id'], Field(self.account, x)),
-                self.account.adapter.get(path)
-            ))
+            self._dict = dict(
+                (x['field_id'], Field(self.account, x))
+                    for x in self.account.adapter.get(path))
         return self._dict
 
     def export_shortcuts(self):
@@ -94,10 +94,7 @@ class AccountFieldCollection(BaseApiModel):
             >>> acct.fields.export_shortcuts()
             ["first_name", "last_name", ...]
         """
-        return map(
-            lambda x: x['shortcut_name'],
-            self.fetch_all().values()
-        )
+        return [x['shortcut_name'] for x in self.fetch_all().values()]
 
 
 class AccountGroupCollection(BaseApiModel):
@@ -136,13 +133,12 @@ class AccountGroupCollection(BaseApiModel):
             {007: <Group>}
         """
         path = '/groups'
-        params = {'group_types': map(lambda x: x.get_code(), group_types)} \
-                if group_types else {}
+        params = {'group_types': [x.get_code() for x in group_types]} \
+            if group_types else {}
         if not self._dict:
-            self._dict = dict(map(
-                lambda x: (x['member_group_id'], Group(self.account, x)),
-                self.account.adapter.get(path, params)
-            ))
+            self._dict = dict(
+                (x['member_group_id'], Group(self.account, x))
+                    for x in self.account.adapter.get(path, params))
         return self._dict
 
     def find_one_by_group_id(self, group_id):
@@ -173,6 +169,100 @@ class AccountGroupCollection(BaseApiModel):
                 return self._dict[group_id]
         else:
             return self._dict[group_id]
+
+
+class AccountImportCollection(BaseApiModel):
+    """
+    Encapsulates operations for the set of :class:`Import` objects of an
+    :class:`account`
+
+    :param account: The Account which owns this collection
+    :type account: :class:`Account`
+    """
+    def __init__(self, account):
+        self.account = account
+        super(AccountImportCollection, self).__init__()
+
+    def __getitem__(self, key):
+        return self.find_one_by_import_id(key)
+
+    def __delitem__(self, key):
+        self.delete([key])
+
+    def fetch_all(self):
+        """
+        Lazy-loads the full set of :class:`Import` objects
+
+        :rtype: :class:`dict` of :class:`Import` objects
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.imports.fetch_all()
+            {123: <Import>, 321: <Import>, ...}
+
+        """
+        path = '/members/imports'
+        if not self._dict:
+            self._dict = dict(
+                (x['import_id'], MemberImport(self.account, x))
+                    for x in self.account.adapter.get(path, {}))
+        return self._dict
+
+    def find_one_by_import_id(self, import_id):
+        """
+        Lazy-loads a single :class:`Import` by ID
+
+        :param import_id: The import identifier
+        :type import_id: :class:`int` or :class:`str`
+        :rtype: :class:`Import` or :class:`None`
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.imports.find_one_by_import_id(0) # does not exist
+            None
+            >>> acct.imports.find_one_by_import_id(123)
+            <Import>
+            >>> acct.imports[123]
+            <Import>
+        """
+        import_id = int(import_id)
+        path = '/members/imports/%s' % import_id
+        if import_id not in self._dict:
+            emma_import = self.account.adapter.get(path)
+            if emma_import is not None:
+                self._dict[import_id] = MemberImport(self.account, emma_import)
+                return self._dict[import_id]
+        else:
+            return self._dict[import_id]
+
+    def delete(self, import_ids=None):
+        """
+        :param import_ids: Set of import identifiers to delete
+        :type import_ids: :class:`list` of :class:`int`
+        :rtype: :class:`None`
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.imports.delete([123, 321]) # Deletes imports 123, and 321
+            None
+        """
+        if not import_ids:
+            return None
+
+        path = '/members/imports/delete'
+        params = {'import_ids': import_ids}
+        if not self.account.adapter.delete(path, params):
+            raise ImportDeleteError()
+
+        # Update internal dictionary
+        self._dict = dict(
+            x for x in self._dict.items() if x[0] not in import_ids)
 
 
 class AccountMemberCollection(BaseApiModel):
@@ -234,10 +324,9 @@ class AccountMemberCollection(BaseApiModel):
         path = '/members'
         params = {"deleted":True} if deleted else {}
         if not self._dict:
-            self._dict = dict(map(
-                lambda x: (x['member_id'], Member(self.account, x)),
-                self.account.adapter.get(path, params)
-            ))
+            self._dict = dict(
+                (x['member_id'], Member(self.account, x)) for x in
+                    self.account.adapter.get(path, params))
         return self._dict
 
     def fetch_all_by_import_id(self, import_id):
@@ -257,10 +346,9 @@ class AccountMemberCollection(BaseApiModel):
             {123: <Member>, 321: <Member>, ...}
         """
         path = '/members/imports/%s/members' % import_id
-        members = dict(map(
-            lambda x: (x['member_id'], Member(self.account, x)),
-            self.account.adapter.get(path)
-        ))
+        members = dict(
+            (x['member_id'], Member(self.account, x))
+                for x in self.account.adapter.get(path))
         self._replace_all(members)
         return members
 
@@ -318,9 +406,7 @@ class AccountMemberCollection(BaseApiModel):
         """
         path = '/members/email/%s' % email
         params = {"deleted":True} if deleted else {}
-        members = filter(
-            lambda x: x['email'] == email,
-            self._dict.values())
+        members = [x for x in self._dict.values() if x['email'] == email]
         if not members:
             member = self.account.adapter.get(path, params)
             if member is not None:
@@ -366,10 +452,9 @@ class AccountMemberCollection(BaseApiModel):
         path = '/members'
         data = {
             'members': (
-                ([] if not members else map(lambda x: x.extract(), members))
-                + ([]
-                   if add_only
-                   else map(lambda x: x.extract(), self._dict.values())))
+                ([] if not members else [x.extract() for x in members])
+                + ([] if add_only
+                   else [x.extract() for x in self._dict.values()]))
         }
         if add_only:
             data['add_only'] = add_only
@@ -398,9 +483,8 @@ class AccountMemberCollection(BaseApiModel):
             raise MemberDeleteError()
 
         # Update internal dictionary
-        self._dict = dict(filter(
-            lambda x: x[1]['status'] != status,
-            self._dict.items()))
+        self._dict = dict(
+            x for x in self._dict.items() if x[1]['status'] != status)
 
     def delete(self, member_ids=None):
         """
@@ -424,9 +508,8 @@ class AccountMemberCollection(BaseApiModel):
             raise MemberDeleteError()
 
         # Update internal dictionary
-        self._dict = dict(filter(
-            lambda x: x[0] not in member_ids,
-            self._dict.items()))
+        self._dict = dict(
+            x for x in self._dict.items() if x[0] not in member_ids)
 
     def change_status_by_member_id(self, member_ids=None, status_to=None):
         """
@@ -508,99 +591,3 @@ class AccountMemberCollection(BaseApiModel):
         data = {'member_ids': member_ids, 'group_ids': group_ids}
         if not self.account.adapter.put(path, data):
             raise MemberDropGroupError()
-
-
-class AccountImportCollection(BaseApiModel):
-    """
-    Encapsulates operations for the set of :class:`Import` objects of an
-    :class:`account`
-
-    :param account: The Account which owns this collection
-    :type account: :class:`Account`
-    """
-    def __init__(self, account):
-        self.account = account
-        super(AccountImportCollection, self).__init__()
-
-    def __getitem__(self, key):
-        return self.find_one_by_import_id(key)
-
-    def __delitem__(self, key):
-        self.delete([key])
-
-    def fetch_all(self):
-        """
-        Lazy-loads the full set of :class:`Import` objects
-
-        :rtype: :class:`dict` of :class:`Import` objects
-
-        Usage::
-
-            >>> from myemma.model.account import Account
-            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
-            >>> acct.imports.fetch_all()
-            {123: <Import>, 321: <Import>, ...}
-
-        """
-        path = '/members/imports'
-        if not self._dict:
-            self._dict = dict(map(
-                lambda x: (x['import_id'], MemberImport(self.account, x)),
-                self.account.adapter.get(path, {})
-            ))
-        return self._dict
-
-    def find_one_by_import_id(self, import_id):
-        """
-        Lazy-loads a single :class:`Import` by ID
-
-        :param import_id: The import identifier
-        :type import_id: :class:`int` or :class:`str`
-        :rtype: :class:`Import` or :class:`None`
-
-        Usage::
-
-            >>> from myemma.model.account import Account
-            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
-            >>> acct.imports.find_one_by_import_id(0) # does not exist
-            None
-            >>> acct.imports.find_one_by_import_id(123)
-            <Import>
-            >>> acct.imports[123]
-            <Import>
-        """
-        import_id = int(import_id)
-        path = '/members/imports/%s' % import_id
-        if import_id not in self._dict:
-            emma_import = self.account.adapter.get(path)
-            if emma_import is not None:
-                self._dict[import_id] = MemberImport(self.account, emma_import)
-                return self._dict[import_id]
-        else:
-            return self._dict[import_id]
-
-    def delete(self, import_ids=None):
-        """
-        :param import_ids: Set of import identifiers to delete
-        :type import_ids: :class:`list` of :class:`int`
-        :rtype: :class:`None`
-
-        Usage::
-
-            >>> from myemma.model.account import Account
-            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
-            >>> acct.imports.delete([123, 321]) # Deletes imports 123, and 321
-            None
-        """
-        if not import_ids:
-            return None
-
-        path = '/members/imports/delete'
-        params = {'import_ids': import_ids}
-        if not self.account.adapter.delete(path, params):
-            raise ImportDeleteError()
-
-        # Update internal dictionary
-        self._dict = dict(filter(
-            lambda x: x[0] not in import_ids,
-            self._dict.items()))

@@ -1,10 +1,11 @@
+"""Audience group models"""
+
 from datetime import datetime
-from . import BaseApiModel, ModelWithDateFields
-import group_type
 from myemma.adapter import MemberCopyToGroupError, NoGroupIdError
+from myemma.model import BaseApiModel, str_fields_to_datetime, group_type
 
 
-class Group(BaseApiModel, ModelWithDateFields):
+class Group(BaseApiModel):
     """
     Encapsulates operations for a :class:`Group`
 
@@ -28,7 +29,7 @@ class Group(BaseApiModel, ModelWithDateFields):
     def _parse_raw(self, raw):
         if 'group_type' in raw:
             raw['group_type'] = group_type.GroupType.factory(raw['group_type'])
-        self._str_fields_to_datetime(['deleted_at'], raw)
+        str_fields_to_datetime(['deleted_at'], raw)
         return raw
 
     def collect_members_by_status(self, statuses=None):
@@ -54,7 +55,7 @@ class Group(BaseApiModel, ModelWithDateFields):
             return None
 
         path = '/members/%s/copy' % self._dict['member_group_id']
-        data = {'member_status_id': map(lambda x: x.get_code(), statuses)}
+        data = {'member_status_id': [x.get_code() for x in statuses]}
         if not self.account.adapter.put(path, data):
             raise MemberCopyToGroupError()
 

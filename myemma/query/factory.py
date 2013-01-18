@@ -1,5 +1,8 @@
-from operator import (AnyQuery, BetweenQuery, ContainsQuery, EqualityQuery,
-                      GreaterThanQuery, LessThanQuery)
+"""Search syntax builder"""
+
+from myemma.query.operator import (AnyQuery, BetweenQuery, ContainsQuery,
+                                   EqualityQuery, GreaterThanQuery,
+                                   LessThanQuery)
 
 
 class QueryFactory(object):

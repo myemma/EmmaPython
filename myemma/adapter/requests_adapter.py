@@ -1,7 +1,18 @@
+"""Adapter for the Requests Library"""
+
 import json
 import requests
 import requests.auth
 from myemma.adapter import AbstractAdapter, ApiRequestFailed
+
+def process_response(response):
+    """Takes a :class:`Response` and produces python built-ins"""
+    if response.status_code == 404:
+        return None
+    elif response.status_code > 200:
+        raise ApiRequestFailed(response)
+
+    return response.json()
 
 class RequestsAdapter(AbstractAdapter):
     """
@@ -29,14 +40,6 @@ class RequestsAdapter(AbstractAdapter):
             auth['private_key'])
         self.url = "https://api.e2ma.net/%s" % auth['account_id']
 
-    def _process_response(self, response):
-        if response.status_code == 404:
-            return None
-        elif response.status_code > 200:
-            raise ApiRequestFailed(response)
-
-        return response.json()
-
     def post(self, path, data=None):
         """
         Takes an effective path (portion after https://api.e2ma.net/:account_id)
@@ -58,7 +61,7 @@ class RequestsAdapter(AbstractAdapter):
             >>> adptr.post('/members', {...})
             {'import_id': 2001}
         """
-        return self._process_response(
+        return process_response(
             requests.post(
                 self.url + "%s" % path,
                 data=json.dumps(data),
@@ -85,7 +88,7 @@ class RequestsAdapter(AbstractAdapter):
             >>> adptr.get('/members', {...})
             [{...}, {...}, ...]
         """
-        return self._process_response(
+        return process_response(
             requests.get(
                 self.url + "%s" % path,
                 params=params,
@@ -112,7 +115,7 @@ class RequestsAdapter(AbstractAdapter):
             >>> adptr.put('/members/email/optout/test@example.com')
             True
         """
-        return self._process_response(
+        return process_response(
             requests.put(
                 self.url + "%s" % path,
                 data=json.dumps(data),
@@ -139,7 +142,7 @@ class RequestsAdapter(AbstractAdapter):
             >>> adptr.delete('/members/123')
             True
         """
-        return self._process_response(
+        return process_response(
             requests.delete(
                 self.url + "%s" % path,
                 params=params,
