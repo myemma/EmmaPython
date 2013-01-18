@@ -8,7 +8,7 @@ from myemma.model.account import (Account, FieldCollection, ImportCollection,
 from myemma.model.field import Field
 from myemma.model.emma_import import EmmaImport
 from myemma.model.member import Member
-from myemma.model.member_status import Active, Error, Forwarded, OptOut
+from myemma.model import member_status
 
 
 class MockAdapter(AbstractAdapter):
@@ -22,20 +22,20 @@ class MockAdapter(AbstractAdapter):
         self.called += 1
         self.call = (method, path, params)
 
-    def get(self, path, params={}):
-        self._capture('GET', path, params)
+    def get(self, path, params=None):
+        self._capture('GET', path, params if params else {})
         return self.__class__.expected
 
-    def post(self, path, data={}):
-        self._capture('POST', path, data)
+    def post(self, path, data=None):
+        self._capture('POST', path, data if data else {})
         return self.__class__.expected
 
-    def put(self, path, data={}):
-        self._capture('PUT', path, data)
+    def put(self, path, data=None):
+        self._capture('PUT', path, data if data else {})
         return self.__class__.expected
 
-    def delete(self, path, params={}):
-        self._capture('DELETE', path, params)
+    def delete(self, path, params=None):
+        self._capture('DELETE', path, params if params else {})
         return self.__class__.expected
 
 
@@ -882,17 +882,17 @@ class MemberCollectionTest(unittest.TestCase):
             200: Member(self.members.account, {
                 'member_id': 200,
                 'email': u"test1@example.com",
-                'status': Active.get_name()
+                'status': member_status.Active.get_name()
             }),
             201: Member(self.members.account, {
                 'member_id': 201,
                 'email': u"test2@example.com",
-                'status': OptOut.get_name()
+                'status': member_status.OptOut.get_name()
             })
         }
 
         with self.assertRaises(MemberDeleteError):
-            self.members.delete_by_status(OptOut)
+            self.members.delete_by_status(member_status.OptOut)
 
         self.assertEquals(2, len(self.members))
         self.assertEquals(self.members.account.adapter.called, 1)
@@ -908,16 +908,16 @@ class MemberCollectionTest(unittest.TestCase):
             200: Member(self.members.account, {
                 'member_id': 200,
                 'email': u"test1@example.com",
-                'status': Active.get_name()
+                'status': member_status.Active.get_name()
             }),
             201: Member(self.members.account, {
                 'member_id': 201,
                 'email': u"test2@example.com",
-                'status': OptOut.get_name()
+                'status': member_status.OptOut.get_name()
             })
         }
 
-        result = self.members.delete_by_status(OptOut)
+        result = self.members.delete_by_status(member_status.OptOut)
 
         self.assertIsNone(result)
         self.assertEquals(self.members.account.adapter.called, 1)
@@ -939,17 +939,17 @@ class MemberCollectionTest(unittest.TestCase):
             200: Member(self.members.account, {
                 'member_id': 200,
                 'email': u"test1@example.com",
-                'status': Active
+                'status': member_status.Active
             }),
             201: Member(self.members.account, {
                 'member_id': 201,
                 'email': u"test2@example.com",
-                'status': Active
+                'status': member_status.Active
             })
         }
 
         with self.assertRaises(MemberChangeStatusError):
-            self.members.change_status([200, 201], OptOut)
+            self.members.change_status([200, 201], member_status.OptOut)
 
         self.assertEquals(self.members.account.adapter.called, 1)
         self.assertEquals(self.members.account.adapter.call, (
@@ -965,16 +965,16 @@ class MemberCollectionTest(unittest.TestCase):
             200: Member(self.members.account, {
                 'member_id': 200,
                 'email': u"test1@example.com",
-                'status': Active
+                'status': member_status.Active
             }),
             201: Member(self.members.account, {
                 'member_id': 201,
                 'email': u"test2@example.com",
-                'status': Active
+                'status': member_status.Active
             })
         }
 
-        self.members.change_status([200], OptOut)
+        self.members.change_status([200], member_status.OptOut)
 
         self.assertEquals(self.members.account.adapter.called, 1)
         self.assertEquals(self.members.account.adapter.call, (
@@ -983,8 +983,8 @@ class MemberCollectionTest(unittest.TestCase):
             {'member_ids': [200], 'status_to': u"o"}
         ))
         self.assertEquals(2, len(self.members))
-        self.assertEquals(OptOut, self.members[200]['status'])
-        self.assertEquals(Active, self.members[201]['status'])
+        self.assertEquals(member_status.OptOut, self.members[200]['status'])
+        self.assertEquals(member_status.Active, self.members[201]['status'])
 
     def test_can_change_status_of_members_in_bulk4(self):
         # Setup
@@ -993,16 +993,16 @@ class MemberCollectionTest(unittest.TestCase):
             200: Member(self.members.account, {
                 'member_id': 200,
                 'email': u"test1@example.com",
-                'status': Active
+                'status': member_status.Active
             }),
             201: Member(self.members.account, {
                 'member_id': 201,
                 'email': u"test2@example.com",
-                'status': Active
+                'status': member_status.Active
             })
         }
 
-        self.members.change_status([200, 201], OptOut)
+        self.members.change_status([200, 201], member_status.OptOut)
 
         self.assertEquals(self.members.account.adapter.called, 1)
         self.assertEquals(self.members.account.adapter.call, (
@@ -1011,8 +1011,8 @@ class MemberCollectionTest(unittest.TestCase):
             {'member_ids': [200, 201], 'status_to': u"o"}
             ))
         self.assertEquals(2, len(self.members))
-        self.assertEquals(OptOut, self.members[200]['status'])
-        self.assertEquals(OptOut, self.members[201]['status'])
+        self.assertEquals(member_status.OptOut, self.members[200]['status'])
+        self.assertEquals(member_status.OptOut, self.members[201]['status'])
 
     def test_can_drop_groups_of_members_in_bulk(self):
         self.members.drop_groups()

@@ -14,6 +14,7 @@ class RequestsAdapter(AbstractAdapter):
 
     Usage::
 
+        >>> from myemma.adapter.requests_adapter import RequestsAdapter
         >>> adptr = RequestsAdapter({
         ...     "account_id": "1234",
         ...     "public_key": "08192a3b4c5d6e7f",
@@ -49,12 +50,13 @@ class RequestsAdapter(AbstractAdapter):
 
         Usage::
 
+            >>> from myemma.adapter.requests_adapter import RequestsAdapter
             >>> adptr = RequestsAdapter({
             ...     "account_id": "1234",
             ...     "public_key": "08192a3b4c5d6e7f",
             ...     "private_key": "f7e6d5c4b3a29180"})
             >>> adptr.post('/members', {...})
-            {u'import_id': 2001}
+            {'import_id': 2001}
         """
         return self._process_response(
             requests.post(
@@ -62,7 +64,7 @@ class RequestsAdapter(AbstractAdapter):
                 data=json.dumps(data),
                 auth=self.auth))
 
-    def get(self, path, params={}):
+    def get(self, path, params=None):
         """
         Takes an effective path (portion after https://api.e2ma.net/:account_id)
         and a parameter dictionary, then passes these to :func:`requests.get`
@@ -75,6 +77,7 @@ class RequestsAdapter(AbstractAdapter):
 
         Usage::
 
+            >>> from myemma.adapter.requests_adapter import RequestsAdapter
             >>> adptr = RequestsAdapter({
             ...     "account_id": "1234",
             ...     "public_key": "08192a3b4c5d6e7f",
@@ -88,7 +91,7 @@ class RequestsAdapter(AbstractAdapter):
                 params=params,
                 auth=self.auth))
 
-    def put(self, path, data={}):
+    def put(self, path, data=None):
         """
         Takes an effective path (portion after https://api.e2ma.net/:account_id)
         and a parameter dictionary, then passes these to :func:`requests.put`
@@ -101,6 +104,7 @@ class RequestsAdapter(AbstractAdapter):
 
         Usage::
 
+            >>> from myemma.adapter.requests_adapter import RequestsAdapter
             >>> adptr = RequestsAdapter({
             ...     "account_id": "1234",
             ...     "public_key": "08192a3b4c5d6e7f",
@@ -114,7 +118,7 @@ class RequestsAdapter(AbstractAdapter):
                 data=json.dumps(data),
                 auth=self.auth))
 
-    def delete(self, path, params={}):
+    def delete(self, path, params=None):
         """
         Takes an effective path (portion after https://api.e2ma.net/:account_id)
         and a parameter dictionary, then passes these to :func:`requests.delete`
@@ -127,6 +131,7 @@ class RequestsAdapter(AbstractAdapter):
 
         Usage::
 
+            >>> from myemma.adapter.requests_adapter import RequestsAdapter
             >>> adptr = RequestsAdapter({
             ...     "account_id": "1234",
             ...     "public_key": "08192a3b4c5d6e7f",

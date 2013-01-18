@@ -9,13 +9,13 @@ class QueryFactory(object):
     Usage::
 
         >>> qf = QueryFactory
-        >>> query1 = qf.eq('member_field:foo', 1) & qf.contains('member_field:bar', 2)
+        >>> query1 = qf.eq('member_field:foo', 1) & qf.contains('member_field:bar', '*foo*')
         >>> print("%s" % query1)
-        ["and", ["member_field:foo", "eq", 1], ["member_field:bar", "contains", 2]]
+        ["and", ["member_field:foo", "eq", 1], ["member_field:bar", "contains", "*foo*"]]
 
-        >>> query2 = qf.eq('member_field:foo', 1) | qf.contains('member_field:bar', 2)
+        >>> query2 = qf.eq('member_field:foo', 1) | qf.contains('member_field:bar', '*foo*')
         >>> print("%s" % query2)
-        ["or", ["member_field:foo", "eq", 1], ["member_field:bar", "eq", 2]]
+        ["or", ["member_field:foo", "eq", 1], ["member_field:bar", "eq", "*foo*"]]
 
         >>> query3 = ~ qf.eq('member_field:foo', 1)
         >>> print("%s" % query3)
@@ -35,7 +35,7 @@ class QueryFactory(object):
 
         Usage::
 
-            >>> qf = QueryFactory
+            >>> from myemma.query.factory import QueryFactory as qf
             >>> query = qf.eq('member_field:some_string_field', 'bar')
             >>> print("%s" % query)
             ["member_field:some_string_field", "eq", "bar"]
@@ -55,7 +55,7 @@ class QueryFactory(object):
 
         Usage::
 
-            >>> qf = QueryFactory
+            >>> from myemma.query.factory import QueryFactory as qf
             >>> query = qf.lt('member_field:some_numeric_field', 10)
             >>> print("%s" % query)
             ["member_field:some_numeric_field", "lt", 10]
@@ -75,7 +75,7 @@ class QueryFactory(object):
 
         Usage::
 
-            >>> qf = QueryFactory
+            >>> from myemma.query.factory import QueryFactory as qf
             >>> query = qf.gt('member_field:some_numeric_field', 5)
             >>> print("%s" % query)
             ["member_field:some_numeric_field", "gt", 5]
@@ -97,7 +97,7 @@ class QueryFactory(object):
 
         Usage::
 
-            >>> qf = QueryFactory
+            >>> from myemma.query.factory import QueryFactory as qf
             >>> query = qf.between('member_field:some_numeric_field', 5, 10)
             >>> print("%s" % query)
             ["member_field:some_numeric_field", "between", 5, 10]
@@ -117,7 +117,7 @@ class QueryFactory(object):
 
         Usage::
 
-            >>> qf = QueryFactory
+            >>> from myemma.query.factory import QueryFactory as qf
             >>> query = qf.contains('member_field:some_string_field', '*foo*')
             >>> print("%s" % query)
             ["member_field:some_string_field", "contains", "*foo*"]
@@ -137,7 +137,7 @@ class QueryFactory(object):
 
         Example Usage::
 
-            >>> qf = QueryFactory
+            >>> from myemma.query.factory import QueryFactory as qf
             >>> query = qf.any('member_field:some_array_field', 'ten')
             >>> print("%s" % query)
             ["member_field:some_array_field", "any", "ten"]

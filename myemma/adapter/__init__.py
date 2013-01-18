@@ -14,15 +14,14 @@ class AbstractAdapter(object):
     """
     Abstract Adapter
     """
-
-    def post(self, path, params={}):
+    def post(self, path, params=None):
         raise NotImplementedError()
 
-    def get(self, path, params={}):
+    def get(self, path, params=None):
         raise NotImplementedError()
 
-    def put(self, path, params={}):
+    def put(self, path, params=None):
         raise NotImplementedError()
 
-    def delete(self, path, params={}):
+    def delete(self, path, params=None):
         raise NotImplementedError()

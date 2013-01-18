@@ -9,8 +9,8 @@ from myemma.model.member import (Member, MemberGroupCollection,
                                  MemberMailingCollection)
 from myemma.model.group import Group
 from myemma.model.mailing import Mailing
-import myemma.model.member_status
-import myemma.model.delivery_type
+from myemma.model import member_status
+from myemma.model import delivery_type
 
 
 class MockAdapter(AbstractAdapter):
@@ -24,20 +24,20 @@ class MockAdapter(AbstractAdapter):
         self.called += 1
         self.call = (method, path, params)
 
-    def get(self, path, params={}):
-        self._capture('GET', path, params)
+    def get(self, path, params=None):
+        self._capture('GET', path, params if params else {})
         return self.__class__.expected
 
-    def post(self, path, data={}):
-        self._capture('POST', path, data)
+    def post(self, path, data=None):
+        self._capture('POST', path, data if data else {})
         return self.__class__.expected
 
-    def put(self, path, data={}):
-        self._capture('PUT', path, data)
+    def put(self, path, data=None):
+        self._capture('PUT', path, data if data else {})
         return self.__class__.expected
 
-    def delete(self, path, params={}):
-        self._capture('DELETE', path, params)
+    def delete(self, path, params=None):
+        self._capture('DELETE', path, params if params else {})
         return self.__class__.expected
 
 
@@ -83,7 +83,7 @@ class MemberTest(unittest.TestCase):
 
     def test_can_get_opt_out_detail_for_member3(self):
         MockAdapter.expected = []
-        self.member['status'] = myemma.model.member_status.Active
+        self.member['status'] = member_status.Active
         self.member.get_opt_out_detail()
         self.assertEquals(self.member.account.adapter.called, 0)
 
@@ -152,7 +152,7 @@ class MemberTest(unittest.TestCase):
             mbr.account.adapter.call,
             ('POST', '/members/add', {'email':u"test@example.com"}))
         self.assertEquals(1024, mbr['member_id'])
-        self.assertEquals(myemma.model.member_status.Active, mbr['status'])
+        self.assertEquals(member_status.Active, mbr['status'])
 
     def test_can_save_a_member2(self):
         mbr = Member(
@@ -172,7 +172,7 @@ class MemberTest(unittest.TestCase):
             ('POST', '/members/add', {'email':u"test@example.com",
                                       'fields': {'first_name': u"Emma"}}))
         self.assertEquals(1024, mbr['member_id'])
-        self.assertEquals(myemma.model.member_status.Active, mbr['status'])
+        self.assertEquals(member_status.Active, mbr['status'])
 
     def test_can_save_a_member3(self):
         mbr = Member(
@@ -195,7 +195,7 @@ class MemberTest(unittest.TestCase):
                 'signup_form_id': u"http://example.com/signup"}
             ))
         self.assertEquals(1024, mbr['member_id'])
-        self.assertEquals(myemma.model.member_status.Active, mbr['status'])
+        self.assertEquals(member_status.Active, mbr['status'])
 
     def test_can_save_a_member4(self):
         mbr = Member(
@@ -204,7 +204,7 @@ class MemberTest(unittest.TestCase):
                 'member_id': 200,
                 'email':u"test@example.com",
                 'first_name':u"Emma",
-                'status': myemma.model.member_status.Active
+                'status': member_status.Active
             })
         MockAdapter.expected = False
 
@@ -230,7 +230,7 @@ class MemberTest(unittest.TestCase):
                 'member_id': 200,
                 'email':u"test@example.com",
                 'fields': {'first_name':u"Emma"},
-                'status': myemma.model.member_status.Active
+                'status': member_status.Active
             })
         MockAdapter.expected = True
         result = mbr.save()
@@ -550,4 +550,4 @@ class MemberMailingCollectionTest(unittest.TestCase):
         self.assertEquals(self.mailings[201]['mailing_id'], 201)
         self.assertEquals(
             self.mailings[201]['delivery_type'],
-            myemma.model.delivery_type.Delivered)
+            delivery_type.Delivered)

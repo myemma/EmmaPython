@@ -1,5 +1,5 @@
 from myemma.adapter.requests_adapter import RequestsAdapter
-from . import (Collection, MemberDeleteError, MemberChangeStatusError,
+from . import (BaseApiModel, MemberDeleteError, MemberChangeStatusError,
                MemberDropGroupError)
 from emma_import import EmmaImport
 from member import Member
@@ -42,11 +42,18 @@ class Account(object):
         self.members = MemberCollection(self)
 
 
-class FieldCollection(Collection):
+class FieldCollection(BaseApiModel):
     """
     Encapsulates operations for the set of :class:`Field` objects of an
     :class:`account`
+
+    :param account: The Account which owns this collection
+    :type account: :class:`Account`
     """
+    def __init__(self, account):
+        self.account = account
+        super(FieldCollection, self).__init__()
+
     def fetch_all(self):
         """
         Lazy-loads the full set of :class:`Field` objects
@@ -87,11 +94,18 @@ class FieldCollection(Collection):
         )
 
 
-class MemberCollection(Collection):
+class MemberCollection(BaseApiModel):
     """
     Encapsulates operations for the set of :class:`Member` objects of an
     :class:`account`
+
+    :param account: The Account which owns this collection
+    :type account: :class:`Account`
     """
+    def __init__(self, account):
+        self.account = account
+        super(MemberCollection, self).__init__()
+
     def __getitem__(self, key):
         """
         Overriding again to provide lazy-loading of a member by ID or email
@@ -165,7 +179,7 @@ class MemberCollection(Collection):
             lambda x: (x[u"member_id"], Member(self.account, x)),
             self.account.adapter.get(path)
         ))
-        self.replace_all(members)
+        self._replace_all(members)
         return members
 
     def find_one_by_member_id(self, member_id, deleted=False):
@@ -385,11 +399,18 @@ class MemberCollection(Collection):
             raise MemberDropGroupError()
 
 
-class ImportCollection(Collection):
+class ImportCollection(BaseApiModel):
     """
     Encapsulates operations for the set of :class:`Import` objects of an
     :class:`account`
+
+    :param account: The Account which owns this collection
+    :type account: :class:`Account`
     """
+    def __init__(self, account):
+        self.account = account
+        super(ImportCollection, self).__init__()
+
     def __getitem__(self, key):
         """
         Overriding again to provide lazy-loading of an import by ID

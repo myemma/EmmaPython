@@ -2,6 +2,7 @@ from . import BaseApiModel
 
 
 class Field(BaseApiModel):
-    def __init__(self, account, raw = None):
+    def __init__(self, account, raw=None):
         self.account = account
-        self._dict = raw if raw is not None else {}
+        super(Field, self).__init__(raw)
+

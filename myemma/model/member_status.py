@@ -1,4 +1,7 @@
 class MemberStatus(object):
+    _code = None
+    _name = None
+
     @classmethod
     def get_code(cls):
         return cls._code
@@ -11,17 +14,17 @@ class MemberStatus(object):
     def factory(status_or_name_or_code):
         return {
             Active: Active,
-            Active._code: Active,
-            Active._name: Active,
+            Active.get_code(): Active,
+            Active.get_name(): Active,
             Error: Error,
-            Error._code: Error,
-            Error._name: Error,
+            Error.get_code(): Error,
+            Error.get_name(): Error,
             Forwarded: Forwarded,
-            Forwarded._code: Forwarded,
-            Forwarded._name: Forwarded,
+            Forwarded.get_code(): Forwarded,
+            Forwarded.get_name(): Forwarded,
             OptOut: OptOut,
-            OptOut._code: OptOut,
-            OptOut._name: OptOut
+            OptOut.get_code(): OptOut,
+            OptOut.get_name(): OptOut
         }[status_or_name_or_code]
 
 

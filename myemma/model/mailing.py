@@ -3,9 +3,9 @@ from delivery_type import DeliveryType
 
 
 class Mailing(BaseApiModel, ModelWithDateFields):
-    def __init__(self, account, raw = None):
+    def __init__(self, account, raw=None):
         self.account = account
-        self._dict = self._parse_raw(raw) if raw is not None else {}
+        super(Mailing, self).__init__(raw)
 
     def _parse_raw(self, raw):
         if 'delivery_type' in raw:

@@ -1,16 +1,31 @@
 class DeliveryType(object):
+    _code = None
+
+    @classmethod
+    def get_code(cls):
+        return cls._code
+
     @staticmethod
     def factory(status_or_code):
         return {
             Delivered: Delivered,
-            u"d": Delivered,
+            Delivered.get_code(): Delivered,
             HardBounce: HardBounce,
-            u"b": HardBounce,
+            HardBounce.get_code(): HardBounce,
             SoftBounce: SoftBounce,
-            u"s": SoftBounce
+            SoftBounce.get_code(): SoftBounce
         }[status_or_code]
 
 
-class Delivered(DeliveryType): pass
-class HardBounce(DeliveryType): pass
-class SoftBounce(DeliveryType): pass
+class Delivered(DeliveryType):
+    _code = u"d"
+
+
+class HardBounce(DeliveryType):
+    _code = u"b"
+
+
+class SoftBounce(DeliveryType):
+    _code = u"s"
+
+

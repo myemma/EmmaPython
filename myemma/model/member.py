@@ -1,6 +1,5 @@
-from . import (BaseApiModel, Collection, ModelWithDateFields,
-               NoMemberEmailError, NoMemberIdError, NoMemberStatusError,
-               MemberUpdateError)
+from . import (BaseApiModel, ModelWithDateFields, NoMemberEmailError,
+               NoMemberIdError, NoMemberStatusError, MemberUpdateError)
 from group import Group
 from mailing import Mailing
 import member_status
@@ -31,7 +30,7 @@ class Member(BaseApiModel, ModelWithDateFields):
         self.account = account
         self.groups = MemberGroupCollection(self)
         self.mailings = MemberMailingCollection(self)
-        self._dict = self._parse_raw(raw) if raw else {}
+        super(Member, self).__init__(raw)
 
     def _parse_raw(self, raw):
         if 'status' in raw:
@@ -284,19 +283,17 @@ class Member(BaseApiModel, ModelWithDateFields):
         return self.groups.delete(group_ids)
 
 
-class MemberMailingCollection(Collection):
+class MemberMailingCollection(BaseApiModel):
     """
     Encapsulates operations for the set of :class:`Mailing` objects of a
     :class:`Member`
 
     :param member: The Member which owns this collection
     :type member: :class:`Member`
-    :param member: The parent for this collection
-    :type member: :class:`Member`
     """
     def __init__(self, member):
         self.member = member
-        super(MemberMailingCollection, self).__init__(member.account.adapter)
+        super(MemberMailingCollection, self).__init__()
 
     def fetch_all(self):
         """
@@ -324,19 +321,17 @@ class MemberMailingCollection(Collection):
         return self._dict
 
 
-class MemberGroupCollection(Collection):
+class MemberGroupCollection(BaseApiModel):
     """
     Encapsulates operations for the set of :class:`Group` objects of a
     :class:`Member`
 
     :param member: The Member which owns this collection
     :type member: :class:`Member`
-    :param member: The parent for this collection
-    :type member: :class:`Member`
     """
     def __init__(self, member):
         self.member = member
-        super(MemberGroupCollection, self).__init__(self.member.account.adapter)
+        super(MemberGroupCollection, self).__init__()
 
     def factory(self, raw=None):
         """
@@ -354,7 +349,7 @@ class MemberGroupCollection(Collection):
             >>> mbr.groups.factory({'member_group_id':1024})
             <Group{'member_group_id':1024}>
         """
-        return Group(self.account, raw)
+        return Group(self.member.account, raw)
 
     def fetch_all(self):
         """
@@ -407,7 +402,7 @@ class MemberGroupCollection(Collection):
         path = '/members/%s/groups' % self.member['member_id']
         data = {'group_ids': map(lambda x: x['member_group_id'], groups)}
         if self.member.account.adapter.put(path, data):
-            self.truncate()
+            self.clear()
 
     def _delete_by_list(self, group_ids):
         path = '/members/%s/groups/remove' % self.member['member_id']
