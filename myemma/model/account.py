@@ -1,6 +1,6 @@
 from myemma.adapter.requests_adapter import RequestsAdapter
 from . import (BaseApiModel, MemberDeleteError, MemberChangeStatusError,
-               MemberDropGroupError)
+               MemberDropGroupError, ImportDeleteError)
 from member_import import MemberImport
 from member import Member
 from field import Field
@@ -332,9 +332,10 @@ class AccountMemberCollection(BaseApiModel):
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.delete([123, 321]) # Deletes members 123, and 321
             None
-            >>> acct.members.delete() # Deletes all members on the account
-            None
         """
+        if not member_ids:
+            return None
+
         path = '/members/delete'
         data = {'member_ids': member_ids}
         if not self.account.adapter.put(path, data):
@@ -468,3 +469,29 @@ class AccountImportCollection(BaseApiModel):
                 return self._dict[emma_import[u"import_id"]]
         else:
             return self._dict[import_id]
+
+    def delete(self, import_ids=None):
+        """
+        :param import_ids: Set of import identifiers to delete
+        :type import_ids: :class:`list` of :class:`int`
+        :rtype: :class:`None`
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.imports.delete([123, 321]) # Deletes imports 123, and 321
+            None
+        """
+        if not import_ids:
+            return None
+
+        path = '/members/imports/delete'
+        params = {'import_ids': import_ids}
+        if not self.account.adapter.delete(path, params):
+            raise ImportDeleteError()
+
+        # Update internal dictionary
+        self._dict = dict(filter(
+            lambda x: x[0] not in import_ids,
+            self._dict.items()))

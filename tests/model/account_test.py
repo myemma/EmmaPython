@@ -2,7 +2,8 @@ import unittest
 from myemma.adapter import AbstractAdapter
 from myemma.adapter.requests_adapter import RequestsAdapter
 from myemma.model import (NoMemberEmailError, MemberDeleteError,
-                          MemberChangeStatusError, MemberDropGroupError)
+                          MemberChangeStatusError, MemberDropGroupError,
+                          ImportDeleteError)
 from myemma.model.account import (Account, AccountFieldCollection, AccountImportCollection,
                                   AccountMemberCollection)
 from myemma.model.field import Field
@@ -62,7 +63,7 @@ class AccountTest(unittest.TestCase):
         self.assertIsInstance(self.account.members, AccountMemberCollection)
 
 
-class FieldCollectionTest(unittest.TestCase):
+class AccountFieldCollectionTest(unittest.TestCase):
     def setUp(self):
         Account.default_adapter = MockAdapter
         self.fields = Account(
@@ -111,7 +112,7 @@ class FieldCollectionTest(unittest.TestCase):
         )
 
 
-class ImportCollectionTest(unittest.TestCase):
+class AccountImportCollectionTest(unittest.TestCase):
     def setUp(self):
         Account.default_adapter = MockAdapter
         self.imports = Account(
@@ -190,8 +191,67 @@ class ImportCollectionTest(unittest.TestCase):
             self.imports.account.adapter.call,
             ('GET', '/members/imports/204', {}))
 
+    def test_can_mark_imports_as_deleted(self):
+        # Setup
+        MockAdapter.expected = True
+        self.imports._dict = {
+            203: MemberImport(self.imports.account),
+            204: MemberImport(self.imports.account),
+            205: MemberImport(self.imports.account)
+        }
 
-class MemberCollectionTest(unittest.TestCase):
+        result = self.imports.delete([204, 205])
+        self.assertIsNone(result)
+        self.assertEquals(self.imports.account.adapter.called, 1)
+        self.assertEquals(
+            self.imports.account.adapter.call,
+            ('DELETE', '/members/imports/delete', {'import_ids': [204, 205]}))
+        self.assertEquals(1, len(self.imports))
+        self.assertIn(203, self.imports)
+
+    def test_can_mark_imports_as_deleted(self):
+        result = self.imports.delete()
+        self.assertIsNone(result)
+        self.assertEquals(self.imports.account.adapter.called, 0)
+
+    def test_can_mark_imports_as_deleted2(self):
+        # Setup
+        MockAdapter.expected = False
+        self.imports._dict = {
+            203: MemberImport(self.imports.account),
+            204: MemberImport(self.imports.account),
+            205: MemberImport(self.imports.account)
+        }
+
+        with self.assertRaises(ImportDeleteError):
+            self.imports.delete([204, 205])
+
+        self.assertEquals(self.imports.account.adapter.called, 1)
+        self.assertEquals(
+            self.imports.account.adapter.call,
+            ('DELETE', '/members/imports/delete', {'import_ids': [204, 205]}))
+        self.assertEquals(3, len(self.imports))
+
+    def test_can_mark_imports_as_deleted3(self):
+        # Setup
+        MockAdapter.expected = True
+        self.imports._dict = {
+            203: MemberImport(self.imports.account),
+            204: MemberImport(self.imports.account),
+            205: MemberImport(self.imports.account)
+        }
+
+        result = self.imports.delete([204, 205])
+        self.assertIsNone(result)
+        self.assertEquals(self.imports.account.adapter.called, 1)
+        self.assertEquals(
+            self.imports.account.adapter.call,
+            ('DELETE', '/members/imports/delete', {'import_ids': [204, 205]}))
+        self.assertEquals(1, len(self.imports))
+        self.assertIn(203, self.imports)
+
+
+class AccountMemberCollectionTest(unittest.TestCase):
     def setUp(self):
         Account.default_adapter = MockAdapter
         self.members = Account(
