@@ -4,9 +4,12 @@ from myemma.adapter.requests_adapter import RequestsAdapter
 from myemma.model import (NoMemberEmailError, MemberDeleteError,
                           MemberChangeStatusError, MemberDropGroupError,
                           ImportDeleteError)
-from myemma.model.account import (Account, AccountFieldCollection, AccountImportCollection,
-                                  AccountMemberCollection)
+from myemma.model.account import (Account, AccountFieldCollection,
+                                  AccountImportCollection,
+                                  AccountMemberCollection,
+                                  AccountGroupCollection)
 from myemma.model.field import Field
+from myemma.model.group import Group
 from myemma.model.member_import import MemberImport
 from myemma.model.member import Member
 from myemma.model import member_status
@@ -110,6 +113,42 @@ class AccountFieldCollectionTest(unittest.TestCase):
             shortcuts,
             [u"first_name", u"last_name", u"work_phone"]
         )
+
+
+class AccountGroupCollectionTest(unittest.TestCase):
+    def setUp(self):
+        Account.default_adapter = MockAdapter
+        self.groups = Account(
+            account_id="100",
+            public_key="xxx",
+            private_key="yyy").groups
+
+    def test_fetch_all_returns_a_dictionary(self):
+        MockAdapter.expected = [{'member_group_id': 201}]
+        self.assertIsInstance(self.groups.fetch_all(), dict)
+        self.assertEquals(self.groups.account.adapter.called, 1)
+        self.assertEquals(
+            self.groups.account.adapter.call,
+            ('GET', '/groups', {}))
+
+    def test_fetch_all_populates_collection(self):
+        MockAdapter.expected = [{'member_group_id': 201}]
+        self.assertEquals(0, len(self.groups))
+        self.groups.fetch_all()
+        self.assertEquals(1, len(self.groups))
+
+    def test_fetch_all_caches_results(self):
+        MockAdapter.expected = [{'member_group_id': 201}]
+        self.groups.fetch_all()
+        self.groups.fetch_all()
+        self.assertEquals(self.groups.account.adapter.called, 1)
+
+    def test_field_collection_object_can_be_accessed_like_a_dictionary(self):
+        MockAdapter.expected = [{'member_group_id': 201}]
+        self.groups.fetch_all()
+        self.assertIsInstance(self.groups, AccountGroupCollection)
+        self.assertEquals(1, len(self.groups))
+        self.assertIsInstance(self.groups[201], Group)
 
 
 class AccountImportCollectionTest(unittest.TestCase):

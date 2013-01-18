@@ -4,6 +4,7 @@ from . import (BaseApiModel, MemberDeleteError, MemberChangeStatusError,
 from member_import import MemberImport
 from member import Member
 from field import Field
+from group import Group
 import member_status
 
 
@@ -38,6 +39,7 @@ class Account(object):
             "private_key": private_key
         })
         self.fields = AccountFieldCollection(self)
+        self.groups = AccountGroupCollection(self)
         self.imports = AccountImportCollection(self)
         self.members = AccountMemberCollection(self)
 
@@ -70,7 +72,7 @@ class AccountFieldCollection(BaseApiModel):
         path = '/fields'
         if not self._dict:
             self._dict = dict(map(
-                lambda x: (x[u"field_id"], Field(self.account, x)),
+                lambda x: (x['field_id'], Field(self.account, x)),
                 self.account.adapter.get(path)
             ))
         return self._dict
@@ -89,9 +91,43 @@ class AccountFieldCollection(BaseApiModel):
             ["first_name", "last_name", ...]
         """
         return map(
-            lambda x: x[u"shortcut_name"],
+            lambda x: x['shortcut_name'],
             self.fetch_all().values()
         )
+
+
+class AccountGroupCollection(BaseApiModel):
+    """
+    Encapsulates operations for the set of :class:`Group` objects of an
+    :class:`account`
+
+    :param account: The Account which owns this collection
+    :type account: :class:`Account`
+    """
+    def __init__(self, account):
+        self.account = account
+        super(AccountGroupCollection, self).__init__()
+
+    def fetch_all(self):
+        """
+        Lazy-loads the full set of :class:`Group` objects
+
+        :rtype: :class:`dict` of :class:`Group` objects
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.groups.fetch_all()
+            {123: <Group>, 321: <Group>, ...}
+        """
+        path = '/groups'
+        if not self._dict:
+            self._dict = dict(map(
+                lambda x: (x['member_group_id'], Group(self.account, x)),
+                self.account.adapter.get(path)
+            ))
+        return self._dict
 
 
 class AccountMemberCollection(BaseApiModel):
@@ -153,7 +189,7 @@ class AccountMemberCollection(BaseApiModel):
         params = {"deleted":True} if deleted else {}
         if not self._dict:
             self._dict = dict(map(
-                lambda x: (x[u"member_id"], Member(self.account, x)),
+                lambda x: (x['member_id'], Member(self.account, x)),
                 self.account.adapter.get(path, params)
             ))
         return self._dict
@@ -176,7 +212,7 @@ class AccountMemberCollection(BaseApiModel):
         """
         path = '/members/imports/%s/members' % import_id
         members = dict(map(
-            lambda x: (x[u"member_id"], Member(self.account, x)),
+            lambda x: (x['member_id'], Member(self.account, x)),
             self.account.adapter.get(path)
         ))
         self._replace_all(members)
@@ -208,8 +244,8 @@ class AccountMemberCollection(BaseApiModel):
         if member_id not in self._dict:
             member = self.account.adapter.get(path, params)
             if member is not None:
-                self._dict[member[u"member_id"]] = Member(self.account, member)
-                return self._dict[member[u"member_id"]]
+                self._dict[member['member_id']] = Member(self.account, member)
+                return self._dict[member['member_id']]
         else:
             return self._dict[member_id]
 
@@ -237,14 +273,14 @@ class AccountMemberCollection(BaseApiModel):
         path = '/members/email/%s' % email
         params = {"deleted":True} if deleted else {}
         members = filter(
-            lambda x: x[u"email"] == email,
+            lambda x: x['email'] == email,
             self._dict.values())
         if not members:
             member = self.account.adapter.get(path, params)
             if member is not None:
-                self._dict[member[u"member_id"]] = \
+                self._dict[member['member_id']] = \
                     Member(self.account, member)
-                return self._dict[member[u"member_id"]]
+                return self._dict[member['member_id']]
         else:
             member = members[0]
         return member
@@ -435,7 +471,7 @@ class AccountImportCollection(BaseApiModel):
         path = '/members/imports'
         if not self._dict:
             self._dict = dict(map(
-                lambda x: (x[u"import_id"], MemberImport(self.account, x)),
+                lambda x: (x['import_id'], MemberImport(self.account, x)),
                 self.account.adapter.get(path, {})
             ))
         return self._dict
@@ -464,9 +500,9 @@ class AccountImportCollection(BaseApiModel):
         if not self._dict.has_key(import_id):
             emma_import = self.account.adapter.get(path)
             if emma_import is not None:
-                self._dict[emma_import[u"import_id"]] = \
+                self._dict[emma_import['import_id']] = \
                     MemberImport(self.account, emma_import)
-                return self._dict[emma_import[u"import_id"]]
+                return self._dict[emma_import['import_id']]
         else:
             return self._dict[import_id]
 
