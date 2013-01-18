@@ -1074,7 +1074,7 @@ class AccountMemberCollectionTest(unittest.TestCase):
         self.assertIsInstance(self.members[200], Member)
 
     def test_can_change_status_of_members_in_bulk(self):
-        self.members.change_status()
+        self.members.change_status_by_member_id()
         self.assertEquals(self.members.account.adapter.called, 0)
 
     def test_can_change_status_of_members_in_bulk2(self):
@@ -1094,7 +1094,7 @@ class AccountMemberCollectionTest(unittest.TestCase):
         }
 
         with self.assertRaises(MemberChangeStatusError):
-            self.members.change_status([200, 201], member_status.OptOut)
+            self.members.change_status_by_member_id([200, 201], member_status.OptOut)
 
         self.assertEquals(self.members.account.adapter.called, 1)
         self.assertEquals(self.members.account.adapter.call, (
@@ -1119,7 +1119,7 @@ class AccountMemberCollectionTest(unittest.TestCase):
             })
         }
 
-        self.members.change_status([200], member_status.OptOut)
+        self.members.change_status_by_member_id([200], member_status.OptOut)
 
         self.assertEquals(self.members.account.adapter.called, 1)
         self.assertEquals(self.members.account.adapter.call, (
@@ -1147,7 +1147,7 @@ class AccountMemberCollectionTest(unittest.TestCase):
             })
         }
 
-        self.members.change_status([200, 201], member_status.OptOut)
+        self.members.change_status_by_member_id([200, 201], member_status.OptOut)
 
         self.assertEquals(self.members.account.adapter.called, 1)
         self.assertEquals(self.members.account.adapter.call, (
@@ -1158,6 +1158,39 @@ class AccountMemberCollectionTest(unittest.TestCase):
         self.assertEquals(2, len(self.members))
         self.assertEquals(member_status.OptOut, self.members[200]['status'])
         self.assertEquals(member_status.OptOut, self.members[201]['status'])
+
+    def test_can_change_status_of_members_in_bulk5(self):
+        MockAdapter.expected = False
+
+        with self.assertRaises(MemberChangeStatusError):
+            self.members.change_status_by_status(
+                member_status.Error,
+                member_status.Active)
+        self.assertEquals(self.members.account.adapter.called, 1)
+        self.assertEquals(self.members.account.adapter.call,
+            ('PUT', '/members/status/e/to/a', {}))
+
+    def test_can_change_status_of_members_in_bulk6(self):
+        MockAdapter.expected = True
+        result = self.members.change_status_by_status(
+            member_status.Error,
+            member_status.Active)
+        self.assertIsNone(result)
+        self.assertEquals(self.members.account.adapter.called, 1)
+        self.assertEquals(self.members.account.adapter.call,
+            ('PUT', '/members/status/e/to/a', {}))
+
+    def test_can_change_status_of_members_in_bulk7(self):
+        MockAdapter.expected = True
+
+        result = self.members.change_status_by_status(
+            member_status.Error,
+            member_status.Active,
+            200)
+        self.assertIsNone(result)
+        self.assertEquals(self.members.account.adapter.called, 1)
+        self.assertEquals(self.members.account.adapter.call,
+            ('PUT', '/members/status/e/to/a', {'group_id': 200}))
 
     def test_can_drop_groups_of_members_in_bulk(self):
         self.members.drop_groups()
@@ -1195,4 +1228,4 @@ class AccountMemberCollectionTest(unittest.TestCase):
             'PUT',
             '/members/groups/remove',
             {'member_ids': [123, 321], 'group_ids': [1024, 1025]}
-            ))
+        ))

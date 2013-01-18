@@ -416,7 +416,7 @@ class AccountMemberCollection(BaseApiModel):
             lambda x: x[0] not in member_ids,
             self._dict.items()))
 
-    def change_status(self, member_ids=None, status_to=member_status.Active):
+    def change_status_by_member_id(self, member_ids=None, status_to=None):
         """
         :param member_ids: Set of member identifiers to change
         :type member_ids: :class:`list` of :class:`int`
@@ -428,11 +428,15 @@ class AccountMemberCollection(BaseApiModel):
 
             >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
-            >>> acct.members.change_status([123, 321], member_status.Active)
+            >>> acct.members.change_status_by_member_id(
+            ...     [123, 321],
+            ...     member_status.Active)
             None
         """
         if not member_ids:
             return None
+        if not status_to:
+            status_to = member_status.Active
 
         path = '/members/status'
         data = {'member_ids': member_ids, 'status_to': status_to.get_code()}
@@ -443,6 +447,30 @@ class AccountMemberCollection(BaseApiModel):
         for member_id in self._dict:
             if member_id in member_ids:
                 self._dict[member_id]['status'] = status_to
+
+    def change_status_by_status(self, old, new, group_id=None):
+        """
+        :param old: The old status
+        :type old: :class:`MemberStatus`
+        :param new: The new status
+        :type new: :class:`MemberStatus`
+        :param group_id: An optional group identifier to limit by
+        :type group_id: :class:`int`
+        :rtype: :class:`None`
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.members.change_status_by_status(
+            ...     member_status.Error,
+            ...     member_status.Active)
+            None
+        """
+        path = '/members/status/%s/to/%s' % (old.get_code(), new.get_code())
+        data = {'group_id': group_id} if group_id else {}
+        if not self.account.adapter.put(path, data):
+            raise MemberChangeStatusError()
 
     def drop_groups(self, member_ids=None, group_ids=None):
         """
