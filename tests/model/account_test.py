@@ -3,10 +3,10 @@ from myemma.adapter import AbstractAdapter
 from myemma.adapter.requests_adapter import RequestsAdapter
 from myemma.model import (NoMemberEmailError, MemberDeleteError,
                           MemberChangeStatusError, MemberDropGroupError)
-from myemma.model.account import (Account, FieldCollection, ImportCollection,
-                                  MemberCollection)
+from myemma.model.account import (Account, AccountFieldCollection, AccountImportCollection,
+                                  AccountMemberCollection)
 from myemma.model.field import Field
-from myemma.model.emma_import import EmmaImport
+from myemma.model.member_import import MemberImport
 from myemma.model.member import Member
 from myemma.model import member_status
 
@@ -53,13 +53,13 @@ class AccountTest(unittest.TestCase):
             private_key="yyy")
 
     def test_field_collection_can_be_accessed(self):
-        self.assertIsInstance(self.account.fields, FieldCollection)
+        self.assertIsInstance(self.account.fields, AccountFieldCollection)
 
     def test_import_collection_can_be_accessed(self):
-        self.assertIsInstance(self.account.imports, ImportCollection)
+        self.assertIsInstance(self.account.imports, AccountImportCollection)
 
     def test_member_collection_can_be_accessed(self):
-        self.assertIsInstance(self.account.members, MemberCollection)
+        self.assertIsInstance(self.account.members, AccountMemberCollection)
 
 
 class FieldCollectionTest(unittest.TestCase):
@@ -93,7 +93,7 @@ class FieldCollectionTest(unittest.TestCase):
     def test_field_collection_object_can_be_accessed_like_a_dictionary(self):
         MockAdapter.expected = [{'field_id': 201}]
         self.fields.fetch_all()
-        self.assertIsInstance(self.fields, FieldCollection)
+        self.assertIsInstance(self.fields, AccountFieldCollection)
         self.assertEquals(1, len(self.fields))
         self.assertIsInstance(self.fields[201], Field)
 
@@ -142,14 +142,14 @@ class ImportCollectionTest(unittest.TestCase):
     def test_imports_collection_object_can_be_accessed_like_a_dictionary(self):
         MockAdapter.expected = [{'import_id': 201}]
         self.imports.fetch_all()
-        self.assertIsInstance(self.imports, ImportCollection)
+        self.assertIsInstance(self.imports, AccountImportCollection)
         self.assertEquals(1, len(self.imports))
-        self.assertIsInstance(self.imports[201], EmmaImport)
+        self.assertIsInstance(self.imports[201], MemberImport)
 
     def test_fetch_one_by_import_id_returns_an_import_object(self):
         MockAdapter.expected = {'import_id': 201}
         emma_import = self.imports.find_one_by_import_id(201)
-        self.assertIsInstance(emma_import, EmmaImport)
+        self.assertIsInstance(emma_import, MemberImport)
         self.assertEquals(emma_import['import_id'], 201)
         self.assertEquals(self.imports.account.adapter.called, 1)
         self.assertEquals(
@@ -160,7 +160,7 @@ class ImportCollectionTest(unittest.TestCase):
         MockAdapter.expected = {'import_id': 201}
         self.imports.find_one_by_import_id(201)
         self.assertIn(201, self.imports)
-        self.assertIsInstance(self.imports[201], EmmaImport)
+        self.assertIsInstance(self.imports[201], MemberImport)
         self.assertEquals(self.imports[201]['import_id'], 201)
 
     def test_fetch_one_by_import_id_caches_result(self):
@@ -173,7 +173,7 @@ class ImportCollectionTest(unittest.TestCase):
         MockAdapter.expected = {'import_id': 201}
         emma_import = self.imports[201]
         self.assertIn(201, self.imports)
-        self.assertIsInstance(emma_import, EmmaImport)
+        self.assertIsInstance(emma_import, MemberImport)
         self.assertEquals(self.imports[201]['import_id'], 201)
         self.assertEquals(self.imports.account.adapter.called, 1)
         self.assertEquals(
@@ -243,7 +243,7 @@ class MemberCollectionTest(unittest.TestCase):
 
         self.members.fetch_all()
 
-        self.assertIsInstance(self.members, MemberCollection)
+        self.assertIsInstance(self.members, AccountMemberCollection)
         self.assertEquals(1, len(self.members))
         self.assertIsInstance(self.members[201], Member)
 

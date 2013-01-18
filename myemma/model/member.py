@@ -2,6 +2,7 @@ from . import (BaseApiModel, ModelWithDateFields, NoMemberEmailError,
                NoMemberIdError, NoMemberStatusError, MemberUpdateError)
 from group import Group
 from mailing import Mailing
+import member_change_type
 import member_status
 
 
@@ -35,6 +36,9 @@ class Member(BaseApiModel, ModelWithDateFields):
     def _parse_raw(self, raw):
         if 'status' in raw:
             raw['status'] = member_status.MemberStatus.factory(raw['status'])
+        if 'change_type' in raw:
+            raw['change_type'] = member_change_type.MemberChangeType.factory(
+                raw['change_type'])
         if 'member_status_id' in raw:
             del(raw['member_status_id'])
         if 'fields' in raw:

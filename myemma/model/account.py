@@ -1,7 +1,7 @@
 from myemma.adapter.requests_adapter import RequestsAdapter
 from . import (BaseApiModel, MemberDeleteError, MemberChangeStatusError,
                MemberDropGroupError)
-from emma_import import EmmaImport
+from member_import import MemberImport
 from member import Member
 from field import Field
 import member_status
@@ -37,12 +37,12 @@ class Account(object):
             "public_key": public_key,
             "private_key": private_key
         })
-        self.fields = FieldCollection(self)
-        self.imports = ImportCollection(self)
-        self.members = MemberCollection(self)
+        self.fields = AccountFieldCollection(self)
+        self.imports = AccountImportCollection(self)
+        self.members = AccountMemberCollection(self)
 
 
-class FieldCollection(BaseApiModel):
+class AccountFieldCollection(BaseApiModel):
     """
     Encapsulates operations for the set of :class:`Field` objects of an
     :class:`account`
@@ -52,7 +52,7 @@ class FieldCollection(BaseApiModel):
     """
     def __init__(self, account):
         self.account = account
-        super(FieldCollection, self).__init__()
+        super(AccountFieldCollection, self).__init__()
 
     def fetch_all(self):
         """
@@ -94,7 +94,7 @@ class FieldCollection(BaseApiModel):
         )
 
 
-class MemberCollection(BaseApiModel):
+class AccountMemberCollection(BaseApiModel):
     """
     Encapsulates operations for the set of :class:`Member` objects of an
     :class:`account`
@@ -104,7 +104,7 @@ class MemberCollection(BaseApiModel):
     """
     def __init__(self, account):
         self.account = account
-        super(MemberCollection, self).__init__()
+        super(AccountMemberCollection, self).__init__()
 
     def __getitem__(self, key):
         """
@@ -399,7 +399,7 @@ class MemberCollection(BaseApiModel):
             raise MemberDropGroupError()
 
 
-class ImportCollection(BaseApiModel):
+class AccountImportCollection(BaseApiModel):
     """
     Encapsulates operations for the set of :class:`Import` objects of an
     :class:`account`
@@ -409,7 +409,7 @@ class ImportCollection(BaseApiModel):
     """
     def __init__(self, account):
         self.account = account
-        super(ImportCollection, self).__init__()
+        super(AccountImportCollection, self).__init__()
 
     def __getitem__(self, key):
         """
@@ -434,7 +434,7 @@ class ImportCollection(BaseApiModel):
         path = '/members/imports'
         if not self._dict:
             self._dict = dict(map(
-                lambda x: (x[u"import_id"], EmmaImport(self.account, x)),
+                lambda x: (x[u"import_id"], MemberImport(self.account, x)),
                 self.account.adapter.get(path, {})
             ))
         return self._dict
@@ -464,7 +464,7 @@ class ImportCollection(BaseApiModel):
             emma_import = self.account.adapter.get(path)
             if emma_import is not None:
                 self._dict[emma_import[u"import_id"]] = \
-                    EmmaImport(self.account, emma_import)
+                    MemberImport(self.account, emma_import)
                 return self._dict[emma_import[u"import_id"]]
         else:
             return self._dict[import_id]
