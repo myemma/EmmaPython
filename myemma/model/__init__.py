@@ -5,69 +5,6 @@ import datetime
 SERIALIZED_DATETIME_FORMAT = "@D:%Y-%m-%dT%H:%M:%S"
 
 
-class NoMemberEmailError(Exception):
-    """
-    An API call was attempted with missing required parameters (email)
-    """
-    pass
-
-
-class NoMemberIdError(Exception):
-    """
-    An API call was attempted with missing required parameters (id)
-    """
-    pass
-
-
-class NoMemberStatusError(Exception):
-    """
-    An API call was attempted with missing required parameters (status)
-    """
-    pass
-
-
-class MemberDeleteError(Exception):
-    """
-    The API call to delete a member did not complete correctly
-    """
-    pass
-
-
-class MemberChangeStatusError(Exception):
-    """
-    The API call to change a member's status did not complete correctly
-    """
-    pass
-
-
-class MemberUpdateError(Exception):
-    """
-    The API call to update a member's information did not complete correctly
-    """
-    pass
-
-
-class MemberDropGroupError(Exception):
-    """
-    The API call to drop groups from a member did not complete correctly
-    """
-    pass
-
-
-class ImportDeleteError(Exception):
-    """
-    The API call to mark an import as deleted did not complete correctly
-    """
-    pass
-
-
-class MemberCopyToGroupError(Exception):
-    """
-    The API call to copy members into a group did not complete correctly
-    """
-    pass
-
-
 class BaseApiModel(collections.MutableMapping):
     def __init__(self, raw=None):
         self._dict = self._parse_raw(raw) if raw else {}

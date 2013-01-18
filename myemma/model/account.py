@@ -1,6 +1,6 @@
+from myemma.adapter import ImportDeleteError, MemberChangeStatusError, MemberDeleteError, MemberDropGroupError
 from myemma.adapter.requests_adapter import RequestsAdapter
-from . import (BaseApiModel, MemberDeleteError, MemberChangeStatusError,
-               MemberDropGroupError, ImportDeleteError)
+from . import (BaseApiModel  )
 from member_import import MemberImport
 from member import Member
 from field import Field
@@ -56,6 +56,10 @@ class AccountFieldCollection(BaseApiModel):
         self.account = account
         super(AccountFieldCollection, self).__init__()
 
+    def __delitem__(self, key):
+        self._dict[key].delete()
+        super(AccountFieldCollection, self).__delitem__(key)
+
     def fetch_all(self):
         """
         Lazy-loads the full set of :class:`Field` objects
@@ -110,6 +114,10 @@ class AccountGroupCollection(BaseApiModel):
 
     def __getitem__(self, key):
         return self.find_one_by_group_id(key)
+
+    def __delitem__(self, key):
+        self._dict[key].delete()
+        super(AccountGroupCollection, self).__delitem__(key)
 
     def fetch_all(self, group_types=None):
         """
@@ -184,6 +192,10 @@ class AccountMemberCollection(BaseApiModel):
             return self.find_one_by_member_id(key)
         if isinstance(key, str) or isinstance(key, unicode):
             return self.find_one_by_email(str(key))
+
+    def __delitem__(self, key):
+        self._dict[key].delete()
+        super(AccountMemberCollection, self).__delitem__(key)
 
     def factory(self, raw=None):
         """
@@ -512,6 +524,9 @@ class AccountImportCollection(BaseApiModel):
 
     def __getitem__(self, key):
         return self.find_one_by_import_id(key)
+
+    def __delitem__(self, key):
+        self.delete([key])
 
     def fetch_all(self):
         """

@@ -1,37 +1,10 @@
+from datetime import datetime
 import unittest
-from myemma.adapter import AbstractAdapter
-from myemma.model import MemberCopyToGroupError
+from myemma.adapter import MemberCopyToGroupError, NoGroupIdError
 from myemma.model.account import Account
-from myemma.model.group import (Group, NoGroupIdError)
-from myemma.model import group_type, member_status
-
-
-class MockAdapter(AbstractAdapter):
-    expected = None
-
-    def __init__(self, *args, **kwargs):
-        self.called = 0
-        self.call = ()
-
-    def _capture(self, method, path, params):
-        self.called += 1
-        self.call = (method, path, params)
-
-    def get(self, path, params=None):
-        self._capture('GET', path, params if params else {})
-        return self.__class__.expected
-
-    def post(self, path, data=None):
-        self._capture('POST', path, data if data else {})
-        return self.__class__.expected
-
-    def put(self, path, data=None):
-        self._capture('PUT', path, data if data else {})
-        return self.__class__.expected
-
-    def delete(self, path, params=None):
-        self._capture('DELETE', path, params if params else {})
-        return self.__class__.expected
+from myemma.model.group import Group
+from myemma.model import group_type, member_status, SERIALIZED_DATETIME_FORMAT
+from tests.model import MockAdapter
 
 
 class GroupTest(unittest.TestCase):
@@ -81,3 +54,44 @@ class GroupTest(unittest.TestCase):
         self.assertEquals(
             self.group.account.adapter.call,
             ('PUT', '/members/200/copy', {'member_status_id':[u"a"]}))
+
+    def test_can_delete_a_group(self):
+        grp = Group(self.group.account)
+
+        with self.assertRaises(NoGroupIdError):
+            grp.delete()
+        self.assertEquals(self.group.account.adapter.called, 0)
+        self.assertFalse(self.group.is_deleted())
+
+    def test_can_delete_a_group2(self):
+        MockAdapter.expected = None
+        grp = Group(
+            self.group.account,
+            {
+                'member_group_id': 200,
+                'deleted_at': datetime.now().strftime(SERIALIZED_DATETIME_FORMAT)
+            })
+
+        result = grp.delete()
+
+        self.assertIsNone(result)
+        self.assertEquals(grp.account.adapter.called, 0)
+        self.assertTrue(grp.is_deleted())
+
+    def test_can_delete_a_group3(self):
+        MockAdapter.expected = True
+        mbr = Group(
+            self.group.account,
+            {
+                'member_group_id': 200,
+                'deleted_at': None
+            })
+
+        result = mbr.delete()
+
+        self.assertIsNone(result)
+        self.assertEquals(mbr.account.adapter.called, 1)
+        self.assertEquals(
+            mbr.account.adapter.call,
+            ('DELETE', '/groups/200', {}))
+        self.assertTrue(mbr.is_deleted())

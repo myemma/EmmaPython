@@ -2,9 +2,7 @@ from . import BaseApiModel, ModelWithDateFields
 from import_status import ImportStatus
 from import_style import ImportStyle
 from member import Member
-
-
-class NoMemberImportIdError(Exception): pass
+from myemma.adapter import NoImportIdError
 
 
 class MemberImport(BaseApiModel, ModelWithDateFields):
@@ -51,7 +49,7 @@ class ImportMemberCollection(BaseApiModel):
             {200: <Member>, 201: <Member>, ...}
         """
         if not 'import_id' in self.member_import:
-            raise NoMemberImportIdError()
+            raise NoImportIdError()
 
         path = '/members/imports/%s/members' % self.member_import['import_id']
         if not self._dict:

@@ -1,9 +1,6 @@
 import unittest
-from myemma.adapter import AbstractAdapter
+from myemma.adapter import ImportDeleteError, MemberChangeStatusError, MemberDeleteError, MemberDropGroupError, NoMemberEmailError
 from myemma.adapter.requests_adapter import RequestsAdapter
-from myemma.model import (NoMemberEmailError, MemberDeleteError,
-                          MemberChangeStatusError, MemberDropGroupError,
-                          ImportDeleteError)
 from myemma.model.account import (Account, AccountFieldCollection,
                                   AccountImportCollection,
                                   AccountMemberCollection,
@@ -13,34 +10,7 @@ from myemma.model.group import Group
 from myemma.model.member_import import MemberImport
 from myemma.model.member import Member
 from myemma.model import group_type, member_status
-
-
-class MockAdapter(AbstractAdapter):
-    expected = None
-
-    def __init__(self, *args, **kwargs):
-        self.called = 0
-        self.call = ()
-
-    def _capture(self, method, path, params):
-        self.called += 1
-        self.call = (method, path, params)
-
-    def get(self, path, params=None):
-        self._capture('GET', path, params if params else {})
-        return self.__class__.expected
-
-    def post(self, path, data=None):
-        self._capture('POST', path, data if data else {})
-        return self.__class__.expected
-
-    def put(self, path, data=None):
-        self._capture('PUT', path, data if data else {})
-        return self.__class__.expected
-
-    def delete(self, path, params=None):
-        self._capture('DELETE', path, params if params else {})
-        return self.__class__.expected
+from tests.model import MockAdapter
 
 
 class AccountDefaultAdapterTest(unittest.TestCase):
@@ -113,6 +83,23 @@ class AccountFieldCollectionTest(unittest.TestCase):
             shortcuts,
             [u"first_name", u"last_name", u"work_phone"]
         )
+
+    def test_can_delete_a_single_group_with_del(self):
+        # Setup
+        MockAdapter.expected = True
+        self.fields._dict = {
+            203: Field(self.fields.account, {'field_id':203}),
+            204: Field(self.fields.account, {'field_id':204})
+        }
+
+        del(self.fields[203])
+
+        self.assertEquals(self.fields.account.adapter.called, 1)
+        self.assertEquals(
+            self.fields.account.adapter.call,
+            ('DELETE', '/fields/203', {}))
+        self.assertEquals(1, len(self.fields))
+        self.assertIn(204, self.fields)
 
 
 class AccountGroupCollectionTest(unittest.TestCase):
@@ -196,6 +183,23 @@ class AccountGroupCollectionTest(unittest.TestCase):
             self.groups.account.adapter.call,
             ('GET', '/groups/204', {}))
 
+    def test_can_delete_a_single_group_with_del(self):
+        # Setup
+        MockAdapter.expected = True
+        self.groups._dict = {
+            203: Group(self.groups.account, {'member_group_id':203}),
+            204: Group(self.groups.account, {'member_group_id':204})
+        }
+
+        del(self.groups[203])
+
+        self.assertEquals(self.groups.account.adapter.called, 1)
+        self.assertEquals(
+            self.groups.account.adapter.call,
+            ('DELETE', '/groups/203', {}))
+        self.assertEquals(1, len(self.groups))
+        self.assertIn(204, self.groups)
+
 
 class AccountImportCollectionTest(unittest.TestCase):
     def setUp(self):
@@ -275,6 +279,23 @@ class AccountImportCollectionTest(unittest.TestCase):
         self.assertEquals(
             self.imports.account.adapter.call,
             ('GET', '/members/imports/204', {}))
+
+    def test_can_delete_a_single_import_with_del(self):
+        # Setup
+        MockAdapter.expected = True
+        self.imports._dict = {
+            203: MemberImport(self.imports.account),
+            204: MemberImport(self.imports.account)
+        }
+
+        del(self.imports[203])
+
+        self.assertEquals(self.imports.account.adapter.called, 1)
+        self.assertEquals(
+            self.imports.account.adapter.call,
+            ('DELETE', '/members/imports/delete', {'import_ids': [203]}))
+        self.assertEquals(1, len(self.imports))
+        self.assertIn(204, self.imports)
 
     def test_can_mark_imports_as_deleted(self):
         # Setup
@@ -939,6 +960,31 @@ class AccountMemberCollectionTest(unittest.TestCase):
             }
         ))
 
+    def test_can_delete_a_single_member_with_del(self):
+        # Setup
+        MockAdapter.expected = True
+        self.members._dict = {
+            200: Member(self.members.account, {
+                'member_id': 200,
+                'email': u"test1@example.com",
+                'does_not_exist': u"A member field which does not exist"
+            }),
+            201: Member(self.members.account, {
+                'member_id': 201,
+                'email': u"test2@example.com",
+                'first_name': u"Emma"
+            })
+        }
+
+        del(self.members[200])
+
+        self.assertEquals(self.members.account.adapter.called, 1)
+        self.assertEquals(
+            self.members.account.adapter.call,
+            ('DELETE', '/members/200', {}))
+        self.assertEquals(1, len(self.members))
+        self.assertIn(201, self.members)
+
     def test_can_delete_members_in_bulk(self):
         # Setup
         MockAdapter.expected = False
@@ -1019,6 +1065,25 @@ class AccountMemberCollectionTest(unittest.TestCase):
             {'member_ids': [200, 201]}
             ))
         self.assertEquals(0, len(self.members))
+
+    def test_can_delete_members_in_bulk4(self):
+        self.members._dict = {
+            200: Member(self.members.account, {
+                'member_id': 200,
+                'email': u"test1@example.com",
+                'does_not_exist': u"A member field which does not exist"
+            }),
+            201: Member(self.members.account, {
+                'member_id': 201,
+                'email': u"test2@example.com",
+                'first_name': u"Emma"
+            })
+        }
+
+        self.members.delete()
+
+        self.assertEquals(self.members.account.adapter.called, 0)
+        self.assertEquals(2, len(self.members))
 
     def test_can_delete_members_by_status(self):
         # Setup
@@ -1160,6 +1225,34 @@ class AccountMemberCollectionTest(unittest.TestCase):
         self.assertEquals(member_status.OptOut, self.members[201]['status'])
 
     def test_can_change_status_of_members_in_bulk5(self):
+        # Setup
+        MockAdapter.expected = True
+        self.members._dict = {
+            200: Member(self.members.account, {
+                'member_id': 200,
+                'email': u"test1@example.com",
+                'status': member_status.Error
+            }),
+            201: Member(self.members.account, {
+                'member_id': 201,
+                'email': u"test2@example.com",
+                'status': member_status.Error
+            })
+        }
+
+        self.members.change_status_by_member_id([200, 201])
+
+        self.assertEquals(self.members.account.adapter.called, 1)
+        self.assertEquals(self.members.account.adapter.call, (
+            'PUT',
+            '/members/status',
+            {'member_ids': [200, 201], 'status_to': u"a"}
+            ))
+        self.assertEquals(2, len(self.members))
+        self.assertEquals(member_status.Active, self.members[200]['status'])
+        self.assertEquals(member_status.Active, self.members[201]['status'])
+
+    def test_can_change_status_of_members_in_bulk6(self):
         MockAdapter.expected = False
 
         with self.assertRaises(MemberChangeStatusError):
@@ -1170,7 +1263,7 @@ class AccountMemberCollectionTest(unittest.TestCase):
         self.assertEquals(self.members.account.adapter.call,
             ('PUT', '/members/status/e/to/a', {}))
 
-    def test_can_change_status_of_members_in_bulk6(self):
+    def test_can_change_status_of_members_in_bulk7(self):
         MockAdapter.expected = True
         result = self.members.change_status_by_status(
             member_status.Error,
@@ -1180,7 +1273,7 @@ class AccountMemberCollectionTest(unittest.TestCase):
         self.assertEquals(self.members.account.adapter.call,
             ('PUT', '/members/status/e/to/a', {}))
 
-    def test_can_change_status_of_members_in_bulk7(self):
+    def test_can_change_status_of_members_in_bulk8(self):
         MockAdapter.expected = True
 
         result = self.members.change_status_by_status(

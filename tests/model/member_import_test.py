@@ -1,39 +1,11 @@
 import unittest
 from datetime import datetime
-from myemma.adapter import AbstractAdapter
+from myemma.adapter import NoImportIdError
 from myemma.model.account import Account
 from myemma.model.member import Member
-from myemma.model.member_import import (MemberImport, ImportMemberCollection,
-                                        NoMemberImportIdError)
+from myemma.model.member_import import MemberImport, ImportMemberCollection
 from myemma.model import import_status, import_style, SERIALIZED_DATETIME_FORMAT
-
-
-class MockAdapter(AbstractAdapter):
-    expected = None
-
-    def __init__(self, *args, **kwargs):
-        self.called = 0
-        self.call = ()
-
-    def _capture(self, method, path, params):
-        self.called += 1
-        self.call = (method, path, params)
-
-    def get(self, path, params=None):
-        self._capture('GET', path, params if params else {})
-        return self.__class__.expected
-
-    def post(self, path, data=None):
-        self._capture('POST', path, data if data else {})
-        return self.__class__.expected
-
-    def put(self, path, data=None):
-        self._capture('PUT', path, data if data else {})
-        return self.__class__.expected
-
-    def delete(self, path, params=None):
-        self._capture('DELETE', path, params if params else {})
-        return self.__class__.expected
+from tests.model import MockAdapter
 
 
 class MemberImportTest(unittest.TestCase):
@@ -77,7 +49,7 @@ class ImportMemberCollectionTest(unittest.TestCase):
         ).members
 
     def test_can_fetch_all_members(self):
-        with self.assertRaises(NoMemberImportIdError):
+        with self.assertRaises(NoImportIdError):
             self.members.fetch_all()
         self.assertEquals(self.members.member_import.account.adapter.called, 0)
 

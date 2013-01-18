@@ -1,9 +1,10 @@
-from . import (BaseApiModel, ModelWithDateFields, NoMemberEmailError,
-               NoMemberIdError, NoMemberStatusError, MemberUpdateError)
+from datetime import datetime
+from . import (BaseApiModel, ModelWithDateFields  )
 from group import Group
 from mailing import Mailing
 import member_change_type
 import member_status
+from myemma.adapter import MemberUpdateError, NoMemberEmailError, NoMemberIdError, NoMemberStatusError
 
 
 class Member(BaseApiModel, ModelWithDateFields):
@@ -243,7 +244,7 @@ class Member(BaseApiModel, ModelWithDateFields):
 
         path = "/members/%s" % self._dict['member_id']
         if self.account.adapter.delete(path):
-            self._dict['deleted_at'] = True
+            self._dict['deleted_at'] = datetime.now()
 
     def add_groups(self, group_ids=None):
         """
@@ -299,6 +300,8 @@ class MemberMailingCollection(BaseApiModel):
         self.member = member
         super(MemberMailingCollection, self).__init__()
 
+    def __delitem__(self, key): pass
+
     def fetch_all(self):
         """
         Lazy-loads the full set of :class:`Mailing` objects
@@ -336,6 +339,9 @@ class MemberGroupCollection(BaseApiModel):
     def __init__(self, member):
         self.member = member
         super(MemberGroupCollection, self).__init__()
+
+    def __delitem__(self, key):
+        self._delete_by_list([key])
 
     def factory(self, raw=None):
         """

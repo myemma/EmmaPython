@@ -1,44 +1,14 @@
 from datetime import datetime
 import unittest
-from myemma.adapter import AbstractAdapter
-from myemma.model import (SERIALIZED_DATETIME_FORMAT, NoMemberEmailError,
-                          NoMemberIdError, NoMemberStatusError,
-                          MemberUpdateError)
+from myemma.adapter import MemberUpdateError, NoMemberEmailError, NoMemberIdError, NoMemberStatusError
+from myemma.model import (member_status, member_change_type, delivery_type,
+                          SERIALIZED_DATETIME_FORMAT)
 from myemma.model.account import Account
 from myemma.model.member import (Member, MemberGroupCollection,
                                  MemberMailingCollection)
 from myemma.model.group import Group
 from myemma.model.mailing import Mailing
-from myemma.model import member_status
-from myemma.model import delivery_type
-
-
-class MockAdapter(AbstractAdapter):
-    expected = None
-
-    def __init__(self, *args, **kwargs):
-        self.called = 0
-        self.call = ()
-
-    def _capture(self, method, path, params):
-        self.called += 1
-        self.call = (method, path, params)
-
-    def get(self, path, params=None):
-        self._capture('GET', path, params if params else {})
-        return self.__class__.expected
-
-    def post(self, path, data=None):
-        self._capture('POST', path, data if data else {})
-        return self.__class__.expected
-
-    def put(self, path, data=None):
-        self._capture('PUT', path, data if data else {})
-        return self.__class__.expected
-
-    def delete(self, path, params=None):
-        self._capture('DELETE', path, params if params else {})
-        return self.__class__.expected
+from tests.model import MockAdapter
 
 
 class MemberTest(unittest.TestCase):
@@ -50,13 +20,25 @@ class MemberTest(unittest.TestCase):
                 'member_id':1000,
                 'email':u"test@example.com",
                 'status':u"opt-out",
-                'member_status_id':u"o"
+                'member_status_id':u"o",
+                'change_type':u"u"
             }
         )
         self.member.account.fields._dict = {
             2000: {'shortcut_name': u"first_name"},
             2001: {'shortcut_name': u"last_name"}
         }
+
+    def test_can_parse_special_fields_correctly(self):
+        self.assertEquals(self.member['status'], member_status.OptOut)
+        self.assertEquals(
+            self.member['change_type'],
+            member_change_type.Updated)
+
+    def test_can_represent_a_member(self):
+        self.assertEquals(
+            u"<Member" + repr(self.member._dict) + u">",
+            repr(self.member))
 
     def test_can_set_valid_field_value_with_dictionary_access(self):
         self.member['first_name'] = u"Emma"
@@ -500,6 +482,26 @@ class MemberGroupCollectionTest(unittest.TestCase):
             ('DELETE', '/members/1000/groups', {})
         )
         self.assertEquals(0, len(self.groups))
+
+    def test_can_drop_a_single_group_with_del(self):
+        # Setup
+        MockAdapter.expected = True
+        self.groups._dict = {
+            300: self.groups.factory({'member_group_id': 300}),
+            301: self.groups.factory({'member_group_id': 301})
+        }
+
+        del(self.groups[300])
+
+        self.assertEquals(self.groups.member.account.adapter.called, 1)
+        self.assertEquals(
+            self.groups.member.account.adapter.call,
+            (
+                'PUT',
+                '/members/1000/groups/remove',
+                {'group_ids': [300]}))
+        self.assertEquals(1, len(self.groups))
+        self.assertIn(301, self.groups)
 
 
 class MemberMailingCollectionTest(unittest.TestCase):
