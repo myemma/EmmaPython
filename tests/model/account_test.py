@@ -155,12 +155,46 @@ class AccountGroupCollectionTest(unittest.TestCase):
         self.groups.fetch_all()
         self.assertEquals(self.groups.account.adapter.called, 1)
 
-    def test_field_collection_object_can_be_accessed_like_a_dictionary(self):
+    def test_group_collection_object_can_be_accessed_like_a_dictionary(self):
         MockAdapter.expected = [{'member_group_id': 201}]
         self.groups.fetch_all()
         self.assertIsInstance(self.groups, AccountGroupCollection)
         self.assertEquals(1, len(self.groups))
         self.assertIsInstance(self.groups[201], Group)
+
+    def test_fetch_one_by_group_id_populates_collection(self):
+        MockAdapter.expected = {'member_group_id': 201}
+        self.groups.find_one_by_group_id(201)
+        self.assertIn(201, self.groups)
+        self.assertIsInstance(self.groups[201], Group)
+        self.assertEquals(self.groups[201]['member_group_id'], 201)
+
+    def test_fetch_one_by_import_id_caches_result(self):
+        MockAdapter.expected = {'member_group_id': 201}
+        self.groups.find_one_by_group_id(201)
+        self.groups.find_one_by_group_id(201)
+        self.assertEquals(self.groups.account.adapter.called, 1)
+
+    def test_dictionary_access_lazy_loads_by_import_id(self):
+        MockAdapter.expected = {'member_group_id': 201}
+        group = self.groups[201]
+        self.assertIn(201, self.groups)
+        self.assertIsInstance(group, Group)
+        self.assertEquals(self.groups[201]['member_group_id'], 201)
+        self.assertEquals(self.groups.account.adapter.called, 1)
+        self.assertEquals(
+            self.groups.account.adapter.call,
+            ('GET', '/groups/201', {}))
+
+    def test_dictionary_access_lazy_loads_by_import_id2(self):
+        MockAdapter.expected = None
+        group = self.groups[204]
+        self.assertEquals(0, len(self.groups))
+        self.assertIsNone(group)
+        self.assertEquals(self.groups.account.adapter.called, 1)
+        self.assertEquals(
+            self.groups.account.adapter.call,
+            ('GET', '/groups/204', {}))
 
 
 class AccountImportCollectionTest(unittest.TestCase):

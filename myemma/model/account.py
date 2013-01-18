@@ -108,6 +108,9 @@ class AccountGroupCollection(BaseApiModel):
         self.account = account
         super(AccountGroupCollection, self).__init__()
 
+    def __getitem__(self, key):
+        return self.find_one_by_group_id(key)
+
     def fetch_all(self, group_types=None):
         """
         Lazy-loads the full set of :class:`Group` objects
@@ -117,10 +120,10 @@ class AccountGroupCollection(BaseApiModel):
         Usage::
 
             >>> from myemma.model.account import Account
-            >>> from myemma.model.group_type import TestGroup
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.groups.fetch_all()
             {123: <Group>, 321: <Group>, ...}
+            >>> from myemma.model.group_type import TestGroup
             >>> acct.groups.fetch_all([TestGroup])
             {007: <Group>}
         """
@@ -133,6 +136,35 @@ class AccountGroupCollection(BaseApiModel):
                 self.account.adapter.get(path, params)
             ))
         return self._dict
+
+    def find_one_by_group_id(self, group_id):
+        """
+        Lazy-loads a single :class:`Group` by ID
+
+        :param group_id: The group identifier
+        :type group_id: :class:`int` or :class:`str`
+        :rtype: :class:`Group` or :class:`None`
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.groups.find_one_by_group_id(0) # does not exist
+            None
+            >>> acct.groups.find_one_by_group_id(123)
+            <Group>
+            >>> acct.groups[123]
+            <Group>
+        """
+        group_id = int(group_id)
+        path = '/groups/%s' % group_id
+        if group_id not in self._dict:
+            group = self.account.adapter.get(path)
+            if group:
+                self._dict[group_id] = Group(self.account, group)
+                return self._dict[group_id]
+        else:
+            return self._dict[group_id]
 
 
 class AccountMemberCollection(BaseApiModel):
@@ -148,9 +180,6 @@ class AccountMemberCollection(BaseApiModel):
         super(AccountMemberCollection, self).__init__()
 
     def __getitem__(self, key):
-        """
-        Overriding again to provide lazy-loading of a member by ID or email
-        """
         if isinstance(key, int):
             return self.find_one_by_member_id(key)
         if isinstance(key, str) or isinstance(key, unicode):
@@ -454,9 +483,6 @@ class AccountImportCollection(BaseApiModel):
         super(AccountImportCollection, self).__init__()
 
     def __getitem__(self, key):
-        """
-        Overriding again to provide lazy-loading of an import by ID
-        """
         return self.find_one_by_import_id(key)
 
     def fetch_all(self):
@@ -502,12 +528,11 @@ class AccountImportCollection(BaseApiModel):
         """
         import_id = int(import_id)
         path = '/members/imports/%s' % import_id
-        if not self._dict.has_key(import_id):
+        if import_id not in self._dict:
             emma_import = self.account.adapter.get(path)
             if emma_import is not None:
-                self._dict[emma_import['import_id']] = \
-                    MemberImport(self.account, emma_import)
-                return self._dict[emma_import['import_id']]
+                self._dict[import_id] = MemberImport(self.account, emma_import)
+                return self._dict[import_id]
         else:
             return self._dict[import_id]
 
