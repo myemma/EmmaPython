@@ -12,7 +12,7 @@ from myemma.model.field import Field
 from myemma.model.group import Group
 from myemma.model.member_import import MemberImport
 from myemma.model.member import Member
-from myemma.model import member_status
+from myemma.model import group_type, member_status
 
 
 class MockAdapter(AbstractAdapter):
@@ -130,6 +130,18 @@ class AccountGroupCollectionTest(unittest.TestCase):
         self.assertEquals(
             self.groups.account.adapter.call,
             ('GET', '/groups', {}))
+
+    def test_fetch_all_returns_a_dictionary2(self):
+        MockAdapter.expected = [{'member_group_id': 201}]
+        self.assertIsInstance(
+            self.groups.fetch_all([
+                group_type.RegularGroup,
+                group_type.HiddenGroup]),
+            dict)
+        self.assertEquals(self.groups.account.adapter.called, 1)
+        self.assertEquals(
+            self.groups.account.adapter.call,
+            ('GET', '/groups', {'group_types': [u"g", u"h"]}))
 
     def test_fetch_all_populates_collection(self):
         MockAdapter.expected = [{'member_group_id': 201}]

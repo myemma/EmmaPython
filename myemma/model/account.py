@@ -108,7 +108,7 @@ class AccountGroupCollection(BaseApiModel):
         self.account = account
         super(AccountGroupCollection, self).__init__()
 
-    def fetch_all(self):
+    def fetch_all(self, group_types=None):
         """
         Lazy-loads the full set of :class:`Group` objects
 
@@ -117,15 +117,20 @@ class AccountGroupCollection(BaseApiModel):
         Usage::
 
             >>> from myemma.model.account import Account
+            >>> from myemma.model.group_type import TestGroup
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.groups.fetch_all()
             {123: <Group>, 321: <Group>, ...}
+            >>> acct.groups.fetch_all([TestGroup])
+            {007: <Group>}
         """
         path = '/groups'
+        params = {'group_types': map(lambda x: x.get_code(), group_types)} \
+                if group_types else {}
         if not self._dict:
             self._dict = dict(map(
                 lambda x: (x['member_group_id'], Group(self.account, x)),
-                self.account.adapter.get(path)
+                self.account.adapter.get(path, params)
             ))
         return self._dict
 
