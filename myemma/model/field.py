@@ -4,6 +4,22 @@ from . import BaseApiModel
 
 
 class Field(BaseApiModel):
+    """
+    Encapsulates operations for a :class:`Field`
+
+    :param account: The Account which owns this Field
+    :type account: :class:`Account`
+    :param raw: The raw values of this :class:`Field`
+    :type raw: :class:`dict`
+
+    Usage::
+
+        >>> from myemma.model.account import Account
+        >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+        >>> fld = acct.fields[123]
+        >>> fld
+        <Field>
+    """
     def __init__(self, account, raw=None):
         self.account = account
         super(Field, self).__init__(raw)

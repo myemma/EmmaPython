@@ -10,13 +10,6 @@ model Package
     :members:
     :show-inheritance:
 
-:mod:`emma_import` Module
--------------------------
-
-.. automodule:: myemma.model.emma_import
-    :members:
-    :show-inheritance:
-
 :mod:`field` Module
 -------------------
 
@@ -42,6 +35,13 @@ model Package
 --------------------
 
 .. automodule:: myemma.model.member
+    :members:
+    :show-inheritance:
+
+:mod:`member_import` Module
+--------------------
+
+.. automodule:: myemma.model.member_import
     :members:
     :show-inheritance:
 
