@@ -61,6 +61,13 @@ class ImportDeleteError(Exception):
     pass
 
 
+class MemberCopyToGroupError(Exception):
+    """
+    The API call to copy members into a group did not complete correctly
+    """
+    pass
+
+
 class BaseApiModel(collections.MutableMapping):
     def __init__(self, raw=None):
         self._dict = self._parse_raw(raw) if raw else {}
