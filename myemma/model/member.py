@@ -1,23 +1,23 @@
-from datetime import datetime
 from . import (BaseApiModel, Collection, ModelWithDateFields,
                NoMemberEmailError, NoMemberIdError, NoMemberStatusError,
                MemberUpdateError)
 from group import Group
 from mailing import Mailing
-from member_status import MemberStatus, Active, Error, Forwarded, OptOut
+import member_status
 
 
 class Member(BaseApiModel, ModelWithDateFields):
     """
     Encapsulates operations for a :class:`Member`
 
-    :param adapter: An HTTP client adapter from :mod:`myemma.adapter`
-    :type adapter: :class:`AbstractAdapter`
+    :param account: The Account which owns this Member
+    :type account: :class:`Account`
     :param raw: The raw values of this :class:`Member`
     :type raw: :class:`dict`
 
     Usage::
 
+        >>> from myemma.model.account import Account
         >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
         >>> mbr = acct.members[123]
         >>> mbr
@@ -31,11 +31,11 @@ class Member(BaseApiModel, ModelWithDateFields):
         self.account = account
         self.groups = MemberGroupCollection(self)
         self.mailings = MemberMailingCollection(self)
-        self._dict = self._parse_raw(raw) if raw is not None else {}
+        self._dict = self._parse_raw(raw) if raw else {}
 
     def _parse_raw(self, raw):
         if 'status' in raw:
-            raw['status'] = MemberStatus.factory(raw['status'])
+            raw['status'] = member_status.MemberStatus.factory(raw['status'])
         if 'member_status_id' in raw:
             del(raw['member_status_id'])
         if 'fields' in raw:
@@ -55,6 +55,7 @@ class Member(BaseApiModel, ModelWithDateFields):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.opt_out()
@@ -64,7 +65,7 @@ class Member(BaseApiModel, ModelWithDateFields):
             raise NoMemberEmailError()
         path = '/members/email/optout/%s' % self._dict['email']
         if self.account.adapter.put(path):
-            self._dict['status'] = OptOut
+            self._dict['status'] = member_status.OptOut
 
     def get_opt_out_detail(self):
         """
@@ -74,6 +75,7 @@ class Member(BaseApiModel, ModelWithDateFields):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.get_opt_out_detail()
@@ -81,7 +83,7 @@ class Member(BaseApiModel, ModelWithDateFields):
         """
         if 'member_id' not in self._dict:
             raise NoMemberIdError()
-        if self._dict['status'] != OptOut:
+        if self._dict['status'] != member_status.OptOut:
             return []
 
         path = '/members/%s/optout' % self._dict['member_id']
@@ -95,6 +97,7 @@ class Member(BaseApiModel, ModelWithDateFields):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.has_opted_out()
@@ -106,7 +109,7 @@ class Member(BaseApiModel, ModelWithDateFields):
         if 'status' not in self._dict:
             raise NoMemberStatusError()
         print(repr(self._dict['status']))
-        return self._dict['status'] == OptOut
+        return self._dict['status'] == member_status.OptOut
 
     def extract(self, top_level=None):
         """
@@ -119,6 +122,7 @@ class Member(BaseApiModel, ModelWithDateFields):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.extract()
@@ -160,14 +164,15 @@ class Member(BaseApiModel, ModelWithDateFields):
             data['signup_form_id'] = signup_form_id
 
         outcome = self.account.adapter.post(path, data)
-        self['status'] = MemberStatus.factory(outcome['status'])
+        self['status'] = member_status.MemberStatus.factory(outcome['status'])
         if outcome['added']:
             self['member_id'] = outcome['member_id']
 
     def _update(self):
         path = "/members/%s" % self._dict['member_id']
         data = self.extract()
-        if self._dict['status'] in (Active, Error, OptOut):
+        if self._dict['status'] in (member_status.Active, member_status.Error,
+                                    member_status.OptOut):
             data['status_to'] = self._dict['status'].get_code()
         if not self.account.adapter.put(path, data):
             raise MemberUpdateError()
@@ -180,6 +185,7 @@ class Member(BaseApiModel, ModelWithDateFields):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr['last_name'] = u"New-Name"
@@ -202,6 +208,7 @@ class Member(BaseApiModel, ModelWithDateFields):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.is_deleted()
@@ -220,6 +227,7 @@ class Member(BaseApiModel, ModelWithDateFields):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.delete()
@@ -234,7 +242,7 @@ class Member(BaseApiModel, ModelWithDateFields):
         if self.account.adapter.delete(path):
             self._dict['deleted_at'] = True
 
-    def add_groups(self, group_ids=[]):
+    def add_groups(self, group_ids=None):
         """
         Convenience method for adding groups to a Member
 
@@ -244,6 +252,7 @@ class Member(BaseApiModel, ModelWithDateFields):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.add_groups([1024, 1025])
@@ -254,7 +263,7 @@ class Member(BaseApiModel, ModelWithDateFields):
             group_ids
         ))
 
-    def drop_groups(self, group_ids=[]):
+    def drop_groups(self, group_ids=None):
         """
         Convenience method for dropping groups from a Member
 
@@ -264,6 +273,7 @@ class Member(BaseApiModel, ModelWithDateFields):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.drop_groups([1024, 1025]) # Drop a specific list of groups
@@ -279,8 +289,8 @@ class MemberMailingCollection(Collection):
     Encapsulates operations for the set of :class:`Mailing` objects of a
     :class:`Member`
 
-    :param adapter: An HTTP client adapter from :mod:`myemma.adapter`
-    :type adapter: :class:`AbstractAdapter`
+    :param member: The Member which owns this collection
+    :type member: :class:`Member`
     :param member: The parent for this collection
     :type member: :class:`Member`
     """
@@ -296,6 +306,7 @@ class MemberMailingCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.mailings.fetch_all()
@@ -318,8 +329,8 @@ class MemberGroupCollection(Collection):
     Encapsulates operations for the set of :class:`Group` objects of a
     :class:`Member`
 
-    :param adapter: An HTTP client adapter from :mod:`myemma.adapter`
-    :type adapter: :class:`AbstractAdapter`
+    :param member: The Member which owns this collection
+    :type member: :class:`Member`
     :param member: The parent for this collection
     :type member: :class:`Member`
     """
@@ -327,7 +338,7 @@ class MemberGroupCollection(Collection):
         self.member = member
         super(MemberGroupCollection, self).__init__(self.member.account.adapter)
 
-    def factory(self, raw={}):
+    def factory(self, raw=None):
         """
         Creates a :class:`Group`
 
@@ -335,6 +346,7 @@ class MemberGroupCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.groups.factory()
@@ -352,6 +364,7 @@ class MemberGroupCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.groups.fetch_all()
@@ -368,7 +381,7 @@ class MemberGroupCollection(Collection):
             ))
         return self._dict
 
-    def save(self, groups=[]):
+    def save(self, groups=None):
         """
         :param groups: List of :class:`Group` objects to save
         :type groups: :class:`list` of :class:`Group` objects
@@ -376,6 +389,7 @@ class MemberGroupCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> grps = acct.members[123].groups
             >>> grps.save([
@@ -408,7 +422,7 @@ class MemberGroupCollection(Collection):
         if self.member.account.adapter.delete(path, {}):
             self._dict = {}
 
-    def delete(self, group_ids=[]):
+    def delete(self, group_ids=None):
         """
         :param group_ids: List of group identifiers to delete
         :type group_ids: :class:`list` of :class:`int`
@@ -416,6 +430,7 @@ class MemberGroupCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> grps = acct.members[123].groups
             >>> grps.delete([300, 301]) # Delete a specific list of groups

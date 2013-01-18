@@ -4,7 +4,7 @@ from . import (Collection, MemberDeleteError, MemberChangeStatusError,
 from emma_import import EmmaImport
 from member import Member
 from field import Field
-from member_status import Active
+import member_status
 
 
 class Account(object):
@@ -20,6 +20,7 @@ class Account(object):
 
     Usage::
 
+        >>> from myemma.model.account import Account
         >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
         >>> acct.fields
         <FieldCollection>
@@ -54,6 +55,7 @@ class FieldCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.fields.fetch_all()
             {123: <Field>, 321: <Field>, ...}
@@ -74,6 +76,7 @@ class FieldCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.fields.export_shortcuts()
             ["first_name", "last_name", ...]
@@ -96,9 +99,9 @@ class MemberCollection(Collection):
         if isinstance(key, int):
             return self.find_one_by_member_id(key)
         if isinstance(key, str) or isinstance(key, unicode):
-            return self.find_one_by_email(key)
+            return self.find_one_by_email(str(key))
 
-    def factory(self, raw={}):
+    def factory(self, raw=None):
         """
         New :class:`Member` factory
 
@@ -108,6 +111,7 @@ class MemberCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.factory()
             <Member{}>
@@ -126,6 +130,7 @@ class MemberCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.fetch_all()
             {123: <Member>, 321: <Member>, ...}
@@ -150,6 +155,7 @@ class MemberCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.fetch_all_by_import_id(123)
             {123: <Member>, 321: <Member>, ...}
@@ -174,6 +180,7 @@ class MemberCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.find_one_by_member_id(0) # does not exist
             None
@@ -204,6 +211,7 @@ class MemberCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.find_one_by_email("null@example.com") # does not exist
             None
@@ -227,8 +235,8 @@ class MemberCollection(Collection):
             member = members[0]
         return member
 
-    def save(self, members=[], filename=None, add_only=False,
-             group_ids=[]):
+    def save(self, members=None, filename=None, add_only=False,
+             group_ids=None):
         """
         :param members: List of :class:`Member` objects to save
         :type members: :class:`list` of :class:`Member` objects
@@ -242,6 +250,7 @@ class MemberCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.save() # no changes
             None
@@ -261,7 +270,7 @@ class MemberCollection(Collection):
         path = '/members'
         data = {
             'members': (
-                map(lambda x: x.extract(), members)
+                ([] if not members else map(lambda x: x.extract(), members))
                 + ([]
                    if add_only
                    else map(lambda x: x.extract(), self._dict.values())))
@@ -282,8 +291,9 @@ class MemberCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
-            >>> acct.members.delete_by_status(OptOut)
+            >>> acct.members.delete_by_status(member_status.OptOut)
             None
         """
         path = '/members'
@@ -296,7 +306,7 @@ class MemberCollection(Collection):
             lambda x: x[1]['status'] != status,
             self._dict.items()))
 
-    def delete(self, member_ids=[]):
+    def delete(self, member_ids=None):
         """
         :param member_ids: Set of member identifiers to delete
         :type member_ids: :class:`list` of :class:`int`
@@ -304,6 +314,7 @@ class MemberCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.delete([123, 321]) # Deletes members 123, and 321
             None
@@ -320,7 +331,7 @@ class MemberCollection(Collection):
             lambda x: x[0] not in member_ids,
             self._dict.items()))
 
-    def change_status(self, member_ids=[], status_to=Active):
+    def change_status(self, member_ids=None, status_to=member_status.Active):
         """
         :param member_ids: Set of member identifiers to change
         :type member_ids: :class:`list` of :class:`int`
@@ -330,8 +341,9 @@ class MemberCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
-            >>> acct.members.change_status([123, 321], Active)
+            >>> acct.members.change_status([123, 321], member_status.Active)
             None
         """
         if not member_ids:
@@ -347,7 +359,7 @@ class MemberCollection(Collection):
             if member_id in member_ids:
                 self._dict[member_id]['status'] = status_to
 
-    def drop_groups(self, member_ids=[], group_ids=[]):
+    def drop_groups(self, member_ids=None, group_ids=None):
         """
         Drop specified groups for specified members
 
@@ -359,6 +371,7 @@ class MemberCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.drop_groups([200, 201], [1024, 1025])
             None
@@ -391,6 +404,7 @@ class ImportCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.imports.fetch_all()
             {123: <Import>, 321: <Import>, ...}
@@ -414,6 +428,7 @@ class ImportCollection(Collection):
 
         Usage::
 
+            >>> from myemma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.imports.find_one_by_import_id(0) # does not exist
             None

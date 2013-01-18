@@ -9,8 +9,8 @@ from myemma.model.member import (Member, MemberGroupCollection,
                                  MemberMailingCollection)
 from myemma.model.group import Group
 from myemma.model.mailing import Mailing
-from myemma.model.member_status import Active
-from myemma.model.delivery_type import Delivered
+import myemma.model.member_status
+import myemma.model.delivery_type
 
 
 class MockAdapter(AbstractAdapter):
@@ -83,7 +83,7 @@ class MemberTest(unittest.TestCase):
 
     def test_can_get_opt_out_detail_for_member3(self):
         MockAdapter.expected = []
-        self.member['status'] = Active
+        self.member['status'] = myemma.model.member_status.Active
         self.member.get_opt_out_detail()
         self.assertEquals(self.member.account.adapter.called, 0)
 
@@ -152,7 +152,7 @@ class MemberTest(unittest.TestCase):
             mbr.account.adapter.call,
             ('POST', '/members/add', {'email':u"test@example.com"}))
         self.assertEquals(1024, mbr['member_id'])
-        self.assertEquals(Active, mbr['status'])
+        self.assertEquals(myemma.model.member_status.Active, mbr['status'])
 
     def test_can_save_a_member2(self):
         mbr = Member(
@@ -172,7 +172,7 @@ class MemberTest(unittest.TestCase):
             ('POST', '/members/add', {'email':u"test@example.com",
                                       'fields': {'first_name': u"Emma"}}))
         self.assertEquals(1024, mbr['member_id'])
-        self.assertEquals(Active, mbr['status'])
+        self.assertEquals(myemma.model.member_status.Active, mbr['status'])
 
     def test_can_save_a_member3(self):
         mbr = Member(
@@ -195,7 +195,7 @@ class MemberTest(unittest.TestCase):
                 'signup_form_id': u"http://example.com/signup"}
             ))
         self.assertEquals(1024, mbr['member_id'])
-        self.assertEquals(Active, mbr['status'])
+        self.assertEquals(myemma.model.member_status.Active, mbr['status'])
 
     def test_can_save_a_member4(self):
         mbr = Member(
@@ -204,7 +204,7 @@ class MemberTest(unittest.TestCase):
                 'member_id': 200,
                 'email':u"test@example.com",
                 'first_name':u"Emma",
-                'status': Active
+                'status': myemma.model.member_status.Active
             })
         MockAdapter.expected = False
 
@@ -230,7 +230,7 @@ class MemberTest(unittest.TestCase):
                 'member_id': 200,
                 'email':u"test@example.com",
                 'fields': {'first_name':u"Emma"},
-                'status': Active
+                'status': myemma.model.member_status.Active
             })
         MockAdapter.expected = True
         result = mbr.save()
@@ -548,4 +548,6 @@ class MemberMailingCollectionTest(unittest.TestCase):
         self.assertEquals(1, len(self.mailings))
         self.assertIsInstance(self.mailings[201], Mailing)
         self.assertEquals(self.mailings[201]['mailing_id'], 201)
-        self.assertEquals(self.mailings[201]['delivery_type'], Delivered)
+        self.assertEquals(
+            self.mailings[201]['delivery_type'],
+            myemma.model.delivery_type.Delivered)
