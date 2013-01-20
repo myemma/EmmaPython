@@ -1,8 +1,6 @@
 """Search syntax builder"""
 
-from myemma.query.operator import (AnyQuery, BetweenQuery, ContainsQuery,
-                                   EqualityQuery, GreaterThanQuery,
-                                   LessThanQuery)
+from myemma.query import operator
 
 
 class QueryFactory(object):
@@ -44,7 +42,7 @@ class QueryFactory(object):
             ["member_field:some_string_field", "eq", "bar"]
 
         """
-        return EqualityQuery(field, value)
+        return operator.EqualityQuery(field, value)
     @staticmethod
     def lt(field, value):
         """
@@ -64,7 +62,7 @@ class QueryFactory(object):
             ["member_field:some_numeric_field", "lt", 10]
 
         """
-        return LessThanQuery(field, value)
+        return operator.LessThanQuery(field, value)
     @staticmethod
     def gt(field, value):
         """
@@ -84,7 +82,7 @@ class QueryFactory(object):
             ["member_field:some_numeric_field", "gt", 5]
 
         """
-        return GreaterThanQuery(field, value)
+        return operator.GreaterThanQuery(field, value)
     @staticmethod
     def between(field, low, high):
         """
@@ -106,7 +104,7 @@ class QueryFactory(object):
             ["member_field:some_numeric_field", "between", 5, 10]
 
         """
-        return BetweenQuery(field, low, high)
+        return operator.BetweenQuery(field, low, high)
     @staticmethod
     def contains(field, value):
         """
@@ -126,7 +124,7 @@ class QueryFactory(object):
             ["member_field:some_string_field", "contains", "*foo*"]
 
         """
-        return ContainsQuery(field, value)
+        return operator.ContainsQuery(field, value)
     @staticmethod
     def any(field, value):
         """
@@ -146,4 +144,4 @@ class QueryFactory(object):
             ["member_field:some_array_field", "any", "ten"]
 
         """
-        return AnyQuery(field, value)
+        return operator.AnyQuery(field, value)

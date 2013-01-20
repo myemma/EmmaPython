@@ -1,8 +1,7 @@
 """Audience import models"""
 
-from myemma.adapter import NoImportIdError
-from myemma.model import (BaseApiModel, str_fields_to_datetime, import_status,
-                          import_style)
+from myemma import exceptions as ex
+from myemma.model import BaseApiModel, str_fields_to_datetime
 from myemma.model.member import Member
 
 
@@ -29,13 +28,8 @@ class MemberImport(BaseApiModel):
         self.members = ImportMemberCollection(self)
 
     def _parse_raw(self, raw):
-        if 'status' in raw:
-            raw['status'] = import_status.ImportStatus.factory(raw['status'])
-        if 'style' in raw:
-            raw['style'] = import_style.ImportStyle.factory(raw['style'])
-        str_fields_to_datetime(
-            ['import_started', 'import_finished'],
-            raw)
+        raw.update(
+            str_fields_to_datetime(['import_started', 'import_finished'], raw))
         return raw
 
 
@@ -69,7 +63,7 @@ class ImportMemberCollection(BaseApiModel):
             {200: <Member>, 201: <Member>, ...}
         """
         if not 'import_id' in self.member_import:
-            raise NoImportIdError()
+            raise ex.NoImportIdError()
 
         path = '/members/imports/%s/members' % self.member_import['import_id']
         if not self._dict:

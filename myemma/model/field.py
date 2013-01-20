@@ -1,8 +1,8 @@
 """Audience field models"""
 
 from datetime import datetime
-from myemma.adapter import NoFieldIdError
-from . import BaseApiModel
+from myemma import exceptions as ex
+from myemma.model import BaseApiModel
 
 
 class Field(BaseApiModel):
@@ -60,7 +60,7 @@ class Field(BaseApiModel):
             None
         """
         if not 'field_id' in self._dict:
-            raise NoFieldIdError()
+            raise ex.NoFieldIdError()
         if self.is_deleted():
             return None
 

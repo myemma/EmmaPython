@@ -1,7 +1,7 @@
 """You need models. We got models."""
 
 import collections
-import datetime
+from datetime import datetime
 
 
 SERIALIZED_DATETIME_FORMAT = "@D:%Y-%m-%dT%H:%M:%S"
@@ -9,11 +9,8 @@ SERIALIZED_DATETIME_FORMAT = "@D:%Y-%m-%dT%H:%M:%S"
 
 def str_fields_to_datetime(fields, raw):
     """Parses Emma date fields to :class:`datetime` objects"""
-    for field in fields:
-        if field in raw and raw[field]:
-            raw[field] = datetime.datetime.strptime(
-                raw[field],
-                SERIALIZED_DATETIME_FORMAT)
+    return dict((x[0], datetime.strptime(x[1], SERIALIZED_DATETIME_FORMAT))
+        for x in raw.items() if x[0] in fields and x[1] is not None)
 
 
 class BaseApiModel(collections.MutableMapping):
@@ -56,5 +53,19 @@ class BaseApiModel(collections.MutableMapping):
             )
 
     def _parse_raw(self, raw):
-        """Placeholder, will normally be overridden"""
+        """
+        Placeholder, will normally be overridden
+
+        :param raw: The raw API value to parse
+        :type raw: :class:`dict`
+        """
         return raw
+
+class BaseAPIEnum(object):
+    """Abstract Factory for an enumeration"""
+    _code = None
+
+    @classmethod
+    def get_code(cls):
+        """The Emma API coded value"""
+        return cls._code

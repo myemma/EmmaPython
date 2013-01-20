@@ -1,10 +1,9 @@
 """Audience member models"""
 
 from datetime import datetime
-from myemma.adapter import (MemberUpdateError, NoMemberEmailError,
-                            NoMemberIdError, NoMemberStatusError)
-from myemma.model import (BaseApiModel, str_fields_to_datetime,
-                          member_change_type, member_status)
+from myemma import exceptions as ex
+from myemma.enumerations import MemberStatus
+from myemma.model import BaseApiModel, str_fields_to_datetime
 from myemma.model.group import Group
 from myemma.model.mailing import Mailing
 
@@ -37,19 +36,12 @@ class Member(BaseApiModel):
         super(Member, self).__init__(raw)
 
     def _parse_raw(self, raw):
-        if 'status' in raw:
-            raw['status'] = member_status.MemberStatus.factory(raw['status'])
-        if 'change_type' in raw:
-            raw['change_type'] = member_change_type.MemberChangeType.factory(
-                raw['change_type'])
-        if 'member_status_id' in raw:
-            del(raw['member_status_id'])
         if 'fields' in raw:
             raw.update(raw['fields'])
             del(raw['fields'])
-        str_fields_to_datetime(
+        raw.update(str_fields_to_datetime(
             ['last_modified_at', 'member_since', 'deleted_at'],
-            raw)
+            raw))
         return raw
 
     def opt_out(self):
@@ -68,10 +60,10 @@ class Member(BaseApiModel):
             None
         """
         if 'email' not in self._dict:
-            raise NoMemberEmailError()
+            raise ex.NoMemberEmailError()
         path = '/members/email/optout/%s' % self._dict['email']
         if self.account.adapter.put(path):
-            self._dict['status'] = member_status.OptOut
+            self._dict['member_status_id'] = MemberStatus.OptOut
 
     def get_opt_out_detail(self):
         """
@@ -88,8 +80,8 @@ class Member(BaseApiModel):
             [...]
         """
         if 'member_id' not in self._dict:
-            raise NoMemberIdError()
-        if self._dict['status'] != member_status.OptOut:
+            raise ex.NoMemberIdError()
+        if self._dict['member_status_id'] != MemberStatus.OptOut:
             return []
 
         path = '/members/%s/optout' % self._dict['member_id']
@@ -112,10 +104,9 @@ class Member(BaseApiModel):
             >>> mbr.has_opted_out()
             True
         """
-        if 'status' not in self._dict:
-            raise NoMemberStatusError()
-        print(repr(self._dict['status']))
-        return self._dict['status'] == member_status.OptOut
+        if 'member_status_id' not in self._dict:
+            raise ex.NoMemberStatusError()
+        return self._dict['member_status_id'] == MemberStatus.OptOut
 
     def extract(self):
         """
@@ -132,7 +123,7 @@ class Member(BaseApiModel):
             {'member_id':123, 'email':u"test@example.org", 'fields':{...}}
         """
         if 'email' not in self._dict:
-            raise NoMemberEmailError
+            raise ex.NoMemberEmailError
 
         extracted = dict(x for x in self._dict.items()
             if x[0] in ['member_id', 'email'])
@@ -153,7 +144,7 @@ class Member(BaseApiModel):
             data['signup_form_id'] = signup_form_id
 
         outcome = self.account.adapter.post(path, data)
-        self['status'] = member_status.MemberStatus.factory(outcome['status'])
+        self['member_status_id'] = outcome['status']
         if outcome['added']:
             self['member_id'] = outcome['member_id']
 
@@ -161,11 +152,11 @@ class Member(BaseApiModel):
         """Update a single member"""
         path = "/members/%s" % self._dict['member_id']
         data = self.extract()
-        if self._dict['status'] in (member_status.Active, member_status.Error,
-                                    member_status.OptOut):
-            data['status_to'] = self._dict['status'].get_code()
+        if self._dict['member_status_id'] in (MemberStatus.Active, MemberStatus.Error,
+                                    MemberStatus.OptOut):
+            data['status_to'] = self._dict['member_status_id']
         if not self.account.adapter.put(path, data):
-            raise MemberUpdateError()
+            raise ex.MemberUpdateError()
 
     def save(self, signup_form_id=None):
         """
@@ -224,7 +215,7 @@ class Member(BaseApiModel):
             None
         """
         if not 'member_id' in self._dict:
-            raise NoMemberIdError()
+            raise ex.NoMemberIdError()
         if self.is_deleted():
             return None
 
@@ -303,7 +294,7 @@ class MemberMailingCollection(BaseApiModel):
 
         """
         if 'member_id' not in self.member:
-            raise NoMemberIdError()
+            raise ex.NoMemberIdError()
         path = '/members/%s/mailings' % self.member['member_id']
         if not self._dict:
             self._dict = dict(
@@ -361,7 +352,7 @@ class MemberGroupCollection(BaseApiModel):
 
         """
         if 'member_id' not in self.member:
-            raise NoMemberIdError()
+            raise ex.NoMemberIdError()
         path = '/members/%s/groups' % self.member['member_id']
         if not self._dict:
             self._dict = dict(
@@ -388,7 +379,7 @@ class MemberGroupCollection(BaseApiModel):
             None
         """
         if 'member_id' not in self.member:
-            raise NoMemberIdError()
+            raise ex.NoMemberIdError()
         if not groups:
             return None
 
@@ -428,7 +419,7 @@ class MemberGroupCollection(BaseApiModel):
             None
         """
         if 'member_id' not in self.member:
-            raise NoMemberIdError()
+            raise ex.NoMemberIdError()
 
         return (self._delete_by_list(group_ids)
                 if group_ids

@@ -1,8 +1,8 @@
 from datetime import datetime
 import unittest
-from myemma.adapter import MemberUpdateError, NoMemberEmailError, NoMemberIdError, NoMemberStatusError
-from myemma.model import (member_status, member_change_type, delivery_type,
-                          SERIALIZED_DATETIME_FORMAT)
+from myemma import exceptions as ex
+from myemma.enumerations import DeliveryType, MemberStatus, MemberChangeType
+from myemma.model import SERIALIZED_DATETIME_FORMAT
 from myemma.model.account import Account
 from myemma.model.member import (Member, MemberGroupCollection,
                                  MemberMailingCollection)
@@ -21,7 +21,10 @@ class MemberTest(unittest.TestCase):
                 'email':u"test@example.com",
                 'status':u"opt-out",
                 'member_status_id':u"o",
-                'change_type':u"u"
+                'change_type':u"u",
+                'last_modified_at': datetime.now().strftime(SERIALIZED_DATETIME_FORMAT),
+                'member_since': datetime.now().strftime(SERIALIZED_DATETIME_FORMAT),
+                'deleted_at': None
             }
         )
         self.member.account.fields._dict = {
@@ -30,10 +33,11 @@ class MemberTest(unittest.TestCase):
         }
 
     def test_can_parse_special_fields_correctly(self):
-        self.assertEquals(self.member['status'], member_status.OptOut)
-        self.assertEquals(
-            self.member['change_type'],
-            member_change_type.Updated)
+        self.assertEquals(self.member['member_status_id'], MemberStatus.OptOut)
+        self.assertEquals(self.member['change_type'], MemberChangeType.Updated)
+        self.assertIsInstance(self.member['last_modified_at'], datetime)
+        self.assertIsInstance(self.member['member_since'], datetime)
+        self.assertIsNone(self.member['deleted_at'])
 
     def test_can_represent_a_member(self):
         self.assertEquals(
@@ -59,13 +63,13 @@ class MemberTest(unittest.TestCase):
     def test_can_get_opt_out_detail_for_member2(self):
         MockAdapter.expected = []
         member = Member(self.member.account)
-        with self.assertRaises(NoMemberIdError):
+        with self.assertRaises(ex.NoMemberIdError):
             member.get_opt_out_detail()
         self.assertEquals(member.account.adapter.called, 0)
 
     def test_can_get_opt_out_detail_for_member3(self):
         MockAdapter.expected = []
-        self.member['status'] = member_status.Active
+        self.member['member_status_id'] = MemberStatus.Active
         self.member.get_opt_out_detail()
         self.assertEquals(self.member.account.adapter.called, 0)
 
@@ -81,7 +85,7 @@ class MemberTest(unittest.TestCase):
             {
                 'member_id':1000,
                 'email':u"test@example.com",
-                'status':u"active"
+                'member_status_id':u"active"
             }
         )
         has_opted_out = member.has_opted_out()
@@ -91,13 +95,13 @@ class MemberTest(unittest.TestCase):
 
     def test_can_ask_if_member_has_opted_out3(self):
         member = Member(self.member.account)
-        with self.assertRaises(NoMemberStatusError):
+        with self.assertRaises(ex.NoMemberStatusError):
             member.has_opted_out()
         self.assertEquals(member.account.adapter.called, 0)
 
     def test_can_opt_out_a_member(self):
         member = Member(self.member.account)
-        with self.assertRaises(NoMemberEmailError):
+        with self.assertRaises(ex.NoMemberEmailError):
             member.opt_out()
         self.assertEquals(member.account.adapter.called, 0)
 
@@ -107,7 +111,7 @@ class MemberTest(unittest.TestCase):
             {
                 'member_id':1000,
                 'email':u"test@example.com",
-                'status':u"active"
+                'member_status_id':u"a"
             }
         )
         MockAdapter.expected = True
@@ -134,7 +138,7 @@ class MemberTest(unittest.TestCase):
             mbr.account.adapter.call,
             ('POST', '/members/add', {'email':u"test@example.com"}))
         self.assertEquals(1024, mbr['member_id'])
-        self.assertEquals(member_status.Active, mbr['status'])
+        self.assertEquals(MemberStatus.Active, mbr['member_status_id'])
 
     def test_can_save_a_member2(self):
         mbr = Member(
@@ -154,7 +158,7 @@ class MemberTest(unittest.TestCase):
             ('POST', '/members/add', {'email':u"test@example.com",
                                       'fields': {'first_name': u"Emma"}}))
         self.assertEquals(1024, mbr['member_id'])
-        self.assertEquals(member_status.Active, mbr['status'])
+        self.assertEquals(MemberStatus.Active, mbr['member_status_id'])
 
     def test_can_save_a_member3(self):
         mbr = Member(
@@ -177,7 +181,7 @@ class MemberTest(unittest.TestCase):
                 'signup_form_id': u"http://example.com/signup"}
             ))
         self.assertEquals(1024, mbr['member_id'])
-        self.assertEquals(member_status.Active, mbr['status'])
+        self.assertEquals(MemberStatus.Active, mbr['member_status_id'])
 
     def test_can_save_a_member4(self):
         mbr = Member(
@@ -186,11 +190,11 @@ class MemberTest(unittest.TestCase):
                 'member_id': 200,
                 'email':u"test@example.com",
                 'first_name':u"Emma",
-                'status': member_status.Active
+                'member_status_id': MemberStatus.Active
             })
         MockAdapter.expected = False
 
-        with self.assertRaises(MemberUpdateError):
+        with self.assertRaises(ex.MemberUpdateError):
             mbr.save()
         self.assertEquals(mbr.account.adapter.called, 1)
         self.assertEquals(mbr.account.adapter.call,
@@ -201,7 +205,7 @@ class MemberTest(unittest.TestCase):
                     'member_id': 200,
                     'email':u"test@example.com",
                     'fields': {'first_name': u"Emma"},
-                    'status_to': mbr['status'].get_code()
+                    'status_to': mbr['member_status_id']
                 }
             ))
 
@@ -212,7 +216,7 @@ class MemberTest(unittest.TestCase):
                 'member_id': 200,
                 'email':u"test@example.com",
                 'fields': {'first_name':u"Emma"},
-                'status': member_status.Active
+                'member_status_id': MemberStatus.Active
             })
         MockAdapter.expected = True
         result = mbr.save()
@@ -226,7 +230,7 @@ class MemberTest(unittest.TestCase):
                     'member_id': 200,
                     'email':u"test@example.com",
                     'fields': {'first_name': u"Emma"},
-                    'status_to': mbr['status'].get_code()
+                    'status_to': mbr['member_status_id']
                 }
             ))
 
@@ -264,7 +268,7 @@ class MemberTest(unittest.TestCase):
     def test_can_delete_a_member(self):
         mbr = Member(self.member.account, {'email':u"test@example.com"})
 
-        with self.assertRaises(NoMemberIdError):
+        with self.assertRaises(ex.NoMemberIdError):
             mbr.delete()
         self.assertEquals(self.member.account.adapter.called, 0)
         self.assertFalse(self.member.is_deleted())
@@ -319,7 +323,7 @@ class MemberGroupCollectionTest(unittest.TestCase):
 
     def test_fetch_all_returns_a_dictionary(self):
         groups = MemberGroupCollection(Member(self.groups.member.account))
-        with self.assertRaises(NoMemberIdError):
+        with self.assertRaises(ex.NoMemberIdError):
             groups.fetch_all()
         self.assertEquals(groups.member.account.adapter.called, 0)
 
@@ -364,7 +368,7 @@ class MemberGroupCollectionTest(unittest.TestCase):
     def test_can_add_groups_to_a_member(self):
         mbr = Member(self.groups.member.account)
 
-        with self.assertRaises(NoMemberIdError):
+        with self.assertRaises(ex.NoMemberIdError):
             mbr.groups.save([
                 mbr.groups.factory({'member_group_id':1024})
             ])
@@ -397,7 +401,7 @@ class MemberGroupCollectionTest(unittest.TestCase):
     def test_can_drop_groups_from_a_member(self):
         mbr = Member(self.groups.member.account)
 
-        with self.assertRaises(NoMemberIdError):
+        with self.assertRaises(ex.NoMemberIdError):
             mbr.groups.delete([300, 301])
         self.assertEquals(self.groups.member.account.adapter.called, 0)
 
@@ -519,7 +523,7 @@ class MemberMailingCollectionTest(unittest.TestCase):
     def test_fetch_all_returns_a_dictionary(self):
         member = Member(self.mailings.member.account)
         mailings = MemberMailingCollection(member)
-        with self.assertRaises(NoMemberIdError):
+        with self.assertRaises(ex.NoMemberIdError):
             mailings.fetch_all()
         self.assertEquals(mailings.member.account.adapter.called, 0)
 
@@ -552,4 +556,4 @@ class MemberMailingCollectionTest(unittest.TestCase):
         self.assertEquals(self.mailings[201]['mailing_id'], 201)
         self.assertEquals(
             self.mailings[201]['delivery_type'],
-            delivery_type.Delivered)
+            DeliveryType.Delivered)

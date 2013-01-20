@@ -1,6 +1,6 @@
 """Audience mailing models"""
 
-from myemma.model import BaseApiModel, str_fields_to_datetime, delivery_type
+from myemma.model import BaseApiModel, str_fields_to_datetime
 
 
 class Mailing(BaseApiModel):
@@ -25,10 +25,7 @@ class Mailing(BaseApiModel):
         super(Mailing, self).__init__(raw)
 
     def _parse_raw(self, raw):
-        if 'delivery_type' in raw:
-            raw['delivery_type'] = delivery_type.DeliveryType.factory(
-                raw['delivery_type'])
-        str_fields_to_datetime(
+        raw.update(str_fields_to_datetime(
             ['clicked', 'opened', 'delivery_ts', 'forwarded', 'shared', 'sent'],
-            raw)
+            raw))
         return raw

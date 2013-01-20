@@ -1,6 +1,6 @@
 from datetime import datetime
 import unittest
-from myemma.adapter import NoFieldIdError
+from myemma import exceptions as ex
 from myemma.model.account import Account
 from myemma.model.field import Field
 from myemma.model import SERIALIZED_DATETIME_FORMAT
@@ -20,7 +20,7 @@ class FieldTest(unittest.TestCase):
     def test_can_delete_a_field(self):
         fld = Field(self.field.account)
 
-        with self.assertRaises(NoFieldIdError):
+        with self.assertRaises(ex.NoFieldIdError):
             fld.delete()
         self.assertEquals(self.field.account.adapter.called, 0)
         self.assertFalse(self.field.is_deleted())

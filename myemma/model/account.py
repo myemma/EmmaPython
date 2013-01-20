@@ -1,9 +1,9 @@
 """The aggregate root (Account) and collections owned by the root"""
 
-from myemma.adapter import (ImportDeleteError, MemberDeleteError,
-                            MemberChangeStatusError, MemberDropGroupError)
+from myemma import exceptions as ex
 from myemma.adapter.requests_adapter import RequestsAdapter
-from myemma.model import BaseApiModel, member_status
+from myemma.model import BaseApiModel
+from myemma.enumerations import MemberStatus
 from myemma.model.member import Member
 from myemma.model.member_import import MemberImport
 from myemma.model.field import Field
@@ -133,8 +133,7 @@ class AccountGroupCollection(BaseApiModel):
             {007: <Group>}
         """
         path = '/groups'
-        params = {'group_types': [x.get_code() for x in group_types]} \
-            if group_types else {}
+        params = {'group_types': group_types} if group_types else {}
         if not self._dict:
             self._dict = dict(
                 (x['member_group_id'], Group(self.account, x))
@@ -258,7 +257,7 @@ class AccountImportCollection(BaseApiModel):
         path = '/members/imports/delete'
         params = {'import_ids': import_ids}
         if not self.account.adapter.delete(path, params):
-            raise ImportDeleteError()
+            raise ex.ImportDeleteError()
 
         # Update internal dictionary
         self._dict = dict(
@@ -467,24 +466,25 @@ class AccountMemberCollection(BaseApiModel):
     def delete_by_status(self, status):
         """
         :param status: Members with this status will be deleted
-        :type status: :class:`Status`
+        :type status: :class:`str`
         :rtype: :class:`None`
 
         Usage::
 
             >>> from myemma.model.account import Account
+            >>> from myemma.enumerations import MemberStatus
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
-            >>> acct.members.delete_by_status(member_status.OptOut)
+            >>> acct.members.delete_by_status(MemberStatus.OptOut)
             None
         """
         path = '/members'
-        params = {'member_status_id': status.get_code()}
+        params = {'member_status_id': status}
         if not self.account.adapter.delete(path, params):
-            raise MemberDeleteError()
+            raise ex.MemberDeleteError()
 
         # Update internal dictionary
         self._dict = dict(
-            x for x in self._dict.items() if x[1]['status'] != status)
+            x for x in self._dict.items() if x[1]['member_status_id'] != status)
 
     def delete(self, member_ids=None):
         """
@@ -505,7 +505,7 @@ class AccountMemberCollection(BaseApiModel):
         path = '/members/delete'
         data = {'member_ids': member_ids}
         if not self.account.adapter.put(path, data):
-            raise MemberDeleteError()
+            raise ex.MemberDeleteError()
 
         # Update internal dictionary
         self._dict = dict(
@@ -516,27 +516,28 @@ class AccountMemberCollection(BaseApiModel):
         :param member_ids: Set of member identifiers to change
         :type member_ids: :class:`list` of :class:`int`
         :param status_to: The new status
-        :type status_to: :class:`Status`
+        :type status_to: :class:`str`
         :rtype: :class:`None`
 
         Usage::
 
             >>> from myemma.model.account import Account
+            >>> from myemma.enumerations import MemberStatus
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.change_status_by_member_id(
             ...     [123, 321],
-            ...     member_status.Active)
+            ...     MemberStatus.Active)
             None
         """
         if not member_ids:
             return None
         if not status_to:
-            status_to = member_status.Active
+            status_to = MemberStatus.Active
 
         path = '/members/status'
-        data = {'member_ids': member_ids, 'status_to': status_to.get_code()}
+        data = {'member_ids': member_ids, 'status_to': status_to}
         if not self.account.adapter.put(path, data):
-            raise MemberChangeStatusError()
+            raise ex.MemberChangeStatusError()
 
         # Update internal dictionary
         for member_id in self._dict:
@@ -546,9 +547,9 @@ class AccountMemberCollection(BaseApiModel):
     def change_status_by_status(self, old, new, group_id=None):
         """
         :param old: The old status
-        :type old: :class:`MemberStatus`
+        :type old: :class:`str`
         :param new: The new status
-        :type new: :class:`MemberStatus`
+        :type new: :class:`str`
         :param group_id: An optional group identifier to limit by
         :type group_id: :class:`int`
         :rtype: :class:`None`
@@ -556,16 +557,17 @@ class AccountMemberCollection(BaseApiModel):
         Usage::
 
             >>> from myemma.model.account import Account
+            >>> from myemma.enumerations import MemberStatus
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.change_status_by_status(
-            ...     member_status.Error,
-            ...     member_status.Active)
+            ...     MemberStatus.Error,
+            ...     MemberStatus.Active)
             None
         """
-        path = '/members/status/%s/to/%s' % (old.get_code(), new.get_code())
+        path = '/members/status/%s/to/%s' % (old, new)
         data = {'group_id': group_id} if group_id else {}
         if not self.account.adapter.put(path, data):
-            raise MemberChangeStatusError()
+            raise ex.MemberChangeStatusError()
 
     def drop_groups(self, member_ids=None, group_ids=None):
         """
@@ -590,4 +592,4 @@ class AccountMemberCollection(BaseApiModel):
         path = '/members/groups/remove'
         data = {'member_ids': member_ids, 'group_ids': group_ids}
         if not self.account.adapter.put(path, data):
-            raise MemberDropGroupError()
+            raise ex.MemberDropGroupError()

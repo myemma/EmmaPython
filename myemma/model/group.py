@@ -1,8 +1,8 @@
 """Audience group models"""
 
 from datetime import datetime
-from myemma.adapter import MemberCopyToGroupError, NoGroupIdError
-from myemma.model import BaseApiModel, str_fields_to_datetime, group_type
+from myemma import exceptions as ex
+from myemma.model import BaseApiModel, str_fields_to_datetime
 
 
 class Group(BaseApiModel):
@@ -27,9 +27,7 @@ class Group(BaseApiModel):
         super(Group, self).__init__(raw)
 
     def _parse_raw(self, raw):
-        if 'group_type' in raw:
-            raw['group_type'] = group_type.GroupType.factory(raw['group_type'])
-        str_fields_to_datetime(['deleted_at'], raw)
+        raw.update(str_fields_to_datetime(['deleted_at'], raw))
         return raw
 
     def collect_members_by_status(self, statuses=None):
@@ -43,21 +41,21 @@ class Group(BaseApiModel):
         Usage::
 
             >>> from myemma.model.account import Account
-            >>> from myemma.model.member_status import Active
+            >>> from myemma.enumerations import MemberStatus
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> grp = acct.groups[1024]
-            >>> grp.collect_members_by_status([Active])
+            >>> grp.collect_members_by_status([MemberStatus.Active])
             None
         """
         if 'member_group_id' not in self._dict:
-            raise NoGroupIdError()
+            raise ex.NoGroupIdError()
         if not statuses:
             return None
 
         path = '/members/%s/copy' % self._dict['member_group_id']
-        data = {'member_status_id': [x.get_code() for x in statuses]}
+        data = {'member_status_id': statuses}
         if not self.account.adapter.put(path, data):
-            raise MemberCopyToGroupError()
+            raise ex.MemberCopyToGroupError()
 
     def is_deleted(self):
         """
@@ -93,7 +91,7 @@ class Group(BaseApiModel):
             None
         """
         if not 'member_group_id' in self._dict:
-            raise NoGroupIdError()
+            raise ex.NoGroupIdError()
         if self.is_deleted():
             return None
 

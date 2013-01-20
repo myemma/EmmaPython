@@ -1,9 +1,10 @@
 from datetime import datetime
 import unittest
-from myemma.adapter import MemberCopyToGroupError, NoGroupIdError
+from myemma import exceptions as ex
+from myemma.enumerations import GroupType, MemberStatus
 from myemma.model.account import Account
 from myemma.model.group import Group
-from myemma.model import group_type, member_status, SERIALIZED_DATETIME_FORMAT
+from myemma.model import SERIALIZED_DATETIME_FORMAT
 from tests.model import MockAdapter
 
 
@@ -14,18 +15,20 @@ class GroupTest(unittest.TestCase):
             Account(account_id="100", public_key="xxx", private_key="yyy"),
             {
                 'group_name': u"Test Group",
-                'group_type': group_type.RegularGroup.get_code()
+                'group_type': GroupType.RegularGroup,
+                'deleted_at': None
             }
         )
 
     def test_can_parse_special_fields_correctly(self):
-        self.assertEquals(self.group['group_type'], group_type.RegularGroup)
+        self.assertEquals(self.group['group_type'], GroupType.RegularGroup)
+        self.assertIsNone(self.group['deleted_at'])
 
     def test_can_collect_members_by_status(self):
-        with self.assertRaises(NoGroupIdError):
+        with self.assertRaises(ex.NoGroupIdError):
             self.group.collect_members_by_status([
-                member_status.Active,
-                member_status.Error])
+                MemberStatus.Active,
+                MemberStatus.Error])
         self.assertEquals(self.group.account.adapter.called, 0)
 
     def test_can_collect_members_by_status2(self):
@@ -37,8 +40,8 @@ class GroupTest(unittest.TestCase):
         self.group['member_group_id'] = 200
         MockAdapter.expected = False
 
-        with self.assertRaises(MemberCopyToGroupError):
-            self.group.collect_members_by_status([member_status.Active])
+        with self.assertRaises(ex.MemberCopyToGroupError):
+            self.group.collect_members_by_status([MemberStatus.Active])
         self.assertEquals(self.group.account.adapter.called, 1)
         self.assertEquals(
             self.group.account.adapter.call,
@@ -48,7 +51,7 @@ class GroupTest(unittest.TestCase):
         self.group['member_group_id'] = 200
         MockAdapter.expected = True
 
-        self.group.collect_members_by_status([member_status.Active])
+        self.group.collect_members_by_status([MemberStatus.Active])
 
         self.assertEquals(self.group.account.adapter.called, 1)
         self.assertEquals(
@@ -58,7 +61,7 @@ class GroupTest(unittest.TestCase):
     def test_can_delete_a_group(self):
         grp = Group(self.group.account)
 
-        with self.assertRaises(NoGroupIdError):
+        with self.assertRaises(ex.NoGroupIdError):
             grp.delete()
         self.assertEquals(self.group.account.adapter.called, 0)
         self.assertFalse(self.group.is_deleted())

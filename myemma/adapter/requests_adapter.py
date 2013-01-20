@@ -3,14 +3,15 @@
 import json
 import requests
 import requests.auth
-from myemma.adapter import AbstractAdapter, ApiRequestFailed
+from myemma import exceptions as ex
+from myemma.adapter import AbstractAdapter
 
 def process_response(response):
     """Takes a :class:`Response` and produces python built-ins"""
     if response.status_code == 404:
         return None
     elif response.status_code > 200:
-        raise ApiRequestFailed(response)
+        raise ex.ApiRequestFailed(response)
 
     return response.json()
 
