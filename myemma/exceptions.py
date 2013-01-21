@@ -49,6 +49,13 @@ class MemberUpdateError(ApiRequestFailed):
     pass
 
 
+class GroupUpdateError(ApiRequestFailed):
+    """
+    The API call to update a group's information did not complete correctly
+    """
+    pass
+
+
 class NoMemberEmailError(ApiRequestFailed):
     """
     An API call was attempted with missing required parameters (email)
@@ -73,6 +80,13 @@ class NoMemberStatusError(ApiRequestFailed):
 class NoGroupIdError(ApiRequestFailed):
     """
     An API call was attempted with missing required parameters (member_group_id)
+    """
+    pass
+
+
+class NoGroupNameError(ApiRequestFailed):
+    """
+    An API call was attempted with missing required parameters (group_name)
     """
     pass
 

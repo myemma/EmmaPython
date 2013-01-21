@@ -150,10 +150,10 @@ class Member(BaseApiModel):
 
     def _update(self):
         """Update a single member"""
+        s = MemberStatus
         path = "/members/%s" % self._dict['member_id']
         data = self.extract()
-        if self._dict['member_status_id'] in (MemberStatus.Active, MemberStatus.Error,
-                                    MemberStatus.OptOut):
+        if self._dict['member_status_id'] in (s.Active, s.Error, s.OptOut):
             data['status_to'] = self._dict['member_status_id']
         if not self.account.adapter.put(path, data):
             raise ex.MemberUpdateError()

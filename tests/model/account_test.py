@@ -282,6 +282,43 @@ class AccountGroupCollectionTest(unittest.TestCase):
         self.assertEquals(1, len(self.groups))
         self.assertIn(204, self.groups)
 
+    def test_can_add_groups_in_bulk(self):
+        result = self.groups.save()
+        self.assertIsNone(result)
+        self.assertEquals(self.groups.account.adapter.called, 0)
+
+    def test_can_add_groups_in_bulk2(self):
+        with self.assertRaises(ex.NoGroupNameError):
+            self.groups.save([
+                self.groups.factory(),
+                self.groups.factory()
+            ])
+
+        self.assertEquals(self.groups.account.adapter.called, 0)
+
+    def test_can_add_groups_in_bulk3(self):
+        # Setup
+        MockAdapter.expected = [
+            {'member_group_id': 2010, 'group_name': u"Test Group 0"},
+            {'member_group_id': 2011, 'group_name': u"Test Group 1"}]
+
+        # Perform add
+        result = self.groups.save([
+            self.groups.factory({'group_name': u"Test Group 0"}),
+            self.groups.factory({'group_name': u"Test Group 1"})
+        ])
+
+        self.assertIsNone(result)
+        self.assertEquals(self.groups.account.adapter.called, 1)
+        self.assertEquals(self.groups.account.adapter.call, (
+            'POST',
+            '/groups',
+            {'groups': [
+                {'group_name': u"Test Group 0"},
+                {'group_name': u"Test Group 1"}
+            ]}
+        ))
+
 
 class AccountImportCollectionTest(unittest.TestCase):
     def setUp(self):

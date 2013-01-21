@@ -170,8 +170,27 @@ class AccountGroupCollection(BaseApiModel):
         return self.find_one_by_group_id(key)
 
     def __delitem__(self, key):
-        self._dict[key].delete()
+        self[key].delete()
         super(AccountGroupCollection, self).__delitem__(key)
+
+    def factory(self, raw=None):
+        """
+        New :class:`Group` factory
+
+        :param raw: Raw data with which to populate class
+        :type raw: :class:`dict`
+        :rtype: :class:`Group`
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.groups.factory()
+            <Group{}>
+            >>> acct.groups.factory({'group_name': u"Test Group"})
+            <Group{'group_name': u"Test Group"}>
+        """
+        return Group(self.account, raw)
 
     def fetch_all(self, group_types=None):
         """
@@ -185,8 +204,8 @@ class AccountGroupCollection(BaseApiModel):
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.groups.fetch_all()
             {123: <Group>, 321: <Group>, ...}
-            >>> from myemma.model.group_type import TestGroup
-            >>> acct.groups.fetch_all([TestGroup])
+            >>> from myemma.enumerations import GroupType
+            >>> acct.groups.fetch_all([GroupType.TestGroup])
             {007: <Group>}
         """
         path = '/groups'
@@ -225,6 +244,32 @@ class AccountGroupCollection(BaseApiModel):
                 return self._dict[group_id]
         else:
             return self._dict[group_id]
+
+    def save(self, groups=None):
+        """
+        :param groups: List of :class:`Group` objects to save
+        :type groups: :class:`list` of :class:`Group` objects
+        :rtype: :class:`None`
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.groups.save() # no changes
+            None
+            >>> acct.groups.save([
+            ...     acct.groups.factory({'group_name': u"New Group 1"}),
+            ...     acct.groups.factory({'group_name': u"New Group 2"}),
+            ...     acct.groups.factory({'group_name': u"New Group 3"})
+            ... ])
+            None
+        """
+        if not groups:
+            return None
+
+        path = '/groups'
+        data = {'groups': [x.extract() for x in groups]}
+        self.account.adapter.post(path, data)
 
 
 class AccountImportCollection(BaseApiModel):
