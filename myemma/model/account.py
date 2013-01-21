@@ -62,7 +62,6 @@ class AccountFieldCollection(BaseApiModel):
 
     def __delitem__(self, key):
         self._dict[key].delete()
-        super(AccountFieldCollection, self).__delitem__(key)
 
     def factory(self, raw=None):
         """
@@ -171,7 +170,6 @@ class AccountGroupCollection(BaseApiModel):
 
     def __delitem__(self, key):
         self[key].delete()
-        super(AccountGroupCollection, self).__delitem__(key)
 
     def factory(self, raw=None):
         """
@@ -269,7 +267,9 @@ class AccountGroupCollection(BaseApiModel):
 
         path = '/groups'
         data = {'groups': [x.extract() for x in groups]}
-        self.account.adapter.post(path, data)
+        added = self.account.adapter.post(path, data)
+        self._dict.update(dict(
+            (x['member_group_id'], Group(self.account, x)) for x in added))
 
 
 class AccountImportCollection(BaseApiModel):

@@ -73,6 +73,8 @@ class Group(BaseApiModel):
         path = "/groups/%s" % self._dict['member_group_id']
         if self.account.adapter.delete(path):
             self._dict['deleted_at'] = datetime.now()
+        if self._dict['member_group_id'] in self.account.groups:
+            del(self.account.groups._dict[self._dict['member_group_id']])
 
     def extract(self):
         """

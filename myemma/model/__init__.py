@@ -39,6 +39,9 @@ class BaseApiModel(collections.MutableMapping):
     def __repr__(self):
         return "".join(['<', self.__class__.__name__, repr(self._dict), '>'])
 
+    def clear(self):
+        self._dict = {}
+
     def _replace_all(self, items):
         """Update the internal :class:`dict` with matching items provided"""
         is_new = lambda x: x[0] not in self._dict

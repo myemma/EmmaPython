@@ -71,6 +71,8 @@ class Field(BaseApiModel):
         path = "/fields/%s" % self._dict['field_id']
         if self.account.adapter.delete(path):
             self._dict['deleted_at'] = datetime.now()
+        if self._dict['field_id'] in self.account.fields:
+            del(self.account.fields._dict[self._dict['field_id']])
 
     def extract(self):
         """
@@ -96,6 +98,7 @@ class Field(BaseApiModel):
         path = '/fields'
         data = self.extract()
         self._dict['field_id'] = self.account.adapter.post(path, data)
+        self.account.fields._dict[self._dict['field_id']] = self
 
     def _update(self):
         """Update a single field"""
