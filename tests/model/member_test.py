@@ -33,8 +33,6 @@ class MemberTest(unittest.TestCase):
         }
 
     def test_can_parse_special_fields_correctly(self):
-        self.assertEquals(self.member['member_status_id'], MemberStatus.OptOut)
-        self.assertEquals(self.member['change_type'], MemberChangeType.Updated)
         self.assertIsInstance(self.member['last_modified_at'], datetime)
         self.assertIsInstance(self.member['member_since'], datetime)
         self.assertIsNone(self.member['deleted_at'])

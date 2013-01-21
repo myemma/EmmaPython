@@ -54,3 +54,24 @@ class MemberChangeType(Enum):
     StatusShifted = "t"
 
 
+class FieldType(Enum):
+    """Field Type"""
+    Text = "text"
+    TextArray = "text[]"
+    Numeric = "numeric"
+    Boolean = "boolean"
+    Date = "date"
+    Timestamp = "timestamp"
+
+
+class WidgetType(Enum):
+    """Widget Type"""
+    ShortAnswer = "text"
+    LongAnswer = "long"
+    CheckBoxMenu = "checkbox"
+    SelectMultiple = "select multiple"
+    CheckMultiple = "check_multiple"
+    RadioButtonMenu = "radio"
+    DatePicker = "date"
+    DropDownMenu = "select one"
+    Number = "number"

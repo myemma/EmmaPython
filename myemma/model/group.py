@@ -74,7 +74,7 @@ class Group(BaseApiModel):
             >>> grp.is_deleted()
             True
         """
-        return 'deleted_at' in self._dict and self._dict['deleted_at']
+        return 'deleted_at' in self._dict and bool(self._dict['deleted_at'])
 
     def delete(self):
         """

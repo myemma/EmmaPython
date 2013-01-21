@@ -57,14 +57,38 @@ class AccountFieldCollection(BaseApiModel):
         self.account = account
         super(AccountFieldCollection, self).__init__()
 
+    def __getitem__(self, key):
+        return self.find_one_by_field_id(key, True)
+
     def __delitem__(self, key):
         self._dict[key].delete()
         super(AccountFieldCollection, self).__delitem__(key)
 
-    def fetch_all(self):
+    def factory(self, raw=None):
+        """
+        New :class:`Field` factory
+
+        :param raw: Raw data with which to populate class
+        :type raw: :class:`dict`
+        :rtype: :class:`Field`
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.fields.factory()
+            <Field{}>
+            >>> acct.fields.factory({'shortcut_name': u"test_field"})
+            <Field{'shortcut_name': u"test_field"}>
+        """
+        return Field(self.account, raw)
+
+    def fetch_all(self, deleted=False):
         """
         Lazy-loads the full set of :class:`Field` objects
 
+        :param deleted: Whether to include deleted fields
+        :type deleted: :class:`bool`
         :rtype: :class:`dict` of :class:`Field` objects
 
         Usage::
@@ -75,11 +99,44 @@ class AccountFieldCollection(BaseApiModel):
             {123: <Field>, 321: <Field>, ...}
         """
         path = '/fields'
+        params = {"deleted":True} if deleted else {}
         if not self._dict:
             self._dict = dict(
                 (x['field_id'], Field(self.account, x))
-                    for x in self.account.adapter.get(path))
+                    for x in self.account.adapter.get(path, params))
         return self._dict
+
+    def find_one_by_field_id(self, field_id, deleted=False):
+        """
+        Lazy-loads a single :class:`Field` by ID
+
+        :param field_id: The field identifier
+        :type field_id: :class:`int`
+        :param deleted: Whether to find a deleted field
+        :type deleted: :class:`bool`
+        :rtype: :class:`Field` or :class:`None`
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.fields.find_one_by_field_id(0) # does not exist
+            None
+            >>> acct.fields.find_one_by_field_id(123)
+            <Field>
+            >>> acct.fields[123]
+            <Field>
+        """
+        field_id = int(field_id)
+        path = '/fields/%s' % field_id
+        params = {"deleted":True} if deleted else {}
+        if field_id not in self._dict:
+            field = self.account.adapter.get(path, params)
+            if field:
+                self._dict[field_id] = Field(self.account, field)
+                return self._dict[field_id]
+        else:
+            return self._dict[field_id]
 
     def export_shortcuts(self):
         """

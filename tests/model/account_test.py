@@ -52,6 +52,16 @@ class AccountFieldCollectionTest(unittest.TestCase):
             self.fields.account.adapter.call,
             ('GET', '/fields', {}))
 
+    def test_fetch_all_returns_a_dictionary2(self):
+        # Setup
+        MockAdapter.expected = [{'field_id': 201},{'field_id': 204}]
+
+        self.assertIsInstance(self.fields.fetch_all(deleted=True), dict)
+        self.assertEquals(self.fields.account.adapter.called, 1)
+        self.assertEquals(
+            self.fields.account.adapter.call,
+            ('GET', '/fields', {"deleted":True}))
+
     def test_fetch_all_populates_collection(self):
         MockAdapter.expected = [{'field_id': 201}]
         self.assertEquals(0, len(self.fields))
@@ -70,6 +80,78 @@ class AccountFieldCollectionTest(unittest.TestCase):
         self.assertIsInstance(self.fields, AccountFieldCollection)
         self.assertEquals(1, len(self.fields))
         self.assertIsInstance(self.fields[201], Field)
+
+    def test_fetch_one_by_field_id_returns_a_field_object(self):
+        # Setup
+        MockAdapter.expected = {'field_id': 201}
+
+        member = self.fields.find_one_by_field_id(201)
+
+        self.assertIsInstance(member, Field)
+        self.assertEquals(member['field_id'], 201)
+        self.assertEquals(self.fields.account.adapter.called, 1)
+        self.assertEquals(
+            self.fields.account.adapter.call,
+            ('GET', '/fields/201', {}))
+
+    def test_fetch_one_by_field_id_returns_a_field_object2(self):
+        # Setup
+        MockAdapter.expected = {'field_id': 204}
+
+        member = self.fields.find_one_by_field_id(204, deleted=True)
+
+        self.assertIsInstance(member, Field)
+        self.assertEquals(member['field_id'], 204)
+        self.assertEquals(self.fields.account.adapter.called, 1)
+        self.assertEquals(
+            self.fields.account.adapter.call,
+            ('GET', '/fields/204', {"deleted":True}))
+
+    def test_fetch_one_by_field_id_populates_collection(self):
+        # Setup
+        MockAdapter.expected = {'field_id': 201}
+
+        self.fields.find_one_by_field_id(201)
+
+        self.assertIn(201, self.fields)
+        self.assertIsInstance(self.fields[201], Field)
+        self.assertEquals(self.fields[201]['field_id'], 201)
+
+    def test_fetch_one_by_field_id_caches_result(self):
+        # Setup
+        MockAdapter.expected = {'field_id': 201}
+
+        self.fields.find_one_by_field_id(201)
+        self.fields.find_one_by_field_id(201)
+
+        self.assertEquals(self.fields.account.adapter.called, 1)
+
+    def test_dictionary_access_lazy_loads_by_field_id(self):
+        # Setup
+        MockAdapter.expected = {'field_id': 201}
+
+        member = self.fields[201]
+
+        self.assertIn(201, self.fields)
+        self.assertIsInstance(member, Field)
+        self.assertEquals(self.fields[201]['field_id'], 201)
+        self.assertEquals(self.fields.account.adapter.called, 1)
+        self.assertEquals(
+            self.fields.account.adapter.call,
+            ('GET', '/fields/201', {'deleted': True}))
+
+    def test_dictionary_access_lazy_loads_by_field_id2(self):
+        # Setup
+        MockAdapter.expected = None
+
+        field = self.fields[204]
+
+        self.assertEquals(0, len(self.fields))
+        self.assertIsNone(field)
+        self.assertEquals(self.fields.account.adapter.called, 1)
+        self.assertEquals(
+            self.fields.account.adapter.call,
+            ('GET', '/fields/204', {'deleted': True}))
 
     def test_field_collection_can_export_list_of_valid_shortcut_names(self):
         MockAdapter.expected = [
