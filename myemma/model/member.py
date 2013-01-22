@@ -4,8 +4,8 @@ from datetime import datetime
 from myemma import exceptions as ex
 from myemma.enumerations import MemberStatus
 from myemma.model import BaseApiModel, str_fields_to_datetime
-from myemma.model.group import Group
-from myemma.model.mailing import Mailing
+import myemma.model.group
+import myemma.model.mailing
 
 
 class Member(BaseApiModel):
@@ -295,10 +295,11 @@ class MemberMailingCollection(BaseApiModel):
         """
         if 'member_id' not in self.member:
             raise ex.NoMemberIdError()
+        mailing = myemma.model.mailing
         path = '/members/%s/mailings' % self.member['member_id']
         if not self._dict:
             self._dict = dict(
-                (x['mailing_id'], Mailing(self.member.account, x))
+                (x['mailing_id'], mailing.Mailing(self.member.account, x))
                     for x in self.member.account.adapter.get(path))
         return self._dict
 
@@ -334,7 +335,7 @@ class MemberGroupCollection(BaseApiModel):
             >>> mbr.groups.factory({'member_group_id':1024})
             <Group{'member_group_id':1024}>
         """
-        return Group(self.member.account, raw)
+        return myemma.model.group.Group(self.member.account, raw)
 
     def fetch_all(self):
         """
@@ -353,10 +354,11 @@ class MemberGroupCollection(BaseApiModel):
         """
         if 'member_id' not in self.member:
             raise ex.NoMemberIdError()
+        group = myemma.model.group
         path = '/members/%s/groups' % self.member['member_id']
         if not self._dict:
             self._dict = dict(
-                (x['member_group_id'], Group(self.member.account, x))
+                (x['member_group_id'], group.Group(self.member.account, x))
                     for x in self.member.account.adapter.get(path))
         return self._dict
 

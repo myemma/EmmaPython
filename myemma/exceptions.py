@@ -105,8 +105,36 @@ class NoFieldIdError(ApiRequestFailed):
     pass
 
 
+class NoMailingIdError(ApiRequestFailed):
+    """
+    An API call was attempted with missing required parameters (mailing_id)
+    """
+    pass
+
+
+class NoSearchIdError(ApiRequestFailed):
+    """
+    An API call was attempted with missing required parameters (search_id)
+    """
+    pass
+
+
 class ClearMemberFieldInformationError(ApiRequestFailed):
     """
     An API call to clear member info from a field did not complete correctly
+    """
+    pass
+
+
+class MailingArchiveError(ApiRequestFailed):
+    """
+    An API call to archive a mailing did not complete correctly
+    """
+    pass
+
+
+class MailingCancelError(ApiRequestFailed):
+    """
+    An API call to cancel a mailing did not complete correctly
     """
     pass

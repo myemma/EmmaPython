@@ -75,3 +75,28 @@ class WidgetType(Enum):
     DatePicker = "date"
     DropDownMenu = "select one"
     Number = "number"
+
+
+class MailingType(Enum):
+    """Mailing Types"""
+    Standard = "m"
+    Test = "t"
+    Trigger = "r"
+
+
+class MailingStatus(Enum):
+    """Mailing Status"""
+    Pending = "p"
+    Ready = "p"
+    Paused = "a"
+    Sending = "s"
+    Canceled = "x"
+    Complete = "c"
+    Failed = "f"
+
+
+class PersonalizedMessageType(Enum):
+    """Personalized Message Types"""
+    Html = "html"
+    PlainText = "plaintext"
+    Subject = "subject"

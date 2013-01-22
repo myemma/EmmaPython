@@ -1,15 +1,19 @@
 import unittest
 from myemma.adapter.requests_adapter import RequestsAdapter
 from myemma import exceptions as ex
-from myemma.enumerations import GroupType, MemberStatus
+from myemma.enumerations import GroupType, MemberStatus, MailingStatus, MailingType
 from myemma.model.account import (Account, AccountFieldCollection,
                                   AccountImportCollection,
                                   AccountGroupCollection,
-                                  AccountMemberCollection)
+                                  AccountMemberCollection,
+                                  AccountMailingCollection,
+                                  AccountSearchCollection)
 from myemma.model.field import Field
 from myemma.model.group import Group
+from myemma.model.mailing import Mailing
 from myemma.model.member_import import MemberImport
 from myemma.model.member import Member
+from myemma.model.search import Search
 from tests.model import MockAdapter
 
 
@@ -1441,3 +1445,207 @@ class AccountMemberCollectionTest(unittest.TestCase):
             '/members/groups/remove',
             {'member_ids': [123, 321], 'group_ids': [1024, 1025]}
         ))
+
+
+class AccountMailingCollectionTest(unittest.TestCase):
+    def setUp(self):
+        Account.default_adapter = MockAdapter
+        self.mailings = Account(
+            account_id="100",
+            public_key="xxx",
+            private_key="yyy").mailings
+
+    def test_fetch_all_returns_a_dictionary(self):
+        MockAdapter.expected = [{'mailing_id': 201}]
+        self.assertIsInstance(self.mailings.fetch_all(), dict)
+        self.assertEquals(self.mailings.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailings.account.adapter.call,
+            ('GET', '/mailings', {}))
+
+    def test_fetch_all_returns_a_dictionary2(self):
+        # Setup
+        MockAdapter.expected = [{'mailing_id': 201},{'mailing_id': 204}]
+
+        self.assertIsInstance(self.mailings.fetch_all(include_archived=True), dict)
+        self.assertEquals(self.mailings.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailings.account.adapter.call,
+            ('GET', '/mailings', {"include_archived":True}))
+
+    def test_fetch_all_returns_a_dictionary3(self):
+        # Setup
+        MockAdapter.expected = [{'mailing_id': 201},{'mailing_id': 204}]
+
+        self.assertIsInstance(
+            self.mailings.fetch_all(mailing_types=[MailingType.Standard]), dict)
+        self.assertEquals(self.mailings.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailings.account.adapter.call,
+            ('GET', '/mailings', {"mailing_types":["m"]}))
+
+    def test_fetch_all_returns_a_dictionary4(self):
+        # Setup
+        MockAdapter.expected = [{'mailing_id': 201},{'mailing_id': 204}]
+
+        self.assertIsInstance(
+            self.mailings.fetch_all(mailing_statuses=[MailingStatus.Complete]),
+            dict)
+        self.assertEquals(self.mailings.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailings.account.adapter.call,
+            ('GET', '/mailings', {"mailing_statuses":["c"]}))
+
+    def test_fetch_all_returns_a_dictionary5(self):
+        # Setup
+        MockAdapter.expected = [{'mailing_id': 201},{'mailing_id': 204}]
+
+        self.assertIsInstance(self.mailings.fetch_all(is_scheduled=True), dict)
+        self.assertEquals(self.mailings.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailings.account.adapter.call,
+            ('GET', '/mailings', {"is_scheduled":True}))
+
+    def test_fetch_all_returns_a_dictionary6(self):
+        # Setup
+        MockAdapter.expected = [{'mailing_id': 201},{'mailing_id': 204}]
+
+        self.assertIsInstance(self.mailings.fetch_all(with_html_body=True), dict)
+        self.assertEquals(self.mailings.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailings.account.adapter.call,
+            ('GET', '/mailings', {"with_html_body":True}))
+
+    def test_fetch_all_returns_a_dictionary7(self):
+        # Setup
+        MockAdapter.expected = [{'mailing_id': 201},{'mailing_id': 204}]
+
+        self.assertIsInstance(self.mailings.fetch_all(with_plaintext=True), dict)
+        self.assertEquals(self.mailings.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailings.account.adapter.call,
+            ('GET', '/mailings', {"with_plaintext":True}))
+
+    def test_fetch_all_populates_collection(self):
+        MockAdapter.expected = [{'mailing_id': 201}]
+        self.assertEquals(0, len(self.mailings))
+        self.mailings.fetch_all()
+        self.assertEquals(1, len(self.mailings))
+
+    def test_fetch_all_caches_results(self):
+        MockAdapter.expected = [{'mailing_id': 201}]
+        self.mailings.fetch_all()
+        self.mailings.fetch_all()
+        self.assertEquals(self.mailings.account.adapter.called, 1)
+
+    def test_mailing_collection_object_can_be_accessed_like_a_dictionary(self):
+        MockAdapter.expected = [{'mailing_id': 201}]
+        self.mailings.fetch_all()
+        self.assertIsInstance(self.mailings, AccountMailingCollection)
+        self.assertEquals(1, len(self.mailings))
+        self.assertIsInstance(self.mailings[201], Mailing)
+
+    def test_fetch_one_by_mailing_id_returns_a_mailing_object(self):
+        # Setup
+        MockAdapter.expected = {'mailing_id': 201}
+
+        mailing = self.mailings.find_one_by_mailing_id(201)
+
+        self.assertIsInstance(mailing, Mailing)
+        self.assertEquals(mailing['mailing_id'], 201)
+        self.assertEquals(self.mailings.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailings.account.adapter.call,
+            ('GET', '/mailings/201', {}))
+
+    def test_fetch_one_by_field_id_populates_collection(self):
+        # Setup
+        MockAdapter.expected = {'mailing_id': 201}
+
+        self.mailings.find_one_by_mailing_id(201)
+
+        self.assertIn(201, self.mailings)
+        self.assertIsInstance(self.mailings[201], Mailing)
+        self.assertEquals(self.mailings[201]['mailing_id'], 201)
+
+    def test_fetch_one_by_field_id_caches_result(self):
+        # Setup
+        MockAdapter.expected = {'mailing_id': 201}
+
+        self.mailings.find_one_by_mailing_id(201)
+        self.mailings.find_one_by_mailing_id(201)
+
+        self.assertEquals(self.mailings.account.adapter.called, 1)
+
+    def test_dictionary_access_lazy_loads_by_field_id(self):
+        # Setup
+        MockAdapter.expected = {'mailing_id': 201}
+
+        mailing = self.mailings[201]
+
+        self.assertIn(201, self.mailings)
+        self.assertIsInstance(mailing, Mailing)
+        self.assertEquals(self.mailings[201]['mailing_id'], 201)
+        self.assertEquals(self.mailings.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailings.account.adapter.call,
+            ('GET', '/mailings/201', {}))
+
+    def test_dictionary_access_lazy_loads_by_field_id2(self):
+        # Setup
+        MockAdapter.expected = None
+
+        mailing = self.mailings[204]
+
+        self.assertEquals(0, len(self.mailings))
+        self.assertIsNone(mailing)
+        self.assertEquals(self.mailings.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailings.account.adapter.call,
+            ('GET', '/mailings/204', {}))
+
+
+class AccountSearchCollectionTest(unittest.TestCase):
+    def setUp(self):
+        Account.default_adapter = MockAdapter
+        self.searches = Account(
+            account_id="100",
+            public_key="xxx",
+            private_key="yyy").searches
+
+    def test_fetch_all_returns_a_dictionary(self):
+        MockAdapter.expected = [{'search_id': 201}]
+        self.assertIsInstance(self.searches.fetch_all(), dict)
+        self.assertEquals(self.searches.account.adapter.called, 1)
+        self.assertEquals(
+            self.searches.account.adapter.call,
+            ('GET', '/searches', {}))
+
+    def test_fetch_all_returns_a_dictionary2(self):
+        # Setup
+        MockAdapter.expected = [{'search_id': 201},{'search_id': 204}]
+
+        self.assertIsInstance(self.searches.fetch_all(deleted=True), dict)
+        self.assertEquals(self.searches.account.adapter.called, 1)
+        self.assertEquals(
+            self.searches.account.adapter.call,
+            ('GET', '/searches', {"deleted":True}))
+
+    def test_fetch_all_populates_collection(self):
+        MockAdapter.expected = [{'search_id': 201}]
+        self.assertEquals(0, len(self.searches))
+        self.searches.fetch_all()
+        self.assertEquals(1, len(self.searches))
+
+    def test_fetch_all_caches_results(self):
+        MockAdapter.expected = [{'search_id': 201}]
+        self.searches.fetch_all()
+        self.searches.fetch_all()
+        self.assertEquals(self.searches.account.adapter.called, 1)
+
+    def test_search_collection_object_can_be_accessed_like_a_dictionary(self):
+        MockAdapter.expected = [{'search_id': 201}]
+        self.searches.fetch_all()
+        self.assertIsInstance(self.searches, AccountSearchCollection)
+        self.assertEquals(1, len(self.searches))
+        self.assertIsInstance(self.searches[201], Search)
