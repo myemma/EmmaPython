@@ -99,7 +99,6 @@ class FieldTest(unittest.TestCase):
                 }
             ))
 
-
     def test_can_delete_a_field(self):
         fld = Field(self.field.account)
 

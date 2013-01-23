@@ -20,9 +20,6 @@ class CompositeQuery(object):
     def __invert__(self):
         return self.negate()
 
-    def to_tuple(self):
-        return None
-
 
 class ConjunctionQuery(CompositeQuery):
     """Represents a logical AND"""
