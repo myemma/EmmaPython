@@ -20,6 +20,9 @@ class CompositeQuery(object):
     def __invert__(self):
         return self.negate()
 
+    def to_tuple(self):
+        return None
+
 
 class ConjunctionQuery(CompositeQuery):
     """Represents a logical AND"""
@@ -27,8 +30,8 @@ class ConjunctionQuery(CompositeQuery):
         self.left = left
         self.right = right
 
-    def __str__(self):
-        return '["and", %s, %s]' % (self.left, self.right)
+    def to_tuple(self):
+        return "and", self.left.to_tuple(), self.right.to_tuple()
 
 
 class DisjunctionQuery(CompositeQuery):
@@ -37,8 +40,8 @@ class DisjunctionQuery(CompositeQuery):
         self.left = left
         self.right = right
 
-    def __str__(self):
-        return '["or", %s, %s]' % (self.left, self.right)
+    def to_tuple(self):
+        return "or", self.left.to_tuple(), self.right.to_tuple()
 
 
 class NegationQuery(CompositeQuery):
@@ -46,5 +49,5 @@ class NegationQuery(CompositeQuery):
     def __init__(self, query):
         self.query = query
 
-    def __str__(self):
-        return '["not", %s]' % self.query
+    def to_tuple(self):
+        return "not", self.query.to_tuple()

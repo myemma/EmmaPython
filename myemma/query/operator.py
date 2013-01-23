@@ -9,8 +9,8 @@ class EqualityQuery(CompositeQuery):
         self.field = field
         self.value = value
 
-    def __str__(self):
-        return '["%s", "eq", "%s"]' % (self.field, self.value)
+    def to_tuple(self):
+        return self.field, "eq", self.value
 
 
 class LessThanQuery(CompositeQuery):
@@ -19,8 +19,8 @@ class LessThanQuery(CompositeQuery):
         self.field = field
         self.value = value
 
-    def __str__(self):
-        return '["%s", "lt", %s]' % (self.field, self.value)
+    def to_tuple(self):
+        return self.field, "lt", self.value
 
 
 class GreaterThanQuery(CompositeQuery):
@@ -29,8 +29,8 @@ class GreaterThanQuery(CompositeQuery):
         self.field = field
         self.value = value
 
-    def __str__(self):
-        return '["%s", "gt", %s]' % (self.field, self.value)
+    def to_tuple(self):
+        return self.field, "gt", self.value
 
 
 class BetweenQuery(CompositeQuery):
@@ -40,8 +40,8 @@ class BetweenQuery(CompositeQuery):
         self.low = low
         self.high = high
 
-    def __str__(self):
-        return '["%s", "between", %s, %s]' % (self.field, self.low, self.high)
+    def to_tuple(self):
+        return self.field, "between", self.low, self.high
 
 
 class InLastQuery(CompositeQuery):
@@ -65,8 +65,8 @@ class ContainsQuery(CompositeQuery):
         self.field = field
         self.value = value
 
-    def __str__(self):
-        return '["%s", "contains", "%s"]' % (self.field, self.value)
+    def to_tuple(self):
+        return self.field, "contains", self.value
 
 
 class AnyQuery(CompositeQuery):
@@ -75,8 +75,8 @@ class AnyQuery(CompositeQuery):
         self.field = field
         self.value = value
 
-    def __str__(self):
-        return '["%s", "any", "%s"]' % (self.field, self.value)
+    def to_tuple(self):
+        return self.field, "any", self.value
 
 
 class ZipRadiusQuery(CompositeQuery):

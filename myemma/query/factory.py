@@ -11,16 +11,16 @@ class QueryFactory(object):
 
         >>> qf = QueryFactory
         >>> query1 = qf.eq('member_field:foo', 1) & qf.contains('member_field:bar', '*foo*')
-        >>> print("%s" % query1)
-        ["and", ["member_field:foo", "eq", 1], ["member_field:bar", "contains", "*foo*"]]
+        >>> query1.to_tuple()
+        ("and", ("member_field:foo", "eq", 1), ("member_field:bar", "contains", "*foo*"))
 
         >>> query2 = qf.eq('member_field:foo', 1) | qf.contains('member_field:bar', '*foo*')
-        >>> print("%s" % query2)
-        ["or", ["member_field:foo", "eq", 1], ["member_field:bar", "eq", "*foo*"]]
+        >>> query2.to_tuple()
+        ("or", ("member_field:foo", "eq", 1), ("member_field:bar", "eq", "*foo*"))
 
         >>> query3 = ~ qf.eq('member_field:foo', 1)
-        >>> print("%s" % query3)
-        ["not", ["member_field:foo", "eq", 1]]
+        >>> query3.to_tuple()
+        ("not", ("member_field:foo", "eq", 1))
 
     """
     @staticmethod
@@ -38,8 +38,8 @@ class QueryFactory(object):
 
             >>> from myemma.query.factory import QueryFactory as qf
             >>> query = qf.eq('member_field:some_string_field', 'bar')
-            >>> print("%s" % query)
-            ["member_field:some_string_field", "eq", "bar"]
+            >>> query.to_tuple()
+            ("member_field:some_string_field", "eq", "bar")
 
         """
         return operator.EqualityQuery(field, value)
@@ -58,8 +58,8 @@ class QueryFactory(object):
 
             >>> from myemma.query.factory import QueryFactory as qf
             >>> query = qf.lt('member_field:some_numeric_field', 10)
-            >>> print("%s" % query)
-            ["member_field:some_numeric_field", "lt", 10]
+            >>> query.to_tuple()
+            ("member_field:some_numeric_field", "lt", 10)
 
         """
         return operator.LessThanQuery(field, value)
@@ -78,8 +78,8 @@ class QueryFactory(object):
 
             >>> from myemma.query.factory import QueryFactory as qf
             >>> query = qf.gt('member_field:some_numeric_field', 5)
-            >>> print("%s" % query)
-            ["member_field:some_numeric_field", "gt", 5]
+            >>> query.to_tuple()
+            ("member_field:some_numeric_field", "gt", 5)
 
         """
         return operator.GreaterThanQuery(field, value)
@@ -100,8 +100,8 @@ class QueryFactory(object):
 
             >>> from myemma.query.factory import QueryFactory as qf
             >>> query = qf.between('member_field:some_numeric_field', 5, 10)
-            >>> print("%s" % query)
-            ["member_field:some_numeric_field", "between", 5, 10]
+            >>> query.to_tuple()
+            ("member_field:some_numeric_field", "between", 5, 10)
 
         """
         return operator.BetweenQuery(field, low, high)
@@ -120,8 +120,8 @@ class QueryFactory(object):
 
             >>> from myemma.query.factory import QueryFactory as qf
             >>> query = qf.contains('member_field:some_string_field', '*foo*')
-            >>> print("%s" % query)
-            ["member_field:some_string_field", "contains", "*foo*"]
+            >>> query.to_tuple()
+            ("member_field:some_string_field", "contains", "*foo*")
 
         """
         return operator.ContainsQuery(field, value)
@@ -140,8 +140,8 @@ class QueryFactory(object):
 
             >>> from myemma.query.factory import QueryFactory as qf
             >>> query = qf.any('member_field:some_array_field', 'ten')
-            >>> print("%s" % query)
-            ["member_field:some_array_field", "any", "ten"]
+            >>> query.to_tuple()
+            ("member_field:some_array_field", "any", "ten")
 
         """
         return operator.AnyQuery(field, value)
