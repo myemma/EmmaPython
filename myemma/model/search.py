@@ -72,4 +72,4 @@ class Search(BaseApiModel):
         if self.account.adapter.delete(path):
             self._dict['deleted_at'] = datetime.now()
         if self._dict['search_id'] in self.account.searches:
-            del(self.account.fields._dict[self._dict['search_id']])
+            del(self.account.searches._dict[self._dict['search_id']])

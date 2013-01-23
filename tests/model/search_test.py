@@ -7,7 +7,7 @@ from myemma.model import SERIALIZED_DATETIME_FORMAT
 from tests.model import MockAdapter
 
 
-class FieldTest(unittest.TestCase):
+class SearchTest(unittest.TestCase):
     def setUp(self):
         Account.default_adapter = MockAdapter
         self.search = Search(

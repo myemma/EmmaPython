@@ -2,7 +2,13 @@
 
 class ApiRequestFailed(Exception):
     """
-    Denotes a failure interacting with the API, such as HTTP 401 Unauthorized
+    Denotes a failure interacting with the API, such as the HTTP 4xx Series
+    """
+    pass
+
+class ApiRequest400(Exception):
+    """
+    Denotes a HTTP 400 error while interacting with the API
     """
     pass
 
@@ -136,5 +142,19 @@ class MailingArchiveError(ApiRequestFailed):
 class MailingCancelError(ApiRequestFailed):
     """
     An API call to cancel a mailing did not complete correctly
+    """
+    pass
+
+
+class MailingForwardError(ApiRequestFailed):
+    """
+    An API call to forward a mailing did not complete correctly
+    """
+    pass
+
+
+class SyntaxValidationError(ApiRequestFailed):
+    """
+    An API call to validate message syntax did not complete correctly
     """
     pass

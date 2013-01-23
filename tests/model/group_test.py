@@ -241,6 +241,18 @@ class GroupMemberCollectionTest(unittest.TestCase):
             self.members.group.account.adapter.call,
             ('PUT', '/groups/199/200/members/copy', {'member_status_id': ["a"]}))
 
+    def test_can_add_members_by_group4(self):
+        MockAdapter.expected = False
+        other = Group(self.members.group.account, {'member_group_id': 199})
+
+        with self.assertRaises(ex.MemberCopyToGroupError):
+            self.members.add_by_group(other, [MemberStatus.Active])
+
+        self.assertEquals(self.members.group.account.adapter.called, 1)
+        self.assertEquals(
+            self.members.group.account.adapter.call,
+            ('PUT', '/groups/199/200/members/copy', {'member_status_id': ["a"]}))
+
     def test_can_remove_members_by_id(self):
         del(self.members.group['member_group_id'])
         with self.assertRaises(ex.NoGroupIdError):

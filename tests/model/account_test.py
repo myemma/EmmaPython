@@ -48,6 +48,10 @@ class AccountFieldCollectionTest(unittest.TestCase):
             public_key="xxx",
             private_key="yyy").fields
 
+    def test_factory_produces_a_new_field(self):
+        self.assertIsInstance(self.fields.factory(), Field)
+        self.assertEquals(self.fields.account.adapter.called, 0)
+
     def test_fetch_all_returns_a_dictionary(self):
         MockAdapter.expected = [{'field_id': 201}]
         self.assertIsInstance(self.fields.fetch_all(), dict)
@@ -1455,6 +1459,9 @@ class AccountMailingCollectionTest(unittest.TestCase):
             public_key="xxx",
             private_key="yyy").mailings
 
+    def tearDown(self):
+        Account.default_adapter.raised = None
+
     def test_fetch_all_returns_a_dictionary(self):
         MockAdapter.expected = [{'mailing_id': 201}]
         self.assertIsInstance(self.mailings.fetch_all(), dict)
@@ -1558,7 +1565,7 @@ class AccountMailingCollectionTest(unittest.TestCase):
             self.mailings.account.adapter.call,
             ('GET', '/mailings/201', {}))
 
-    def test_fetch_one_by_field_id_populates_collection(self):
+    def test_fetch_one_by_mailing_id_populates_collection(self):
         # Setup
         MockAdapter.expected = {'mailing_id': 201}
 
@@ -1568,7 +1575,7 @@ class AccountMailingCollectionTest(unittest.TestCase):
         self.assertIsInstance(self.mailings[201], Mailing)
         self.assertEquals(self.mailings[201]['mailing_id'], 201)
 
-    def test_fetch_one_by_field_id_caches_result(self):
+    def test_fetch_one_by_mailing_id_caches_result(self):
         # Setup
         MockAdapter.expected = {'mailing_id': 201}
 
@@ -1577,7 +1584,7 @@ class AccountMailingCollectionTest(unittest.TestCase):
 
         self.assertEquals(self.mailings.account.adapter.called, 1)
 
-    def test_dictionary_access_lazy_loads_by_field_id(self):
+    def test_dictionary_access_lazy_loads_by_mailing_id(self):
         # Setup
         MockAdapter.expected = {'mailing_id': 201}
 
@@ -1591,7 +1598,7 @@ class AccountMailingCollectionTest(unittest.TestCase):
             self.mailings.account.adapter.call,
             ('GET', '/mailings/201', {}))
 
-    def test_dictionary_access_lazy_loads_by_field_id2(self):
+    def test_dictionary_access_lazy_loads_by_mailing_id2(self):
         # Setup
         MockAdapter.expected = None
 
@@ -1603,6 +1610,59 @@ class AccountMailingCollectionTest(unittest.TestCase):
         self.assertEquals(
             self.mailings.account.adapter.call,
             ('GET', '/mailings/204', {}))
+
+    def test_can_validate_tag_syntax(self):
+        MockAdapter.expected = True
+
+        valid = self.mailings.validate(subject="Test Subject")
+
+        self.assertEquals(self.mailings.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailings.account.adapter.call,
+            ('POST', '/mailings/validate', {'subject':"Test Subject"}))
+        self.assertTrue(valid)
+
+    def test_can_validate_tag_syntax2(self):
+        class MockResponse:
+            pass
+        MockAdapter.raised = ex.ApiRequest400(MockResponse())
+
+        with self.assertRaises(ex.SyntaxValidationError) as e:
+            self.mailings.validate(subject="Test Subject")
+
+        self.assertEquals(self.mailings.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailings.account.adapter.call,
+            ('POST', '/mailings/validate', {'subject':"Test Subject"}))
+        self.assertIsInstance(e.exception.message, MockResponse)
+
+    def test_can_validate_tag_syntax3(self):
+        MockAdapter.expected = True
+
+        valid = self.mailings.validate(
+            html_body="<p>Test Body</p>",
+            plaintext="Test Body",
+            subject="Test Subject"
+        )
+
+        self.assertEquals(self.mailings.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailings.account.adapter.call,
+            (
+                'POST',
+                '/mailings/validate',
+                {
+                    'html_body':"<p>Test Body</p>",
+                    'plaintext':"Test Body",
+                    'subject':"Test Subject"
+                }))
+        self.assertTrue(valid)
+
+    def test_can_validate_tag_syntax4(self):
+        valid = self.mailings.validate()
+
+        self.assertEquals(self.mailings.account.adapter.called, 0)
+        self.assertFalse(valid)
 
 
 class AccountSearchCollectionTest(unittest.TestCase):
@@ -1649,3 +1709,64 @@ class AccountSearchCollectionTest(unittest.TestCase):
         self.assertIsInstance(self.searches, AccountSearchCollection)
         self.assertEquals(1, len(self.searches))
         self.assertIsInstance(self.searches[201], Search)
+
+    def test_find_one_by_search_id_returns_an_import_object(self):
+        MockAdapter.expected = {'search_id': 201}
+        search = self.searches.find_one_by_search_id(201)
+        self.assertIsInstance(search, Search)
+        self.assertEquals(search['search_id'], 201)
+        self.assertEquals(self.searches.account.adapter.called, 1)
+        self.assertEquals(
+            self.searches.account.adapter.call,
+            ('GET', '/searches/201', {}))
+
+    def test_find_one_by_search_id_populates_collection(self):
+        MockAdapter.expected = {'search_id': 201}
+        self.searches.find_one_by_search_id(201)
+        self.assertIn(201, self.searches)
+        self.assertIsInstance(self.searches[201], Search)
+        self.assertEquals(self.searches[201]['search_id'], 201)
+
+    def test_find_one_by_search_id_caches_result(self):
+        MockAdapter.expected = {'search_id': 201}
+        self.searches.find_one_by_search_id(201)
+        self.searches.find_one_by_search_id(201)
+        self.assertEquals(self.searches.account.adapter.called, 1)
+
+    def test_dictionary_access_lazy_loads_by_search_id(self):
+        MockAdapter.expected = {'search_id': 201}
+        search = self.searches[201]
+        self.assertIn(201, self.searches)
+        self.assertIsInstance(search, Search)
+        self.assertEquals(self.searches[201]['search_id'], 201)
+        self.assertEquals(self.searches.account.adapter.called, 1)
+        self.assertEquals(
+            self.searches.account.adapter.call,
+            ('GET', '/searches/201', {}))
+
+    def test_dictionary_access_lazy_loads_by_search_id2(self):
+        MockAdapter.expected = None
+        search = self.searches[204]
+        self.assertEquals(0, len(self.searches))
+        self.assertIsNone(search)
+        self.assertEquals(self.searches.account.adapter.called, 1)
+        self.assertEquals(
+            self.searches.account.adapter.call,
+            ('GET', '/searches/204', {}))
+
+    def test_can_delete_a_single_search_with_del(self):
+        # Setup
+        MockAdapter.expected = True
+        self.searches._dict = {
+            200: Search(self.searches.account, {'search_id': 200}),
+            201: Search(self.searches.account, {'search_id': 201})
+        }
+
+        del(self.searches[200])
+
+        self.assertEquals(self.searches.account.adapter.called, 1)
+        self.assertEquals(
+            self.searches.account.adapter.call,
+            ('DELETE', '/searches/200', {}))
+        self.assertEquals(1, len(self.searches))
+        self.assertIn(201, self.searches)

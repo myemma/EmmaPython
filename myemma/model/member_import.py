@@ -45,9 +45,6 @@ class ImportMemberCollection(BaseApiModel):
         self.member_import = member_import
         super(ImportMemberCollection, self).__init__()
 
-    def __delitem__(self, key):
-        pass
-
     def fetch_all(self):
         """
         Lazy-loads the full set of :class:`Member` objects

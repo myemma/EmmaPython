@@ -4,9 +4,9 @@ from myemma import exceptions as ex
 from myemma.adapter.requests_adapter import RequestsAdapter
 from myemma.model import BaseApiModel
 from myemma.enumerations import MemberStatus
-from myemma.model.mailing import Mailing
+import myemma.model.mailing
 from myemma.model.member import Member
-from myemma.model.member_import import MemberImport
+import myemma.model.member_import
 import myemma.model.field
 import myemma.model.group
 import myemma.model.search
@@ -104,12 +104,11 @@ class AccountFieldCollection(BaseApiModel):
             >>> acct.fields.fetch_all()
             {123: <Field>, 321: <Field>, ...}
         """
-        field = myemma.model.field
         path = '/fields'
         params = {"deleted":True} if deleted else {}
         if not self._dict:
             self._dict = dict(
-                (x['field_id'], field.Field(self.account, x))
+                (x['field_id'], myemma.model.field.Field(self.account, x))
                     for x in self.account.adapter.get(path, params))
         return self._dict
 
@@ -134,17 +133,15 @@ class AccountFieldCollection(BaseApiModel):
             >>> acct.fields[123]
             <Field>
         """
-        field = myemma.model.field
         field_id = int(field_id)
         path = '/fields/%s' % field_id
         params = {"deleted":True} if deleted else {}
         if field_id not in self._dict:
-            f = self.account.adapter.get(path, params)
-            if f:
-                self._dict[field_id] = field.Field(self.account, f)
-                return self._dict[field_id]
-        else:
-            return self._dict[field_id]
+            field = myemma.model.field
+            raw = self.account.adapter.get(path, params)
+            if raw:
+                self._dict[field_id] = field.Field(self.account, raw)
+        return (field_id in self._dict) and self._dict[field_id] or None
 
     def export_shortcuts(self):
         """
@@ -215,12 +212,11 @@ class AccountGroupCollection(BaseApiModel):
             >>> acct.groups.fetch_all([GroupType.TestGroup])
             {007: <Group>}
         """
-        group = myemma.model.group
         path = '/groups'
         params = {'group_types': group_types} if group_types else {}
         if not self._dict:
             self._dict = dict(
-                (x['member_group_id'], group.Group(self.account, x))
+                (x['member_group_id'], myemma.model.group.Group(self.account, x))
                     for x in self.account.adapter.get(path, params))
         return self._dict
 
@@ -243,16 +239,15 @@ class AccountGroupCollection(BaseApiModel):
             >>> acct.groups[123]
             <Group>
         """
-        group = myemma.model.group
         group_id = int(group_id)
         path = '/groups/%s' % group_id
         if group_id not in self._dict:
-            g = self.account.adapter.get(path)
-            if g:
-                self._dict[group_id] = group.Group(self.account, g)
-                return self._dict[group_id]
-        else:
-            return self._dict[group_id]
+            group = myemma.model.group
+            raw = self.account.adapter.get(path)
+            if raw:
+                self._dict[group_id] = group.Group(self.account, raw)
+
+        return (group_id in self._dict) and self._dict[group_id] or None
 
     def save(self, groups=None):
         """
@@ -276,12 +271,11 @@ class AccountGroupCollection(BaseApiModel):
         if not groups:
             return None
 
-        group = myemma.model.group
         path = '/groups'
         data = {'groups': [x.extract() for x in groups]}
         added = self.account.adapter.post(path, data)
         self._dict.update(dict(
-            (x['member_group_id'], group.Group(self.account, x))
+            (x['member_group_id'], myemma.model.group.Group(self.account, x))
                 for x in added))
 
 
@@ -319,8 +313,9 @@ class AccountImportCollection(BaseApiModel):
         """
         path = '/members/imports'
         if not self._dict:
+            import_ = myemma.model.member_import
             self._dict = dict(
-                (x['import_id'], MemberImport(self.account, x))
+                (x['import_id'], import_.MemberImport(self.account, x))
                     for x in self.account.adapter.get(path, {}))
         return self._dict
 
@@ -346,12 +341,12 @@ class AccountImportCollection(BaseApiModel):
         import_id = int(import_id)
         path = '/members/imports/%s' % import_id
         if import_id not in self._dict:
-            emma_import = self.account.adapter.get(path)
-            if emma_import is not None:
-                self._dict[import_id] = MemberImport(self.account, emma_import)
-                return self._dict[import_id]
-        else:
-            return self._dict[import_id]
+            import_ = myemma.model.member_import
+            raw = self.account.adapter.get(path)
+            if raw:
+                self._dict[import_id] = import_.MemberImport(self.account, raw)
+
+        return (import_id in self._dict) and self._dict[import_id] or None
 
     def delete(self, import_ids=None):
         """
@@ -487,15 +482,15 @@ class AccountMemberCollection(BaseApiModel):
             >>> acct.members[123]
             <Member{'member_id': 123, 'email': u"test@example.com", ...}>
         """
+        member_id = int(member_id)
         path = '/members/%s' % member_id
         params = {"deleted":True} if deleted else {}
         if member_id not in self._dict:
-            member = self.account.adapter.get(path, params)
-            if member is not None:
-                self._dict[member['member_id']] = Member(self.account, member)
-                return self._dict[member['member_id']]
-        else:
-            return self._dict[member_id]
+            raw = self.account.adapter.get(path, params)
+            if raw:
+                self._dict[member_id] = Member(self.account, raw)
+
+        return (member_id in self._dict) and self._dict[member_id] or None
 
     def find_one_by_email(self, email, deleted=False):
         """
@@ -725,10 +720,9 @@ class AccountMailingCollection(BaseApiModel):
     def __getitem__(self, key):
         return self.find_one_by_mailing_id(key)
 
-    def __delitem__(self, key):
-        pass
-
-    def fetch_all(self, include_archived=False, mailing_types=None, mailing_statuses=None, is_scheduled=False, with_html_body=False, with_plaintext=False):
+    def fetch_all(self, include_archived=False, mailing_types=None,
+                  mailing_statuses=None, is_scheduled=False,
+                  with_html_body=False, with_plaintext=False):
         """
         Lazy-loads the full set of :class:`Mailing` objects
 
@@ -757,8 +751,9 @@ class AccountMailingCollection(BaseApiModel):
         if with_plaintext:
             params['with_plaintext'] = True
         if not self._dict:
+            mailing = myemma.model.mailing
             self._dict = dict(
-                (x['mailing_id'], Mailing(self.account, x))
+                (x['mailing_id'], mailing.Mailing(self.account, x))
                     for x in self.account.adapter.get(path, params))
         return self._dict
 
@@ -784,12 +779,47 @@ class AccountMailingCollection(BaseApiModel):
         mailing_id = int(mailing_id)
         path = '/mailings/%s' % mailing_id
         if mailing_id not in self._dict:
-            mailing = self.account.adapter.get(path)
-            if mailing is not None:
-                self._dict[mailing_id] = Mailing(self.account, mailing)
-                return self._dict[mailing_id]
-        else:
-            return self._dict[mailing_id]
+            mailing = myemma.model.mailing
+            raw = self.account.adapter.get(path)
+            if raw:
+                self._dict[mailing_id] = mailing.Mailing(self.account, raw)
+
+        return (mailing_id in self._dict) and self._dict[mailing_id] or None
+
+    def validate(self, html_body=None, plaintext=None, subject=None):
+        """
+        Validate that a mailing has valid personalization-tag syntax.
+
+        :param html_body: The message html body
+        :type html_body: :class:`str`
+        :param plaintext: The message plain text body
+        :type plaintext: :class:`str`
+        :param subject: The message subject
+        :type subject: :class:`str`
+        :rtype: :class:`bool`
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.mailings.validate(subject="Test subject")
+            True
+        """
+        path = "/mailings/validate"
+        data = dict(x for x in {
+            'html_body': html_body,
+            'plaintext': plaintext,
+            'subject': subject
+        }.items() if x[1] is not None)
+
+        if not data:
+            return False
+
+        try:
+            return self.account.adapter.post(path, data)
+        except ex.ApiRequest400 as exception:
+            raise ex.SyntaxValidationError(exception.message)
+
 
 
 class AccountSearchCollection(BaseApiModel):
@@ -803,6 +833,9 @@ class AccountSearchCollection(BaseApiModel):
     def __init__(self, account):
         self.account = account
         super(AccountSearchCollection, self).__init__()
+
+    def __getitem__(self, key):
+        return self.find_one_by_search_id(key)
 
     def __delitem__(self, key):
         self._dict[key].delete()
@@ -830,3 +863,35 @@ class AccountSearchCollection(BaseApiModel):
                 (x['search_id'], search.Search(self.account, x))
                     for x in self.account.adapter.get(path, params))
         return self._dict
+
+    def find_one_by_search_id(self, search_id, deleted=False):
+        """
+        Lazy-loads a single :class:`Search` by ID
+
+        :param search_id: The search identifier
+        :type search_id: :class:`int`
+        :param deleted: Whether to find a deleted search
+        :type deleted: :class:`bool`
+        :rtype: :class:`Field` or :class:`None`
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.searches.find_one_by_search_id(0) # does not exist
+            None
+            >>> acct.searches.find_one_by_search_id(123)
+            <Search>
+            >>> acct.searches[123]
+            <Search>
+        """
+        search_id = int(search_id)
+        path = '/searches/%s' % search_id
+        params = {"deleted":True} if deleted else {}
+        if search_id not in self._dict:
+            search = myemma.model.search
+            raw = self.account.adapter.get(path, params)
+            if raw:
+                self._dict[search_id] = search.Search(self.account, raw)
+
+        return (search_id in self._dict) and self._dict[search_id] or None

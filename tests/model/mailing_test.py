@@ -7,6 +7,7 @@ from myemma.model.mailing import (Mailing, MailingMemberCollection, MailingGroup
 from myemma.model.member import Member
 from myemma.model.group import Group
 from myemma.model.search import Search
+from myemma.model.message import Message
 from myemma.model import SERIALIZED_DATETIME_FORMAT
 from tests.model import MockAdapter
 
@@ -35,54 +36,19 @@ class MailingTest(unittest.TestCase):
         self.assertIsNone(self.mailing['forwarded'])
         self.assertIsNone(self.mailing['shared'])
 
-    def test_can_get_personalized_message_by_member_id(self):
-        del(self.mailing['mailing_id'])
-        with self.assertRaises(ex.NoMailingIdError):
-            self.mailing.get_message_by_member_id(1024)
-        self.assertEquals(self.mailing.account.adapter.called, 0)
-
-    def test_can_get_personalized_message_by_member_id2(self):
-        MockAdapter.expected = {}
-        result = self.mailing.get_message_by_member_id(1024)
-        self.assertEquals(self.mailing.account.adapter.called, 1)
-        self.assertEquals(
-            self.mailing.account.adapter.call,
-            ('GET', '/mailings/200/messages/1024', {}))
-        self.assertIsInstance(result, dict)
-
-    def test_can_get_personalized_message_by_member_id3(self):
-        MockAdapter.expected = {}
-        result = self.mailing.get_message_by_member_id(1024, pmt.Html)
-        self.assertEquals(self.mailing.account.adapter.called, 1)
-        self.assertEquals(
-            self.mailing.account.adapter.call,
-            ('GET', '/mailings/200/messages/1024', {'type':"html"}))
-        self.assertIsInstance(result, dict)
-
-    def test_can_get_personalized_message_by_member_id4(self):
-        MockAdapter.expected = {}
-        result = self.mailing.get_message_by_member_id(1024, pmt.PlainText)
-        self.assertEquals(self.mailing.account.adapter.called, 1)
-        self.assertEquals(
-            self.mailing.account.adapter.call,
-            ('GET', '/mailings/200/messages/1024', {'type':"plaintext"}))
-        self.assertIsInstance(result, dict)
-
-    def test_can_get_personalized_message_by_member_id5(self):
-        MockAdapter.expected = {}
-        result = self.mailing.get_message_by_member_id(1024, pmt.Subject)
-        self.assertEquals(self.mailing.account.adapter.called, 1)
-        self.assertEquals(
-            self.mailing.account.adapter.call,
-            ('GET', '/mailings/200/messages/1024', {'type':"subject"}))
-        self.assertIsInstance(result, dict)
-
     def test_can_update_the_status_of_a_mailing(self):
         with self.assertRaises(KeyError):
             self.mailing.update_status(MailingStatus.Failed)
         self.assertEquals(self.mailing.account.adapter.called, 0)
 
     def test_can_update_the_status_of_a_mailing2(self):
+        del(self.mailing['mailing_id'])
+
+        with self.assertRaises(ex.NoMailingIdError):
+            self.mailing.update_status(MailingStatus.Failed)
+        self.assertEquals(self.mailing.account.adapter.called, 0)
+
+    def test_can_update_the_status_of_a_mailing3(self):
         MockAdapter.expected = MailingStatus.Paused
         result = self.mailing.update_status(MailingStatus.Paused)
         self.assertEquals(self.mailing.account.adapter.called, 1)
@@ -110,6 +76,18 @@ class MailingTest(unittest.TestCase):
             ('DELETE', '/mailings/200', {}))
         self.assertIsNone(result)
 
+    def test_can_archive_a_mailing3(self):
+        del(self.mailing['mailing_id'])
+        with self.assertRaises(ex.NoMailingIdError):
+            self.mailing.archive()
+        self.assertEquals(self.mailing.account.adapter.called, 0)
+
+    def test_can_archive_a_mailing4(self):
+        self.mailing['archived_ts'] = datetime.now()
+        result = self.mailing.archive()
+        self.assertIsNone(result)
+        self.assertEquals(self.mailing.account.adapter.called, 0)
+
     def test_can_cancel_a_mailing(self):
         MockAdapter.expected = False
         with self.assertRaises(ex.MailingCancelError):
@@ -127,6 +105,176 @@ class MailingTest(unittest.TestCase):
             self.mailing.account.adapter.call,
             ('DELETE', '/mailings/cancel/200', {}))
         self.assertIsNone(result)
+
+    def test_can_cancel_a_mailing3(self):
+        del(self.mailing['mailing_id'])
+        with self.assertRaises(ex.NoMailingIdError):
+            self.mailing.cancel()
+        self.assertEquals(self.mailing.account.adapter.called, 0)
+
+    def test_can_send_mailing_to_additional_targets(self):
+        # Setup
+        MockAdapter.expected = {'mailing_id': 201}
+
+        mailing_id = self.mailing.send_additional(["test2@example.com"])
+
+        self.assertEquals(self.mailing.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailing.account.adapter.call,
+            (
+                'POST',
+                '/mailings/200',
+                {
+                    "recipient_emails": ["test2@example.com"]
+                }))
+        self.assertEquals(201, mailing_id)
+
+    def test_can_send_mailing_to_additional_targets2(self):
+        # Setup
+        MockAdapter.expected = None
+
+        mailing_id = self.mailing.send_additional(["test2@example.com"])
+
+        self.assertEquals(self.mailing.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailing.account.adapter.call,
+            (
+                'POST',
+                '/mailings/200',
+                {
+                    "recipient_emails": ["test2@example.com"]
+                }))
+        self.assertIsNone(mailing_id)
+
+    def test_can_send_mailing_to_additional_targets3(self):
+        # Setup
+        MockAdapter.expected = None
+
+        mailing_id = self.mailing.send_additional(
+            ["test2@example.com"],
+            "sender@example.com",
+            ["heads_up@example.com"],
+            [300, 301],
+            [400, 401]
+        )
+
+        self.assertEquals(self.mailing.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailing.account.adapter.call,
+            (
+                'POST',
+                '/mailings/200',
+                {
+                    "recipient_emails": ["test2@example.com"],
+                    "sender": "sender@example.com",
+                    "heads_up_emails": ["heads_up@example.com"],
+                    "recipient_groups": [300, 301],
+                    "recipient_searches": [400, 401]
+                }))
+        self.assertIsNone(mailing_id)
+
+    def test_can_send_mailing_to_additional_targets4(self):
+        # Setup
+        MockAdapter.expected = None
+
+        mailing_id = self.mailing.send_additional(
+            recipient_emails=["test2@example.com"],
+            sender="sender@example.com",
+            heads_up_emails=["heads_up@example.com"],
+            recipient_groups=[300, 301],
+            recipient_searches=[400, 401]
+        )
+
+        self.assertEquals(self.mailing.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailing.account.adapter.call,
+            (
+                'POST',
+                '/mailings/200',
+                {
+                    "recipient_emails": ["test2@example.com"],
+                    "sender": "sender@example.com",
+                    "heads_up_emails": ["heads_up@example.com"],
+                    "recipient_groups": [300, 301],
+                    "recipient_searches": [400, 401]
+                }))
+        self.assertIsNone(mailing_id)
+
+    def test_can_send_mailing_to_additional_targets5(self):
+        del(self.mailing['mailing_id'])
+
+        with self.assertRaises(ex.NoMailingIdError):
+            self.mailing.send_additional(["test2@example.com"])
+
+        self.assertEquals(self.mailing.account.adapter.called, 0)
+
+    def test_can_send_mailing_to_additional_targets6(self):
+        mailing_id = self.mailing.send_additional()
+
+        self.assertEquals(self.mailing.account.adapter.called, 0)
+        self.assertIsNone(mailing_id)
+
+    def test_can_get_heads_up_emails(self):
+        del(self.mailing['mailing_id'])
+
+        with self.assertRaises(ex.NoMailingIdError):
+            self.mailing.get_heads_up_emails()
+        self.assertEquals(self.mailing.account.adapter.called, 0)
+
+    def test_can_get_heads_up_emails2(self):
+        MockAdapter.expected = None
+
+        emails = self.mailing.get_heads_up_emails()
+
+        self.assertEquals(self.mailing.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailing.account.adapter.call,
+            ('GET', '/mailings/200/headsup', {}))
+        self.assertIsNone(emails)
+
+    def test_can_get_heads_up_emails3(self):
+        MockAdapter.expected = []
+
+        emails = self.mailing.get_heads_up_emails()
+
+        self.assertEquals(self.mailing.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailing.account.adapter.call,
+            ('GET', '/mailings/200/headsup', {}))
+        self.assertIsInstance(emails, list)
+
+    def test_can_get_heads_up_emails4(self):
+        MockAdapter.expected = ["headsup0@example.com", "headsup1@example.com"]
+
+        emails = self.mailing.get_heads_up_emails()
+
+        self.assertEquals(self.mailing.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailing.account.adapter.call,
+            ('GET', '/mailings/200/headsup', {}))
+        self.assertIsInstance(emails, list)
+        self.assertEquals(2, len(emails))
+        self.assertEquals("headsup0@example.com", emails[0])
+        self.assertEquals("headsup1@example.com", emails[1])
+
+    def test_can_force_split_test_winner(self):
+        # Setup
+        MockAdapter.expected = True
+
+        result = self.mailing.force_split_test_winner(1024)
+
+        self.assertEquals(self.mailing.account.adapter.called, 1)
+        self.assertEquals(
+            self.mailing.account.adapter.call,
+            ('POST', '/mailings/200/winner/1024', {}))
+        self.assertIsNone(result)
+
+    def test_can_force_split_test_winner2(self):
+        del(self.mailing['mailing_id'])
+
+        with self.assertRaises(ex.NoMailingIdError):
+            self.mailing.force_split_test_winner(1024)
+        self.assertEquals(self.mailing.account.adapter.called, 0)
 
 
 class MailingGroupCollectionTest(unittest.TestCase):
@@ -260,3 +408,98 @@ class MailingSearchCollectionTest(unittest.TestCase):
         self.assertEquals(1, len(self.searches))
         self.assertIsInstance(self.searches[1024], Search)
         self.assertEquals(self.searches[1024]['search_id'], 1024)
+
+
+class MailingMessageCollectionTest(unittest.TestCase):
+    def setUp(self):
+        Account.default_adapter = MockAdapter
+        self.messages =  Mailing(
+            Account(account_id="100", public_key="xxx", private_key="yyy"),
+            {'mailing_id':200}
+        ).messages
+
+    def test_can_get_personalized_message_by_member_id(self):
+        del(self.messages.mailing['mailing_id'])
+        with self.assertRaises(ex.NoMailingIdError):
+            self.messages.find_one_by_member_id(1024)
+        self.assertEquals(self.messages.mailing.account.adapter.called, 0)
+
+    def test_can_get_personalized_message_by_member_id2(self):
+        MockAdapter.expected = {'subject': "Test Subject"}
+        result = self.messages.find_one_by_member_id(1024)
+        self.assertEquals(self.messages.mailing.account.adapter.called, 1)
+        self.assertEquals(
+            self.messages.mailing.account.adapter.call,
+            ('GET', '/mailings/200/messages/1024', {}))
+        self.assertIsInstance(result, Message)
+
+    def test_can_get_personalized_message_by_member_id3(self):
+        MockAdapter.expected = {'subject': "Test Subject"}
+        result = self.messages.find_one_by_member_id(1024, pmt.Html)
+        self.assertEquals(self.messages.mailing.account.adapter.called, 1)
+        self.assertEquals(
+            self.messages.mailing.account.adapter.call,
+            ('GET', '/mailings/200/messages/1024', {'type':"html"}))
+        self.assertIsInstance(result, Message)
+
+    def test_can_get_personalized_message_by_member_id4(self):
+        MockAdapter.expected = {'subject': "Test Subject"}
+        result = self.messages.find_one_by_member_id(1024, pmt.PlainText)
+        self.assertEquals(self.messages.mailing.account.adapter.called, 1)
+        self.assertEquals(
+            self.messages.mailing.account.adapter.call,
+            ('GET', '/mailings/200/messages/1024', {'type':"plaintext"}))
+        self.assertIsInstance(result, Message)
+
+    def test_can_get_personalized_message_by_member_id5(self):
+        MockAdapter.expected = {'subject': "Test Subject"}
+        result = self.messages.find_one_by_member_id(1024, pmt.Subject)
+        self.assertEquals(self.messages.mailing.account.adapter.called, 1)
+        self.assertEquals(
+            self.messages.mailing.account.adapter.call,
+            ('GET', '/mailings/200/messages/1024', {'type':"subject"}))
+        self.assertIsInstance(result, Message)
+
+    def test_find_one_by_member_id_populates_collection(self):
+        # Setup
+        MockAdapter.expected = {'subject': "Test Subject"}
+
+        self.messages.find_one_by_member_id(1024)
+
+        self.assertIn(1024, self.messages)
+        self.assertIsInstance(self.messages[1024], Message)
+
+    def test_find_one_by_member_id_caches_result(self):
+        # Setup
+        MockAdapter.expected = {'subject': "Test Subject"}
+
+        self.messages.find_one_by_member_id(1024)
+        self.messages.find_one_by_member_id(1024)
+
+        self.assertEquals(self.messages.mailing.account.adapter.called, 1)
+
+    def test_dictionary_access_lazy_loads_by_member_id(self):
+        # Setup
+        MockAdapter.expected = {'subject': "Test Subject"}
+
+        message = self.messages[1024]
+
+        self.assertIn(1024, self.messages)
+        self.assertIsInstance(message, Message)
+        self.assertEquals(self.messages.mailing.account.adapter.called, 1)
+        self.assertEquals(
+            self.messages.mailing.account.adapter.call,
+            ('GET', '/mailings/200/messages/1024', {}))
+
+    def test_dictionary_access_lazy_loads_by_member_id2(self):
+        # Setup
+        MockAdapter.expected = None
+
+        message = self.messages[1024]
+
+        self.assertEquals(0, len(self.messages))
+        self.assertIsNone(message)
+        self.assertEquals(self.messages.mailing.account.adapter.called, 1)
+        self.assertEquals(
+            self.messages.mailing.account.adapter.call,
+            ('GET', '/mailings/200/messages/1024', {}))

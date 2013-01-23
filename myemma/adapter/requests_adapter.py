@@ -8,7 +8,9 @@ from myemma.adapter import AbstractAdapter
 
 def process_response(response):
     """Takes a :class:`Response` and produces python built-ins"""
-    if response.status_code == 404:
+    if response.status_code == 400:
+        raise ex.ApiRequest400(response)
+    elif response.status_code == 404:
         return None
     elif response.status_code > 200:
         raise ex.ApiRequestFailed(response)
