@@ -38,6 +38,7 @@ class RequestsAdapter(AbstractAdapter):
 
     """
     def __init__(self, auth):
+        super(RequestsAdapter, self).__init__()
         self.auth = requests.auth.HTTPBasicAuth(
             auth['public_key'],
             auth['private_key'])
@@ -89,8 +90,18 @@ class RequestsAdapter(AbstractAdapter):
             ...     "public_key": "08192a3b4c5d6e7f",
             ...     "private_key": "f7e6d5c4b3a29180"})
             >>> adptr.get('/members', {...})
-            [{...}, {...}, ...]
+            [{...}, {...}, ...] # first 500 only
+            >>> adptr.count_only = True
+            >>> adptr.get('/members', {...})
+            999
+            >>> adptr.start = 500
+            >>> adptr.end = 1000
+            >>> adptr.get('/members', {...})
+            [{...}, {...}, ...] # 500-999
         """
+
+        params.update(self.pagination_add_ons())
+
         return process_response(
             requests.get(
                 self.url + "%s" % path,
