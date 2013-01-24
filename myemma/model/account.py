@@ -11,6 +11,7 @@ import myemma.model.field
 import myemma.model.group
 import myemma.model.search
 import myemma.model.trigger
+import myemma.model.webhook
 
 
 class Account(object):
@@ -52,6 +53,7 @@ class Account(object):
         self.members = AccountMemberCollection(self)
         self.searches = AccountSearchCollection(self)
         self.triggers = AccountTriggerCollection(self)
+        self.webhooks = AccountWebHookCollection(self)
 
 
 class AccountFieldCollection(BaseApiModel):
@@ -984,3 +986,125 @@ class AccountTriggerCollection(BaseApiModel):
                 self._dict[trigger_id] = trigger.Trigger(self.account, raw)
 
         return (trigger_id in self._dict) and self._dict[trigger_id] or None
+
+
+class AccountWebHookCollection(BaseApiModel):
+    """
+    Encapsulates operations for the set of :class:`WebHook` objects of an
+    :class:`account`
+
+    :param account: The Account which owns this collection
+    :type account: :class:`Account`
+    """
+    def __init__(self, account):
+        self.account = account
+        super(AccountWebHookCollection, self).__init__()
+
+    def __getitem__(self, key):
+        return self.find_one_by_webhook_id(key)
+
+    def __delitem__(self, key):
+        self._dict[key].delete()
+
+    def factory(self, raw=None):
+        """
+        New :class:`WebHook` factory
+
+        :param raw: Raw data with which to populate class
+        :type raw: :class:`dict`
+        :rtype: :class:`WebHook`
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.webhooks.factory()
+            <WebHook{}>
+            >>> acct.webhooks.factory({'url': u"http://example.com", ...})
+            <WebHook{'url': u"http://example.com", ...}>
+        """
+        return myemma.model.webhook.WebHook(self.account, raw)
+
+    def fetch_all(self):
+        """
+        Lazy-loads the full set of :class:`WebHook` objects
+
+        :rtype: :class:`dict` of :class:`WebHook` objects
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.webhooks.fetch_all()
+            {123: <WebHook>, 321: <WebHook>, ...}
+        """
+        webhook = myemma.model.webhook
+        path = '/webhooks'
+        if not self._dict:
+            self._dict = dict(
+                (x['webhook_id'], webhook.WebHook(self.account, x))
+                    for x in self.account.adapter.get(path))
+        return self._dict
+
+    def find_one_by_webhook_id(self, webhook_id):
+        """
+        Lazy-loads a single :class:`WebHook` by ID
+
+        :param webhook_id: The webhook identifier
+        :type webhook_id: :class:`int`
+        :rtype: :class:`Field` or :class:`None`
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.webhooks.find_one_by_webhook_id(0) # does not exist
+            None
+            >>> acct.webhooks.find_one_by_webhook_id(123)
+            <WebHook>
+            >>> acct.webhooks[123]
+            <WebHook>
+        """
+        webhook_id = int(webhook_id)
+        path = '/webhooks/%s' % webhook_id
+        if webhook_id not in self._dict:
+            webhook = myemma.model.webhook
+            raw = self.account.adapter.get(path)
+            if raw:
+                self._dict[webhook_id] = webhook.WebHook(self.account, raw)
+
+        return (webhook_id in self._dict) and self._dict[webhook_id] or None
+
+    def delete_all(self):
+        """
+        Delete all webhooks registered for an account.
+
+        :rtype: :class:`None`
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.webhooks.delete_all()
+            None
+        """
+        path = '/webhooks'
+        if not self.account.adapter.delete(path):
+            raise ex.WebHookDeleteError()
+        self._dict = {}
+
+    def list_events(self):
+        """
+        Get a listing of all event types that are available for webhooks.
+
+        :rtype: :class:`list`
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.webhooks.list_events()
+            [{"event_name": "mailing_finish", ...}, ...]
+        """
+        path = '/webhooks/events'
+        return self.account.adapter.get(path)

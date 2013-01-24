@@ -40,6 +40,12 @@ class ImportStyle(Enum):
     AddAndUpdate = "add_and_update"
 
 
+class WebHookMethod(Enum):
+    """WebHook Method"""
+    GET = "GET"
+    POST = "POST"
+
+
 class EventType(Enum):
     """Event Type"""
     SignUp = "s"

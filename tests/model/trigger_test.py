@@ -8,7 +8,7 @@ from myemma.model.mailing import Mailing
 from tests.model import MockAdapter
 
 
-class SearchTest(unittest.TestCase):
+class TriggerTest(unittest.TestCase):
     def setUp(self):
         Account.default_adapter = MockAdapter
         self.trigger = Trigger(

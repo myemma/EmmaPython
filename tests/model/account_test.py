@@ -8,7 +8,8 @@ from myemma.model.account import (Account, AccountFieldCollection,
                                   AccountMemberCollection,
                                   AccountMailingCollection,
                                   AccountSearchCollection,
-                                  AccountTriggerCollection)
+                                  AccountTriggerCollection,
+                                  AccountWebHookCollection)
 from myemma.model.field import Field
 from myemma.model.group import Group
 from myemma.model.mailing import Mailing
@@ -16,6 +17,7 @@ from myemma.model.member_import import MemberImport
 from myemma.model.member import Member
 from myemma.model.search import Search
 from myemma.model.trigger import Trigger
+from myemma.model.webhook import WebHook
 from tests.model import MockAdapter
 
 
@@ -1869,3 +1871,159 @@ class AccountTriggerCollectionTest(unittest.TestCase):
             ('DELETE', '/triggers/200', {}))
         self.assertEquals(1, len(self.triggers))
         self.assertIn(201, self.triggers)
+
+
+class AccountWebHookCollectionTest(unittest.TestCase):
+    def setUp(self):
+        Account.default_adapter = MockAdapter
+        self.webhooks = Account(
+            account_id="100",
+            public_key="xxx",
+            private_key="yyy").webhooks
+
+    def test_fetch_all_returns_a_dictionary(self):
+        MockAdapter.expected = [{'webhook_id': 201}]
+        self.assertIsInstance(self.webhooks.fetch_all(), dict)
+        self.assertEquals(self.webhooks.account.adapter.called, 1)
+        self.assertEquals(
+            self.webhooks.account.adapter.call,
+            ('GET', '/webhooks', {}))
+
+    def test_fetch_all_populates_collection(self):
+        MockAdapter.expected = [{'webhook_id': 201}]
+        self.assertEquals(0, len(self.webhooks))
+        self.webhooks.fetch_all()
+        self.assertEquals(1, len(self.webhooks))
+
+    def test_fetch_all_caches_results(self):
+        MockAdapter.expected = [{'webhook_id': 201}]
+        self.webhooks.fetch_all()
+        self.webhooks.fetch_all()
+        self.assertEquals(self.webhooks.account.adapter.called, 1)
+
+    def test_webhook_collection_object_can_be_accessed_like_a_dictionary(self):
+        MockAdapter.expected = [{'webhook_id': 201}]
+        self.webhooks.fetch_all()
+        self.assertIsInstance(self.webhooks, AccountWebHookCollection)
+        self.assertEquals(1, len(self.webhooks))
+        self.assertIsInstance(self.webhooks[201], WebHook)
+
+    def test_find_one_by_webhook_id_returns_an_import_object(self):
+        MockAdapter.expected = {'webhook_id': 201}
+        webhook = self.webhooks.find_one_by_webhook_id(201)
+        self.assertIsInstance(webhook, WebHook)
+        self.assertEquals(webhook['webhook_id'], 201)
+        self.assertEquals(self.webhooks.account.adapter.called, 1)
+        self.assertEquals(
+            self.webhooks.account.adapter.call,
+            ('GET', '/webhooks/201', {}))
+
+    def test_find_one_by_webhook_id_populates_collection(self):
+        MockAdapter.expected = {'webhook_id': 201}
+        self.webhooks.find_one_by_webhook_id(201)
+        self.assertIn(201, self.webhooks)
+        self.assertIsInstance(self.webhooks[201], WebHook)
+        self.assertEquals(self.webhooks[201]['webhook_id'], 201)
+
+    def test_find_one_by_webhook_id_caches_result(self):
+        MockAdapter.expected = {'webhook_id': 201}
+        self.webhooks.find_one_by_webhook_id(201)
+        self.webhooks.find_one_by_webhook_id(201)
+        self.assertEquals(self.webhooks.account.adapter.called, 1)
+
+    def test_dictionary_access_lazy_loads_by_webhook_id(self):
+        MockAdapter.expected = {'webhook_id': 201}
+        webhook = self.webhooks[201]
+        self.assertIn(201, self.webhooks)
+        self.assertIsInstance(webhook, WebHook)
+        self.assertEquals(self.webhooks[201]['webhook_id'], 201)
+        self.assertEquals(self.webhooks.account.adapter.called, 1)
+        self.assertEquals(
+            self.webhooks.account.adapter.call,
+            ('GET', '/webhooks/201', {}))
+
+    def test_dictionary_access_lazy_loads_by_webhook_id2(self):
+        MockAdapter.expected = None
+        webhook = self.webhooks[204]
+        self.assertEquals(0, len(self.webhooks))
+        self.assertIsNone(webhook)
+        self.assertEquals(self.webhooks.account.adapter.called, 1)
+        self.assertEquals(
+            self.webhooks.account.adapter.call,
+            ('GET', '/webhooks/204', {}))
+
+    def test_can_delete_a_single_webhook_with_del(self):
+        # Setup
+        MockAdapter.expected = True
+        self.webhooks._dict = {
+            200: WebHook(self.webhooks.account, {'webhook_id': 200}),
+            201: WebHook(self.webhooks.account, {'webhook_id': 201})
+        }
+
+        del(self.webhooks[200])
+
+        self.assertEquals(self.webhooks.account.adapter.called, 1)
+        self.assertEquals(
+            self.webhooks.account.adapter.call,
+            ('DELETE', '/webhooks/200', {}))
+        self.assertEquals(1, len(self.webhooks))
+        self.assertIn(201, self.webhooks)
+
+    def test_can_delete_all_webhooks(self):
+        # Setup
+        MockAdapter.expected = True
+        self.webhooks._dict = {
+            200: WebHook(self.webhooks.account, {'webhook_id': 200}),
+            201: WebHook(self.webhooks.account, {'webhook_id': 201})
+        }
+
+        result = self.webhooks.delete_all()
+
+        self.assertIsNone(result)
+        self.assertEquals(self.webhooks.account.adapter.called, 1)
+        self.assertEquals(
+            self.webhooks.account.adapter.call,
+            ('DELETE', '/webhooks', {}))
+        self.assertEquals(0, len(self.webhooks))
+
+    def test_can_delete_all_webhooks2(self):
+        # Setup
+        MockAdapter.expected = False
+        self.webhooks._dict = {
+            200: WebHook(self.webhooks.account, {'webhook_id': 200}),
+            201: WebHook(self.webhooks.account, {'webhook_id': 201})
+        }
+
+        with self.assertRaises(ex.WebHookDeleteError):
+            self.webhooks.delete_all()
+
+        self.assertEquals(self.webhooks.account.adapter.called, 1)
+        self.assertEquals(
+            self.webhooks.account.adapter.call,
+            ('DELETE', '/webhooks', {}))
+        self.assertEquals(2, len(self.webhooks))
+
+    def test_can_list_events(self):
+        # Setup
+        MockAdapter.expected = [
+            {
+                "event_name": "mailing_finish",
+                "webhook_event_id": 1,
+                "description": "Fired when a mailing is finished."
+            },
+            {
+                "event_name": "mailing_start",
+                "webhook_event_id": 2,
+                "description": "Fired when a mailing starts."
+            }
+        ]
+
+        result = self.webhooks.list_events()
+
+        self.assertIsInstance(result, list)
+        self.assertEquals(2, len(result))
+        self.assertEquals(self.webhooks.account.adapter.called, 1)
+        self.assertEquals(
+            self.webhooks.account.adapter.call,
+            ('GET', '/webhooks/events', {}))
+        self.assertEquals(0, len(self.webhooks))

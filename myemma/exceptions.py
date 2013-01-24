@@ -6,7 +6,7 @@ class ApiRequestFailed(Exception):
     """
     pass
 
-class ApiRequest400(Exception):
+class ApiRequest400(ApiRequestFailed):
     """
     Denotes a HTTP 400 error while interacting with the API
     """
@@ -132,6 +132,13 @@ class NoTriggerIdError(ApiRequestFailed):
     pass
 
 
+class NoWebHookIdError(ApiRequestFailed):
+    """
+    An API call was attempted with missing required parameters (webhook_id)
+    """
+    pass
+
+
 class ClearMemberFieldInformationError(ApiRequestFailed):
     """
     An API call to clear member info from a field did not complete correctly
@@ -163,5 +170,12 @@ class MailingForwardError(ApiRequestFailed):
 class SyntaxValidationError(ApiRequestFailed):
     """
     An API call to validate message syntax did not complete correctly
+    """
+    pass
+
+
+class WebHookDeleteError(ApiRequestFailed):
+    """
+    An API call to delete a webhook did not complete correctly
     """
     pass
