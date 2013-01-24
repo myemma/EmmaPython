@@ -125,6 +125,13 @@ class NoSearchIdError(ApiRequestFailed):
     pass
 
 
+class NoTriggerIdError(ApiRequestFailed):
+    """
+    An API call was attempted with missing required parameters (trigger_id)
+    """
+    pass
+
+
 class ClearMemberFieldInformationError(ApiRequestFailed):
     """
     An API call to clear member info from a field did not complete correctly

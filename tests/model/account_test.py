@@ -7,13 +7,15 @@ from myemma.model.account import (Account, AccountFieldCollection,
                                   AccountGroupCollection,
                                   AccountMemberCollection,
                                   AccountMailingCollection,
-                                  AccountSearchCollection)
+                                  AccountSearchCollection,
+                                  AccountTriggerCollection)
 from myemma.model.field import Field
 from myemma.model.group import Group
 from myemma.model.mailing import Mailing
 from myemma.model.member_import import MemberImport
 from myemma.model.member import Member
 from myemma.model.search import Search
+from myemma.model.trigger import Trigger
 from tests.model import MockAdapter
 
 
@@ -1770,3 +1772,100 @@ class AccountSearchCollectionTest(unittest.TestCase):
             ('DELETE', '/searches/200', {}))
         self.assertEquals(1, len(self.searches))
         self.assertIn(201, self.searches)
+
+
+class AccountTriggerCollectionTest(unittest.TestCase):
+    def setUp(self):
+        Account.default_adapter = MockAdapter
+        self.triggers = Account(
+            account_id="100",
+            public_key="xxx",
+            private_key="yyy").triggers
+
+    def test_fetch_all_returns_a_dictionary(self):
+        MockAdapter.expected = [{'trigger_id': 201}]
+        self.assertIsInstance(self.triggers.fetch_all(), dict)
+        self.assertEquals(self.triggers.account.adapter.called, 1)
+        self.assertEquals(
+            self.triggers.account.adapter.call,
+            ('GET', '/triggers', {}))
+
+    def test_fetch_all_populates_collection(self):
+        MockAdapter.expected = [{'trigger_id': 201}]
+        self.assertEquals(0, len(self.triggers))
+        self.triggers.fetch_all()
+        self.assertEquals(1, len(self.triggers))
+
+    def test_fetch_all_caches_results(self):
+        MockAdapter.expected = [{'trigger_id': 201}]
+        self.triggers.fetch_all()
+        self.triggers.fetch_all()
+        self.assertEquals(self.triggers.account.adapter.called, 1)
+
+    def test_trigger_collection_object_can_be_accessed_like_a_dictionary(self):
+        MockAdapter.expected = [{'trigger_id': 201}]
+        self.triggers.fetch_all()
+        self.assertIsInstance(self.triggers, AccountTriggerCollection)
+        self.assertEquals(1, len(self.triggers))
+        self.assertIsInstance(self.triggers[201], Trigger)
+
+    def test_find_one_by_trigger_id_returns_an_import_object(self):
+        MockAdapter.expected = {'trigger_id': 201}
+        search = self.triggers.find_one_by_trigger_id(201)
+        self.assertIsInstance(search, Trigger)
+        self.assertEquals(search['trigger_id'], 201)
+        self.assertEquals(self.triggers.account.adapter.called, 1)
+        self.assertEquals(
+            self.triggers.account.adapter.call,
+            ('GET', '/triggers/201', {}))
+
+    def test_find_one_by_trigger_id_populates_collection(self):
+        MockAdapter.expected = {'trigger_id': 201}
+        self.triggers.find_one_by_trigger_id(201)
+        self.assertIn(201, self.triggers)
+        self.assertIsInstance(self.triggers[201], Trigger)
+        self.assertEquals(self.triggers[201]['trigger_id'], 201)
+
+    def test_find_one_by_trigger_id_caches_result(self):
+        MockAdapter.expected = {'trigger_id': 201}
+        self.triggers.find_one_by_trigger_id(201)
+        self.triggers.find_one_by_trigger_id(201)
+        self.assertEquals(self.triggers.account.adapter.called, 1)
+
+    def test_dictionary_access_lazy_loads_by_trigger_id(self):
+        MockAdapter.expected = {'trigger_id': 201}
+        trigger = self.triggers[201]
+        self.assertIn(201, self.triggers)
+        self.assertIsInstance(trigger, Trigger)
+        self.assertEquals(self.triggers[201]['trigger_id'], 201)
+        self.assertEquals(self.triggers.account.adapter.called, 1)
+        self.assertEquals(
+            self.triggers.account.adapter.call,
+            ('GET', '/triggers/201', {}))
+
+    def test_dictionary_access_lazy_loads_by_trigger_id2(self):
+        MockAdapter.expected = None
+        search = self.triggers[204]
+        self.assertEquals(0, len(self.triggers))
+        self.assertIsNone(search)
+        self.assertEquals(self.triggers.account.adapter.called, 1)
+        self.assertEquals(
+            self.triggers.account.adapter.call,
+            ('GET', '/triggers/204', {}))
+
+    def test_can_delete_a_single_trigger_with_del(self):
+        # Setup
+        MockAdapter.expected = True
+        self.triggers._dict = {
+            200: Trigger(self.triggers.account, {'trigger_id': 200}),
+            201: Trigger(self.triggers.account, {'trigger_id': 201})
+        }
+
+        del(self.triggers[200])
+
+        self.assertEquals(self.triggers.account.adapter.called, 1)
+        self.assertEquals(
+            self.triggers.account.adapter.call,
+            ('DELETE', '/triggers/200', {}))
+        self.assertEquals(1, len(self.triggers))
+        self.assertIn(201, self.triggers)

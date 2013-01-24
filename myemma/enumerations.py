@@ -21,13 +21,11 @@ class DeliveryType(Enum):
     SoftBounce = "s"
 
 
-
 class GroupType(Enum):
     """Group Type"""
     RegularGroup = "g"
     TestGroup = "t"
     HiddenGroup = "h"
-
 
 
 class ImportStatus(Enum):
@@ -40,6 +38,15 @@ class ImportStyle(Enum):
     """Import Style"""
     AddOnly = "add_only"
     AddAndUpdate = "add_and_update"
+
+
+class EventType(Enum):
+    """Event Type"""
+    SignUp = "s"
+    Click = "c"
+    Survey = "u"
+    Date = "d"
+    RecurringDate = "r"
 
 
 class MemberChangeType(Enum):

@@ -10,6 +10,7 @@ import myemma.model.member_import
 import myemma.model.field
 import myemma.model.group
 import myemma.model.search
+import myemma.model.trigger
 
 
 class Account(object):
@@ -50,6 +51,7 @@ class Account(object):
         self.mailings = AccountMailingCollection(self)
         self.members = AccountMemberCollection(self)
         self.searches = AccountSearchCollection(self)
+        self.triggers = AccountTriggerCollection(self)
 
 
 class AccountFieldCollection(BaseApiModel):
@@ -821,7 +823,6 @@ class AccountMailingCollection(BaseApiModel):
             raise ex.SyntaxValidationError(exception.message)
 
 
-
 class AccountSearchCollection(BaseApiModel):
     """
     Encapsulates operations for the set of :class:`Search` objects of an
@@ -895,3 +896,91 @@ class AccountSearchCollection(BaseApiModel):
                 self._dict[search_id] = search.Search(self.account, raw)
 
         return (search_id in self._dict) and self._dict[search_id] or None
+
+
+class AccountTriggerCollection(BaseApiModel):
+    """
+    Encapsulates operations for the set of :class:`Trigger` objects of an
+    :class:`account`
+
+    :param account: The Account which owns this collection
+    :type account: :class:`Account`
+    """
+    def __init__(self, account):
+        self.account = account
+        super(AccountTriggerCollection, self).__init__()
+
+    def __getitem__(self, key):
+        return self.find_one_by_trigger_id(key)
+
+    def __delitem__(self, key):
+        self._dict[key].delete()
+
+    def factory(self, raw=None):
+        """
+        New :class:`Trigger` factory
+
+        :param raw: Raw data with which to populate class
+        :type raw: :class:`dict`
+        :rtype: :class:`Trigger`
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.triggers.factory()
+            <Trigger{}>
+            >>> acct.triggers.factory({'name': u"test Trigger", ...})
+            <Trigger{'name': ...}>
+        """
+        return myemma.model.trigger.Trigger(self.account, raw)
+
+    def fetch_all(self):
+        """
+        Lazy-loads the full set of :class:`Trigger` objects
+
+        :rtype: :class:`dict` of :class:`Trigger` objects
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.triggers.fetch_all()
+            {123: <Trigger>, 321: <Trigger>, ...}
+        """
+        trigger = myemma.model.trigger
+        path = '/triggers'
+        if not self._dict:
+            self._dict = dict(
+                (x['trigger_id'], trigger.Trigger(self.account, x))
+                    for x in self.account.adapter.get(path))
+        return self._dict
+
+    def find_one_by_trigger_id(self, trigger_id):
+        """
+        Lazy-loads a single :class:`Trigger` by ID
+
+        :param trigger_id: The trigger identifier
+        :type trigger_id: :class:`int`
+        :rtype: :class:`Field` or :class:`None`
+
+        Usage::
+
+            >>> from myemma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.triggers.find_one_by_trigger_id(0) # does not exist
+            None
+            >>> acct.triggers.find_one_by_trigger_id(123)
+            <Trigger>
+            >>> acct.triggers[123]
+            <Trigger>
+        """
+        trigger_id = int(trigger_id)
+        path = '/triggers/%s' % trigger_id
+        if trigger_id not in self._dict:
+            trigger = myemma.model.trigger
+            raw = self.account.adapter.get(path)
+            if raw:
+                self._dict[trigger_id] = trigger.Trigger(self.account, raw)
+
+        return (trigger_id in self._dict) and self._dict[trigger_id] or None
