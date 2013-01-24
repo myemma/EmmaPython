@@ -23,6 +23,7 @@ class QueryFactory(object):
         ("not", ("member_field:foo", "eq", 1))
 
     """
+
     @staticmethod
     def eq(field, value):
         """
@@ -43,6 +44,7 @@ class QueryFactory(object):
 
         """
         return operator.EqualityQuery(field, value)
+
     @staticmethod
     def lt(field, value):
         """
@@ -63,6 +65,7 @@ class QueryFactory(object):
 
         """
         return operator.LessThanQuery(field, value)
+
     @staticmethod
     def gt(field, value):
         """
@@ -83,6 +86,7 @@ class QueryFactory(object):
 
         """
         return operator.GreaterThanQuery(field, value)
+
     @staticmethod
     def between(field, low, high):
         """
@@ -105,6 +109,67 @@ class QueryFactory(object):
 
         """
         return operator.BetweenQuery(field, low, high)
+
+    @staticmethod
+    def in_last(field, interval):
+        """
+        In Last Query Factory
+
+        :param field: Field name to query
+        :type field: :class:`str`
+        :param interval: An interval to select
+        :type interval: :class:`dict`
+
+        Usage::
+
+            >>> from myemma.query.factory import QueryFactory as qf
+            >>> query = qf.in_last('member_since', {"day": 4})
+            >>> query.to_tuple()
+            ("member_since", "in last", {"day": 4})
+
+        """
+        return operator.InLastQuery(field, interval)
+
+    @staticmethod
+    def in_next(field, interval):
+        """
+        In Next Query Factory
+
+        :param field: Field name to query
+        :type field: :class:`str`
+        :param interval: An interval to select
+        :type interval: :class:`dict`
+
+        Usage::
+
+            >>> from myemma.query.factory import QueryFactory as qf
+            >>> query = qf.in_next('member_since', {"day": 4})
+            >>> query.to_tuple()
+            ("member_since", "in next", {"day": 4})
+
+        """
+        return operator.InNextQuery(field, interval)
+
+    @staticmethod
+    def datematch(field, date):
+        """
+        Date Match Query Factory
+
+        :param field: Field name to query
+        :type field: :class:`str`
+        :param date: An date to select
+        :type date: :class:`dict`
+
+        Usage::
+
+            >>> from myemma.query.factory import QueryFactory as qf
+            >>> query = qf.datematch('member_since', {"year": 2011})
+            >>> query.to_tuple()
+            ("member_since", "datematch", {"year": 2011})
+
+        """
+        return operator.DateMatchQuery(field, date)
+
     @staticmethod
     def contains(field, value):
         """
@@ -125,6 +190,7 @@ class QueryFactory(object):
 
         """
         return operator.ContainsQuery(field, value)
+
     @staticmethod
     def any(field, value):
         """
@@ -145,3 +211,47 @@ class QueryFactory(object):
 
         """
         return operator.AnyQuery(field, value)
+
+    @staticmethod
+    def is_in(field, values):
+        """
+        Is In Query Factory
+
+        :param field: Field name to query
+        :type field: :class:`str`
+        :param values: Values to test
+        :type values: :class:`list`
+        :rtype: :class:`CompositeQuery`
+
+        Example Usage::
+
+            >>> from myemma.query.factory import QueryFactory as qf
+            >>> query = qf.is_in('member_field:some_number_field', [3, 4, 5, 6])
+            >>> query.to_tuple()
+            ("member_field:some_number_field", "in", 3, 4, 5, 6)
+
+        """
+        return operator.IsInQuery(field, values)
+
+    @staticmethod
+    def zip_radius(field, radius, zip):
+        """
+        Zip Radius Query Factory
+
+        :param field: Field name to query
+        :type field: :class:`str`
+        :param radius: The radius to select
+        :type radius: :class:`int`
+        :param zip: The zip code to select
+        :type zip: :class:`int` or :class:`str`
+        :rtype: :class:`CompositeQuery`
+
+        Example Usage::
+
+            >>> from myemma.query.factory import QueryFactory as qf
+            >>> query = qf.zip_radius('member_field:some_zipcode_field', 10, "97202")
+            >>> query.to_tuple()
+            ("member_field:some_zipcode_field", "zip-radius:10", "97202")
+
+        """
+        return operator.ZipRadiusQuery(field, radius, zip)
