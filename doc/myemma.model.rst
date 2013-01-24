@@ -45,3 +45,31 @@ model Package
     :members:
     :show-inheritance:
 
+:mod:`message` Module
+--------------------
+
+.. automodule:: myemma.model.message
+    :members:
+    :show-inheritance:
+
+:mod:`search` Module
+--------------------
+
+.. automodule:: myemma.model.search
+    :members:
+    :show-inheritance:
+
+:mod:`trigger` Module
+--------------------
+
+.. automodule:: myemma.model.trigger
+    :members:
+    :show-inheritance:
+
+:mod:`webhook` Module
+--------------------
+
+.. automodule:: myemma.model.webhook
+    :members:
+    :show-inheritance:
+
