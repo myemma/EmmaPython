@@ -1859,8 +1859,8 @@ class AccountTriggerCollectionTest(unittest.TestCase):
         # Setup
         MockAdapter.expected = True
         self.triggers._dict = {
-            200: Trigger(self.triggers.account, {'trigger_id': 200}),
-            201: Trigger(self.triggers.account, {'trigger_id': 201})
+            200: self.triggers.factory({'trigger_id': 200}),
+            201: self.triggers.factory({'trigger_id': 201})
         }
 
         del(self.triggers[200])
@@ -1956,8 +1956,8 @@ class AccountWebHookCollectionTest(unittest.TestCase):
         # Setup
         MockAdapter.expected = True
         self.webhooks._dict = {
-            200: WebHook(self.webhooks.account, {'webhook_id': 200}),
-            201: WebHook(self.webhooks.account, {'webhook_id': 201})
+            200: self.webhooks.factory({'webhook_id': 200}),
+            201: self.webhooks.factory({'webhook_id': 201})
         }
 
         del(self.webhooks[200])

@@ -155,15 +155,19 @@ class AnyQueryTest(unittest.TestCase):
 
 class ZipRadiusQueryTest(unittest.TestCase):
     def test_can_build_a_simple_contains_query(self):
-        query = op.IsInQuery('member_field:some_number_field', [3, 4, 5, 6])
+        query = op.ZipRadiusQuery('member_field:some_zipcode_field', 10, 97202)
         self.assertTupleEqual(
-            ("member_field:some_number_field", "in", 3, 4, 5, 6),
+            ("member_field:some_zipcode_field", "zip-radius:10", "97202"),
             query.to_tuple())
 
     def test_can_build_a_simple_contains_query2(self):
-        query = q.is_in('member_field:some_number_field', [3, 4, 5, 6])
-        self.assertIsInstance(query, op.IsInQuery)
+        query = q.zip_radius('member_field:some_zipcode_field', 10, 97202)
+        self.assertIsInstance(query, op.ZipRadiusQuery)
         self.assertTupleEqual(
-            ("member_field:some_number_field", "in", 3, 4, 5, 6),
+            ("member_field:some_zipcode_field", "zip-radius:10", "97202"),
             query.to_tuple())
+
+    def test_can_build_a_simple_contains_query3(self):
+        with self.assertRaises(Exception):
+            q.zip_radius('member_field:some_zipcode_field', 22, 97202)
 
