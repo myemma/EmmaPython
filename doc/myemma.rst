@@ -3,12 +3,8 @@ myemma Package
 
 .. automodule:: myemma
 
-Subpackages
+Reporting
 -----------
 
-.. toctree::
-
-    myemma.adapter
-    myemma.model
-    myemma.query
+.. autofunction:: get_report
 
