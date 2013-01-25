@@ -1,9 +1,9 @@
 """Audience group models"""
 
 from datetime import datetime
-from myemma import exceptions as ex
-from myemma.model import BaseApiModel, str_fields_to_datetime
-import myemma.model.member
+from emma import exceptions as ex
+from emma.model import BaseApiModel, str_fields_to_datetime
+import emma.model.member
 
 
 class Group(BaseApiModel):
@@ -17,7 +17,7 @@ class Group(BaseApiModel):
 
     Usage::
 
-        >>> from myemma.model.account import Account
+        >>> from emma.model.account import Account
         >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
         >>> grp = acct.groups[123]
         >>> grp
@@ -40,7 +40,7 @@ class Group(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> grp = acct.groups[123]
             >>> grp.is_deleted()
@@ -59,7 +59,7 @@ class Group(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> grp = acct.groups[123]
             >>> grp.delete()
@@ -84,7 +84,7 @@ class Group(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> grp = acct.groups[123]
             >>> grp.extract()
@@ -116,7 +116,7 @@ class Group(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> grp = acct.groups[123]
             >>> grp['group_name'] = u"Renamed Group"
@@ -157,7 +157,7 @@ class GroupMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> grp = acct.groups[1024]
             >>> grp.members.fetch_all()
@@ -166,7 +166,7 @@ class GroupMemberCollection(BaseApiModel):
         if not 'member_group_id' in self.group:
             raise ex.NoGroupIdError()
 
-        member = myemma.model.member
+        member = emma.model.member
         path = '/groups/%s/members' % self.group['member_group_id']
         params = {'deleted':True} if deleted else {}
         if not self._dict:
@@ -185,7 +185,7 @@ class GroupMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> grp = acct.groups[1024]
             >>> grp.members.add_by_id([200, 201])
@@ -210,8 +210,8 @@ class GroupMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
-            >>> from myemma.enumerations import MemberStatus
+            >>> from emma.model.account import Account
+            >>> from emma.enumerations import MemberStatus
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> grp = acct.groups[1024]
             >>> grp.members.add_by_status([MemberStatus.Active])
@@ -239,12 +239,12 @@ class GroupMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> grp = acct.groups[1024]
             >>> grp.members.add_by_group(acct.groups[199])
             None
-            >>> from myemma.enumerations import MemberStatus
+            >>> from emma.enumerations import MemberStatus
             >>> grp.members.add_by_group(acct.groups[200], [MemberStatus.Active])
             None
         """
@@ -270,7 +270,7 @@ class GroupMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> grp = acct.groups[1024]
             >>> grp.members.remove_by_id([200, 201])
@@ -296,8 +296,8 @@ class GroupMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
-            >>> from myemma.enumerations import MemberStatus
+            >>> from emma.model.account import Account
+            >>> from emma.enumerations import MemberStatus
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> grp = acct.groups[1024]
             >>> grp.members.remove_all(MemberStatus.Active)

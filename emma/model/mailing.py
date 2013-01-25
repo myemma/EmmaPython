@@ -1,13 +1,13 @@
 """Audience mailing models"""
 
 from datetime import datetime
-from myemma import exceptions as ex
-from myemma.enumerations import MailingStatus
-from myemma.model import BaseApiModel, str_fields_to_datetime
-import myemma.model.group
-import myemma.model.member
-import myemma.model.search
-import myemma.model.message
+from emma import exceptions as ex
+from emma.enumerations import MailingStatus
+from emma.model import BaseApiModel, str_fields_to_datetime
+import emma.model.group
+import emma.model.member
+import emma.model.search
+import emma.model.message
 
 
 class Mailing(BaseApiModel):
@@ -21,7 +21,7 @@ class Mailing(BaseApiModel):
 
     Usage::
 
-        >>> from myemma.model.account import Account
+        >>> from emma.model.account import Account
         >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
         >>> mlng = acct.mailings[123]
         >>> mlng
@@ -53,8 +53,8 @@ class Mailing(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
-            >>> from myemma.enumerations import MailingStatus
+            >>> from emma.model.account import Account
+            >>> from emma.enumerations import MailingStatus
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mlng = acct.mailings[123]
             >>> mlng.update_statues(MailingStatus.Canceled)
@@ -81,7 +81,7 @@ class Mailing(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mlng = acct.mailings[123]
             >>> mlng.is_archived()
@@ -100,7 +100,7 @@ class Mailing(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mlng = acct.mailings[123]
             >>> mlng.archive()
@@ -125,7 +125,7 @@ class Mailing(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mlng = acct.mailings[123]
             >>> mlng.cancel()
@@ -151,7 +151,7 @@ class Mailing(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mlng = acct.mailings[123]
             >>> mlng.send_additional(["test2@example.com"])
@@ -185,7 +185,7 @@ class Mailing(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mlng = acct.mailings[123]
             >>> mlng.get_heads_up_emails()
@@ -213,7 +213,7 @@ class Mailing(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mlng = acct.mailings[123]
             >>> mlng.winner(12)
@@ -247,7 +247,7 @@ class MailingGroupCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mlng = acct.mailings[123]
             >>> mlng.groups.fetch_all()
@@ -256,7 +256,7 @@ class MailingGroupCollection(BaseApiModel):
         """
         if 'mailing_id' not in self.mailing:
             raise ex.NoMailingIdError()
-        group = myemma.model.group
+        group = emma.model.group
         path = '/mailings/%s/groups' % self.mailing['mailing_id']
         if not self._dict:
             self._dict = dict(
@@ -285,7 +285,7 @@ class MailingMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mlng = acct.mailings[123]
             >>> mlng.members.fetch_all()
@@ -294,7 +294,7 @@ class MailingMemberCollection(BaseApiModel):
         """
         if 'mailing_id' not in self.mailing:
             raise ex.NoMailingIdError()
-        member = myemma.model.member
+        member = emma.model.member
         path = '/mailings/%s/members' % self.mailing['mailing_id']
         if not self._dict:
             self._dict = dict(
@@ -323,7 +323,7 @@ class MailingSearchCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mlng = acct.mailings[123]
             >>> mlng.searches.fetch_all()
@@ -332,7 +332,7 @@ class MailingSearchCollection(BaseApiModel):
         """
         if 'mailing_id' not in self.mailing:
             raise ex.NoMailingIdError()
-        search = myemma.model.search
+        search = emma.model.search
         path = '/mailings/%s/searches' % self.mailing['mailing_id']
         if not self._dict:
             self._dict = dict(
@@ -368,12 +368,12 @@ class MailingMessageCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mlng = acct.mailings[123]
             >>> mlng.messages(12)
             {'plaintext': ..., 'subject': ..., 'html_body': ...}
-            >>> from myemma.enumerations import PersonalizedMessageType as pmt
+            >>> from emma.enumerations import PersonalizedMessageType as pmt
             >>> mlng.messages(12, type=pmt.Html)
             {'html_body': ...}
         """
@@ -385,7 +385,7 @@ class MailingMessageCollection(BaseApiModel):
             self.mailing['mailing_id'], member_id)
         params = {'type': message_type} if message_type else {}
         if member_id not in self._dict:
-            message = myemma.model.message
+            message = emma.model.message
             raw = self.mailing.account.adapter.get(path, params)
             if raw:
                 self._dict[member_id] = message.Message(

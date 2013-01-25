@@ -1,6 +1,6 @@
 """Search syntax builder"""
 
-from myemma.query import operator
+from emma.query import operator
 
 
 class QueryFactory(object):
@@ -37,7 +37,7 @@ class QueryFactory(object):
 
         Usage::
 
-            >>> from myemma.query.factory import QueryFactory as qf
+            >>> from emma.query.factory import QueryFactory as qf
             >>> query = qf.eq('member_field:some_string_field', 'bar')
             >>> query.to_tuple()
             ("member_field:some_string_field", "eq", "bar")
@@ -58,7 +58,7 @@ class QueryFactory(object):
 
         Usage::
 
-            >>> from myemma.query.factory import QueryFactory as qf
+            >>> from emma.query.factory import QueryFactory as qf
             >>> query = qf.lt('member_field:some_numeric_field', 10)
             >>> query.to_tuple()
             ("member_field:some_numeric_field", "lt", 10)
@@ -79,7 +79,7 @@ class QueryFactory(object):
 
         Usage::
 
-            >>> from myemma.query.factory import QueryFactory as qf
+            >>> from emma.query.factory import QueryFactory as qf
             >>> query = qf.gt('member_field:some_numeric_field', 5)
             >>> query.to_tuple()
             ("member_field:some_numeric_field", "gt", 5)
@@ -102,7 +102,7 @@ class QueryFactory(object):
 
         Usage::
 
-            >>> from myemma.query.factory import QueryFactory as qf
+            >>> from emma.query.factory import QueryFactory as qf
             >>> query = qf.between('member_field:some_numeric_field', 5, 10)
             >>> query.to_tuple()
             ("member_field:some_numeric_field", "between", 5, 10)
@@ -122,7 +122,7 @@ class QueryFactory(object):
 
         Usage::
 
-            >>> from myemma.query.factory import QueryFactory as qf
+            >>> from emma.query.factory import QueryFactory as qf
             >>> query = qf.in_last('member_since', {"day": 4})
             >>> query.to_tuple()
             ("member_since", "in last", {"day": 4})
@@ -142,7 +142,7 @@ class QueryFactory(object):
 
         Usage::
 
-            >>> from myemma.query.factory import QueryFactory as qf
+            >>> from emma.query.factory import QueryFactory as qf
             >>> query = qf.in_next('member_since', {"day": 4})
             >>> query.to_tuple()
             ("member_since", "in next", {"day": 4})
@@ -162,7 +162,7 @@ class QueryFactory(object):
 
         Usage::
 
-            >>> from myemma.query.factory import QueryFactory as qf
+            >>> from emma.query.factory import QueryFactory as qf
             >>> query = qf.datematch('member_since', {"year": 2011})
             >>> query.to_tuple()
             ("member_since", "datematch", {"year": 2011})
@@ -183,7 +183,7 @@ class QueryFactory(object):
 
         Usage::
 
-            >>> from myemma.query.factory import QueryFactory as qf
+            >>> from emma.query.factory import QueryFactory as qf
             >>> query = qf.contains('member_field:some_string_field', '*foo*')
             >>> query.to_tuple()
             ("member_field:some_string_field", "contains", "*foo*")
@@ -204,7 +204,7 @@ class QueryFactory(object):
 
         Example Usage::
 
-            >>> from myemma.query.factory import QueryFactory as qf
+            >>> from emma.query.factory import QueryFactory as qf
             >>> query = qf.any('member_field:some_array_field', 'ten')
             >>> query.to_tuple()
             ("member_field:some_array_field", "any", "ten")
@@ -225,7 +225,7 @@ class QueryFactory(object):
 
         Example Usage::
 
-            >>> from myemma.query.factory import QueryFactory as qf
+            >>> from emma.query.factory import QueryFactory as qf
             >>> query = qf.is_in('member_field:some_number_field', [3, 4, 5, 6])
             >>> query.to_tuple()
             ("member_field:some_number_field", "in", 3, 4, 5, 6)
@@ -248,7 +248,7 @@ class QueryFactory(object):
 
         Example Usage::
 
-            >>> from myemma.query.factory import QueryFactory as qf
+            >>> from emma.query.factory import QueryFactory as qf
             >>> query = qf.zip_radius('member_field:some_zipcode_field', 10, "97202")
             >>> query.to_tuple()
             ("member_field:some_zipcode_field", "zip-radius:10", "97202")

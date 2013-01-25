@@ -1,8 +1,8 @@
 import unittest
-from myemma import exceptions as ex
-from myemma.model.account import Account
-from myemma.model.mailing import Mailing
-from myemma.model.message import Message
+from emma import exceptions as ex
+from emma.model.account import Account
+from emma.model.mailing import Mailing
+from emma.model.message import Message
 from tests.model import MockAdapter
 
 

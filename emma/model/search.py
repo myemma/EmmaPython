@@ -1,9 +1,9 @@
 """Audience search models"""
 
 from datetime import datetime
-from myemma import exceptions as ex
-from myemma.model import BaseApiModel, str_fields_to_datetime
-import myemma.model.member
+from emma import exceptions as ex
+from emma.model import BaseApiModel, str_fields_to_datetime
+import emma.model.member
 
 
 class Search(BaseApiModel):
@@ -17,7 +17,7 @@ class Search(BaseApiModel):
 
     Usage::
 
-        >>> from myemma.model.account import Account
+        >>> from emma.model.account import Account
         >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
         >>> srch = acct.searches[123]
         >>> srch
@@ -40,7 +40,7 @@ class Search(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> srch = acct.searches[123]
             >>> srch.is_deleted()
@@ -59,7 +59,7 @@ class Search(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> srch = acct.searches[123]
             >>> srch.delete()
@@ -84,7 +84,7 @@ class Search(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> srch = acct.searches[123]
             >>> srch.extract()
@@ -115,7 +115,7 @@ class Search(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> srch = acct.searches[123]
             >>> srch['name'] = u"Renamed Search"
@@ -156,7 +156,7 @@ class SearchMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> srch = acct.searches[1024]
             >>> srch.members.fetch_all()
@@ -167,7 +167,7 @@ class SearchMemberCollection(BaseApiModel):
 
         path = '/searches/%s/members' % self.search['search_id']
         if not self._dict:
-            member = myemma.model.member
+            member = emma.model.member
             self._dict = dict(
                 (x['member_id'], member.Member(self.search.account, x))
                     for x in self.search.account.adapter.get(path))

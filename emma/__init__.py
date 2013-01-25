@@ -17,9 +17,9 @@ def get_report(account, report, id=None, params=None):
 
     Usage::
 
-        >>> from myemma import get_report
-        >>> from myemma.model.account import Account
-        >>> from myemma.enumerations import Report
+        >>> from emma import get_report
+        >>> from emma.model.account import Account
+        >>> from emma.enumerations import Report
         >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
         >>> get_report(acct, Report.ResponseSummary)
         [...]

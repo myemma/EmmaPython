@@ -1,4 +1,4 @@
-from myemma.adapter import AbstractAdapter
+from emma.adapter import AbstractAdapter
 
 class MockAdapter(AbstractAdapter):
     expected = None

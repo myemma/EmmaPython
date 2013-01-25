@@ -1,10 +1,10 @@
 from datetime import datetime
 import unittest
-from myemma import exceptions as ex
-from myemma.model.account import Account
-from myemma.model.trigger import Trigger
-from myemma.model import SERIALIZED_DATETIME_FORMAT
-from myemma.model.mailing import Mailing
+from emma import exceptions as ex
+from emma.model.account import Account
+from emma.model.trigger import Trigger
+from emma.model import SERIALIZED_DATETIME_FORMAT
+from emma.model.mailing import Mailing
 from tests.model import MockAdapter
 
 

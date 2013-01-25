@@ -1,7 +1,7 @@
 import unittest
-from myemma.model.account import Account
-from myemma.enumerations import Report, DeliveryType
-from myemma import get_report
+from emma.model.account import Account
+from emma.enumerations import Report, DeliveryType
+from emma import get_report
 from tests.model import MockAdapter
 
 

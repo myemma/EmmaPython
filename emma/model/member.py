@@ -1,11 +1,11 @@
 """Audience member models"""
 
 from datetime import datetime
-from myemma import exceptions as ex
-from myemma.enumerations import MemberStatus
-from myemma.model import BaseApiModel, str_fields_to_datetime
-import myemma.model.group
-import myemma.model.mailing
+from emma import exceptions as ex
+from emma.enumerations import MemberStatus
+from emma.model import BaseApiModel, str_fields_to_datetime
+import emma.model.group
+import emma.model.mailing
 
 
 class Member(BaseApiModel):
@@ -19,7 +19,7 @@ class Member(BaseApiModel):
 
     Usage::
 
-        >>> from myemma.model.account import Account
+        >>> from emma.model.account import Account
         >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
         >>> mbr = acct.members[123]
         >>> mbr
@@ -53,7 +53,7 @@ class Member(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.opt_out()
@@ -73,7 +73,7 @@ class Member(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.get_opt_out_detail()
@@ -95,7 +95,7 @@ class Member(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.has_opted_out()
@@ -116,7 +116,7 @@ class Member(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.extract()
@@ -166,7 +166,7 @@ class Member(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr['last_name'] = u"New-Name"
@@ -189,7 +189,7 @@ class Member(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.is_deleted()
@@ -208,7 +208,7 @@ class Member(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.delete()
@@ -233,7 +233,7 @@ class Member(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.add_groups([1024, 1025])
@@ -252,7 +252,7 @@ class Member(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.drop_groups([1024, 1025]) # Drop a specific list of groups
@@ -283,7 +283,7 @@ class MemberMailingCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.mailings.fetch_all()
@@ -292,7 +292,7 @@ class MemberMailingCollection(BaseApiModel):
         """
         if 'member_id' not in self.member:
             raise ex.NoMemberIdError()
-        mailing = myemma.model.mailing
+        mailing = emma.model.mailing
         path = '/members/%s/mailings' % self.member['member_id']
         if not self._dict:
             self._dict = dict(
@@ -324,7 +324,7 @@ class MemberGroupCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.groups.factory()
@@ -332,7 +332,7 @@ class MemberGroupCollection(BaseApiModel):
             >>> mbr.groups.factory({'member_group_id':1024})
             <Group{'member_group_id':1024}>
         """
-        return myemma.model.group.Group(self.member.account, raw)
+        return emma.model.group.Group(self.member.account, raw)
 
     def fetch_all(self):
         """
@@ -342,7 +342,7 @@ class MemberGroupCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> mbr = acct.members[123]
             >>> mbr.groups.fetch_all()
@@ -351,7 +351,7 @@ class MemberGroupCollection(BaseApiModel):
         """
         if 'member_id' not in self.member:
             raise ex.NoMemberIdError()
-        group = myemma.model.group
+        group = emma.model.group
         path = '/members/%s/groups' % self.member['member_id']
         if not self._dict:
             self._dict = dict(
@@ -367,7 +367,7 @@ class MemberGroupCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> grps = acct.members[123].groups
             >>> grps.save([
@@ -409,7 +409,7 @@ class MemberGroupCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> grps = acct.members[123].groups
             >>> grps.delete([300, 301]) # Delete a specific list of groups

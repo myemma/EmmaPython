@@ -1,7 +1,7 @@
 import unittest
-from myemma import exceptions as ex
-from myemma.model.account import Account
-from myemma.model.webhook import WebHook
+from emma import exceptions as ex
+from emma.model.account import Account
+from emma.model.webhook import WebHook
 from tests.model import MockAdapter
 
 

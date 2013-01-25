@@ -1,13 +1,13 @@
 from datetime import datetime
 import unittest
-from myemma import exceptions as ex
-from myemma.enumerations import DeliveryType, MemberStatus, MemberChangeType
-from myemma.model import SERIALIZED_DATETIME_FORMAT
-from myemma.model.account import Account
-from myemma.model.member import (Member, MemberGroupCollection,
+from emma import exceptions as ex
+from emma.enumerations import DeliveryType, MemberStatus, MemberChangeType
+from emma.model import SERIALIZED_DATETIME_FORMAT
+from emma.model.account import Account
+from emma.model.member import (Member, MemberGroupCollection,
                                  MemberMailingCollection)
-from myemma.model.group import Group
-from myemma.model.mailing import Mailing
+from emma.model.group import Group
+from emma.model.mailing import Mailing
 from tests.model import MockAdapter
 
 

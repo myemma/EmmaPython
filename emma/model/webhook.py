@@ -1,8 +1,8 @@
 """Audience webhook models"""
 
 from datetime import datetime
-from myemma import exceptions as ex
-from myemma.model import BaseApiModel, str_fields_to_datetime
+from emma import exceptions as ex
+from emma.model import BaseApiModel, str_fields_to_datetime
 
 
 class WebHook(BaseApiModel):
@@ -16,7 +16,7 @@ class WebHook(BaseApiModel):
 
     Usage::
 
-        >>> from myemma.model.account import Account
+        >>> from emma.model.account import Account
         >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
         >>> acct.webhooks[123]
         <WebHook>
@@ -33,7 +33,7 @@ class WebHook(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> wbhk = acct.webhooks[123]
             >>> wbhk.delete()
@@ -55,7 +55,7 @@ class WebHook(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> wbhk = acct.webhooks[123]
             >>> wbhk.extract()
@@ -86,13 +86,13 @@ class WebHook(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> wbhk = acct.webhooks[123]
             >>> wbhk['url'] = u"http://v2.example.com"
             >>> wbhk.save()
             123
-            >>> from myemma.enumerations import WebHookMethod
+            >>> from emma.enumerations import WebHookMethod
             >>> wbhk = acct.webhooks.factory(
             ...     {
             ...         'event': u"mailing_finish",

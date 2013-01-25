@@ -1,6 +1,6 @@
 """Emma search syntax operators"""
 
-from myemma.query.spec import CompositeQuery
+from emma.query.spec import CompositeQuery
 
 
 class EqualityQuery(CompositeQuery):

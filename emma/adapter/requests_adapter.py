@@ -3,8 +3,8 @@
 import json
 import requests
 import requests.auth
-from myemma import exceptions as ex
-from myemma.adapter import AbstractAdapter
+from emma import exceptions as ex
+from emma.adapter import AbstractAdapter
 
 def process_response(response):
     """Takes a :class:`Response` and produces python built-ins"""
@@ -28,7 +28,7 @@ class RequestsAdapter(AbstractAdapter):
 
     Usage::
 
-        >>> from myemma.adapter.requests_adapter import RequestsAdapter
+        >>> from emma.adapter.requests_adapter import RequestsAdapter
         >>> adptr = RequestsAdapter({
         ...     "account_id": "1234",
         ...     "public_key": "08192a3b4c5d6e7f",
@@ -57,7 +57,7 @@ class RequestsAdapter(AbstractAdapter):
 
         Usage::
 
-            >>> from myemma.adapter.requests_adapter import RequestsAdapter
+            >>> from emma.adapter.requests_adapter import RequestsAdapter
             >>> adptr = RequestsAdapter({
             ...     "account_id": "1234",
             ...     "public_key": "08192a3b4c5d6e7f",
@@ -84,7 +84,7 @@ class RequestsAdapter(AbstractAdapter):
 
         Usage::
 
-            >>> from myemma.adapter.requests_adapter import RequestsAdapter
+            >>> from emma.adapter.requests_adapter import RequestsAdapter
             >>> adptr = RequestsAdapter({
             ...     "account_id": "1234",
             ...     "public_key": "08192a3b4c5d6e7f",
@@ -121,7 +121,7 @@ class RequestsAdapter(AbstractAdapter):
 
         Usage::
 
-            >>> from myemma.adapter.requests_adapter import RequestsAdapter
+            >>> from emma.adapter.requests_adapter import RequestsAdapter
             >>> adptr = RequestsAdapter({
             ...     "account_id": "1234",
             ...     "public_key": "08192a3b4c5d6e7f",
@@ -148,7 +148,7 @@ class RequestsAdapter(AbstractAdapter):
 
         Usage::
 
-            >>> from myemma.adapter.requests_adapter import RequestsAdapter
+            >>> from emma.adapter.requests_adapter import RequestsAdapter
             >>> adptr = RequestsAdapter({
             ...     "account_id": "1234",
             ...     "public_key": "08192a3b4c5d6e7f",

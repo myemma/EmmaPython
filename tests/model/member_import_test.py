@@ -1,11 +1,11 @@
 import unittest
 from datetime import datetime
-from myemma import exceptions as ex
-from myemma.enumerations import ImportStatus, ImportStyle
-from myemma.model.account import Account
-from myemma.model.member import Member
-from myemma.model.member_import import MemberImport, ImportMemberCollection
-from myemma.model import SERIALIZED_DATETIME_FORMAT
+from emma import exceptions as ex
+from emma.enumerations import ImportStatus, ImportStyle
+from emma.model.account import Account
+from emma.model.member import Member
+from emma.model.member_import import MemberImport, ImportMemberCollection
+from emma.model import SERIALIZED_DATETIME_FORMAT
 from tests.model import MockAdapter
 
 

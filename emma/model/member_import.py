@@ -1,8 +1,8 @@
 """Audience import models"""
 
-from myemma import exceptions as ex
-from myemma.model import BaseApiModel, str_fields_to_datetime
-from myemma.model.member import Member
+from emma import exceptions as ex
+from emma.model import BaseApiModel, str_fields_to_datetime
+from emma.model.member import Member
 
 
 class MemberImport(BaseApiModel):
@@ -16,7 +16,7 @@ class MemberImport(BaseApiModel):
 
     Usage::
 
-        >>> from myemma.model.account import Account
+        >>> from emma.model.account import Account
         >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
         >>> mprt = acct.imports[123]
         >>> mprt
@@ -53,7 +53,7 @@ class ImportMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> imprt = acct.imports[1024]
             >>> imprt.members.fetch_all()

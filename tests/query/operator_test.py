@@ -1,6 +1,6 @@
 import unittest
-import myemma.query.operator as op
-from myemma.query.factory import QueryFactory as q
+import emma.query.operator as op
+from emma.query.factory import QueryFactory as q
 
 
 class EqualityQueryTest(unittest.TestCase):

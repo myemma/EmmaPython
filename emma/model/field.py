@@ -1,8 +1,8 @@
 """Audience field models"""
 
 from datetime import datetime
-from myemma import exceptions as ex
-from myemma.model import BaseApiModel, str_fields_to_datetime
+from emma import exceptions as ex
+from emma.model import BaseApiModel, str_fields_to_datetime
 
 
 class Field(BaseApiModel):
@@ -16,7 +16,7 @@ class Field(BaseApiModel):
 
     Usage::
 
-        >>> from myemma.model.account import Account
+        >>> from emma.model.account import Account
         >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
         >>> fld = acct.fields[123]
         >>> fld
@@ -38,7 +38,7 @@ class Field(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> fld = acct.fields[123]
             >>> fld.is_deleted()
@@ -57,7 +57,7 @@ class Field(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> fld = acct.fields[123]
             >>> fld.delete()
@@ -82,7 +82,7 @@ class Field(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> fld = acct.fields[123]
             >>> fld.extract()
@@ -114,7 +114,7 @@ class Field(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> fld = acct.members[123]
             >>> fld['shortcut_name'] = u"new_name"
@@ -137,7 +137,7 @@ class Field(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> fld = acct.members[123]
             >>> fld.clear_member_information()

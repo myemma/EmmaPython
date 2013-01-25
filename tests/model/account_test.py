@@ -1,8 +1,8 @@
 import unittest
-from myemma.adapter.requests_adapter import RequestsAdapter
-from myemma import exceptions as ex
-from myemma.enumerations import GroupType, MemberStatus, MailingStatus, MailingType
-from myemma.model.account import (Account, AccountFieldCollection,
+from emma.adapter.requests_adapter import RequestsAdapter
+from emma import exceptions as ex
+from emma.enumerations import GroupType, MemberStatus, MailingStatus, MailingType
+from emma.model.account import (Account, AccountFieldCollection,
                                   AccountImportCollection,
                                   AccountGroupCollection,
                                   AccountMemberCollection,
@@ -10,14 +10,14 @@ from myemma.model.account import (Account, AccountFieldCollection,
                                   AccountSearchCollection,
                                   AccountTriggerCollection,
                                   AccountWebHookCollection)
-from myemma.model.field import Field
-from myemma.model.group import Group
-from myemma.model.mailing import Mailing
-from myemma.model.member_import import MemberImport
-from myemma.model.member import Member
-from myemma.model.search import Search
-from myemma.model.trigger import Trigger
-from myemma.model.webhook import WebHook
+from emma.model.field import Field
+from emma.model.group import Group
+from emma.model.mailing import Mailing
+from emma.model.member_import import MemberImport
+from emma.model.member import Member
+from emma.model.search import Search
+from emma.model.trigger import Trigger
+from emma.model.webhook import WebHook
 from tests.model import MockAdapter
 
 

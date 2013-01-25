@@ -1,10 +1,10 @@
 from datetime import datetime
 import unittest
-from myemma import exceptions as ex
-from myemma.model.account import Account
-from myemma.model.search import Search
-from myemma.model import SERIALIZED_DATETIME_FORMAT
-from myemma.model.member import Member
+from emma import exceptions as ex
+from emma.model.account import Account
+from emma.model.search import Search
+from emma.model import SERIALIZED_DATETIME_FORMAT
+from emma.model.member import Member
 from tests.model import MockAdapter
 
 

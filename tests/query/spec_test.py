@@ -1,6 +1,6 @@
 import unittest
-from myemma.query.spec import ConjunctionQuery, DisjunctionQuery, NegationQuery
-from myemma.query.factory import QueryFactory as q
+from emma.query.spec import ConjunctionQuery, DisjunctionQuery, NegationQuery
+from emma.query.factory import QueryFactory as q
 
 
 class ConjunctionQueryTest(unittest.TestCase):

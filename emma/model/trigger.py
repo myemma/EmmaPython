@@ -1,9 +1,9 @@
 """Audience trigger models"""
 
 from datetime import datetime
-from myemma import exceptions as ex
-from myemma.model import BaseApiModel, str_fields_to_datetime
-import myemma.model.mailing
+from emma import exceptions as ex
+from emma.model import BaseApiModel, str_fields_to_datetime
+import emma.model.mailing
 
 
 class Trigger(BaseApiModel):
@@ -17,7 +17,7 @@ class Trigger(BaseApiModel):
 
     Usage::
 
-        >>> from myemma.model.account import Account
+        >>> from emma.model.account import Account
         >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
         >>> acct.triggers[123]
         <Trigger>
@@ -30,7 +30,7 @@ class Trigger(BaseApiModel):
     def _parse_raw(self, raw):
         raw.update(str_fields_to_datetime(['deleted_at', 'start_ts'], raw))
         if 'parent_mailing' in raw:
-            mailing = myemma.model.mailing
+            mailing = emma.model.mailing
             raw['parent_mailing'] = mailing.Mailing(
                 self.account,
                 raw['parent_mailing'])
@@ -44,7 +44,7 @@ class Trigger(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> trggr = acct.triggers[123]
             >>> trggr.is_deleted()
@@ -63,7 +63,7 @@ class Trigger(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> trggr = acct.triggers[123]
             >>> trggr.delete()
@@ -88,7 +88,7 @@ class Trigger(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> trggr = acct.triggers[123]
             >>> trggr.extract()
@@ -120,13 +120,13 @@ class Trigger(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> trggr = acct.triggers[123]
             >>> trggr['name'] = u"Renamed Trigger"
             >>> trggr.save()
             123
-            >>> from myemma.enumerations import EventType
+            >>> from emma.enumerations import EventType
             >>> trggr = acct.triggers.factory(
             ...     {
             ...         'parent_mailing_id': 200,
@@ -164,7 +164,7 @@ class TriggerMailingCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> trggr = acct.triggers[1024]
             >>> trggr.mailings.fetch_all()
@@ -175,7 +175,7 @@ class TriggerMailingCollection(BaseApiModel):
 
         path = '/triggers/%s/mailings' % self.trigger['trigger_id']
         if not self._dict:
-            mailing = myemma.model.mailing
+            mailing = emma.model.mailing
             self._dict = dict(
                 (x['mailing_id'], mailing.Mailing(self.trigger.account, x))
                     for x in self.trigger.account.adapter.get(path))

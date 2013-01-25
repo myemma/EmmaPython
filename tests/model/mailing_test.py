@@ -1,14 +1,14 @@
 from datetime import datetime
 import unittest
-from myemma import exceptions as ex
-from myemma.enumerations import PersonalizedMessageType as pmt, MailingStatus
-from myemma.model.account import Account
-from myemma.model.mailing import (Mailing, MailingMemberCollection, MailingGroupCollection, MailingSearchCollection)
-from myemma.model.member import Member
-from myemma.model.group import Group
-from myemma.model.search import Search
-from myemma.model.message import Message
-from myemma.model import SERIALIZED_DATETIME_FORMAT
+from emma import exceptions as ex
+from emma.enumerations import PersonalizedMessageType as pmt, MailingStatus
+from emma.model.account import Account
+from emma.model.mailing import (Mailing, MailingMemberCollection, MailingGroupCollection, MailingSearchCollection)
+from emma.model.member import Member
+from emma.model.group import Group
+from emma.model.search import Search
+from emma.model.message import Message
+from emma.model import SERIALIZED_DATETIME_FORMAT
 from tests.model import MockAdapter
 
 

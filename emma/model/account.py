@@ -1,17 +1,17 @@
 """The aggregate root (Account) and collections owned by the root"""
 
-from myemma import exceptions as ex
-from myemma.adapter.requests_adapter import RequestsAdapter
-from myemma.model import BaseApiModel
-from myemma.enumerations import MemberStatus
-import myemma.model.mailing
-from myemma.model.member import Member
-import myemma.model.member_import
-import myemma.model.field
-import myemma.model.group
-import myemma.model.search
-import myemma.model.trigger
-import myemma.model.webhook
+from emma import exceptions as ex
+from emma.adapter.requests_adapter import RequestsAdapter
+from emma.model import BaseApiModel
+from emma.enumerations import MemberStatus
+import emma.model.mailing
+from emma.model.member import Member
+import emma.model.member_import
+import emma.model.field
+import emma.model.group
+import emma.model.search
+import emma.model.trigger
+import emma.model.webhook
 
 
 class Account(object):
@@ -27,7 +27,7 @@ class Account(object):
 
     Usage::
 
-        >>> from myemma.model.account import Account
+        >>> from emma.model.account import Account
         >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
         >>> acct.fields
         <AccountFieldCollection>
@@ -84,14 +84,14 @@ class AccountFieldCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.fields.factory()
             <Field{}>
             >>> acct.fields.factory({'shortcut_name': u"test_field"})
             <Field{'shortcut_name': u"test_field"}>
         """
-        return myemma.model.field.Field(self.account, raw)
+        return emma.model.field.Field(self.account, raw)
 
     def fetch_all(self, deleted=False):
         """
@@ -103,7 +103,7 @@ class AccountFieldCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.fields.fetch_all()
             {123: <Field>, 321: <Field>, ...}
@@ -112,7 +112,7 @@ class AccountFieldCollection(BaseApiModel):
         params = {"deleted":True} if deleted else {}
         if not self._dict:
             self._dict = dict(
-                (x['field_id'], myemma.model.field.Field(self.account, x))
+                (x['field_id'], emma.model.field.Field(self.account, x))
                     for x in self.account.adapter.get(path, params))
         return self._dict
 
@@ -128,7 +128,7 @@ class AccountFieldCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.fields.find_one_by_field_id(0) # does not exist
             None
@@ -141,7 +141,7 @@ class AccountFieldCollection(BaseApiModel):
         path = '/fields/%s' % field_id
         params = {"deleted":True} if deleted else {}
         if field_id not in self._dict:
-            field = myemma.model.field
+            field = emma.model.field
             raw = self.account.adapter.get(path, params)
             if raw:
                 self._dict[field_id] = field.Field(self.account, raw)
@@ -155,7 +155,7 @@ class AccountFieldCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.fields.export_shortcuts()
             ["first_name", "last_name", ...]
@@ -191,14 +191,14 @@ class AccountGroupCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.groups.factory()
             <Group{}>
             >>> acct.groups.factory({'group_name': u"Test Group"})
             <Group{'group_name': u"Test Group"}>
         """
-        return myemma.model.group.Group(self.account, raw)
+        return emma.model.group.Group(self.account, raw)
 
     def fetch_all(self, group_types=None):
         """
@@ -208,11 +208,11 @@ class AccountGroupCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.groups.fetch_all()
             {123: <Group>, 321: <Group>, ...}
-            >>> from myemma.enumerations import GroupType
+            >>> from emma.enumerations import GroupType
             >>> acct.groups.fetch_all([GroupType.TestGroup])
             {007: <Group>}
         """
@@ -220,7 +220,7 @@ class AccountGroupCollection(BaseApiModel):
         params = {'group_types': group_types} if group_types else {}
         if not self._dict:
             self._dict = dict(
-                (x['member_group_id'], myemma.model.group.Group(self.account, x))
+                (x['member_group_id'], emma.model.group.Group(self.account, x))
                     for x in self.account.adapter.get(path, params))
         return self._dict
 
@@ -234,7 +234,7 @@ class AccountGroupCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.groups.find_one_by_group_id(0) # does not exist
             None
@@ -246,7 +246,7 @@ class AccountGroupCollection(BaseApiModel):
         group_id = int(group_id)
         path = '/groups/%s' % group_id
         if group_id not in self._dict:
-            group = myemma.model.group
+            group = emma.model.group
             raw = self.account.adapter.get(path)
             if raw:
                 self._dict[group_id] = group.Group(self.account, raw)
@@ -261,7 +261,7 @@ class AccountGroupCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.groups.save() # no changes
             None
@@ -279,7 +279,7 @@ class AccountGroupCollection(BaseApiModel):
         data = {'groups': [x.extract() for x in groups]}
         added = self.account.adapter.post(path, data)
         self._dict.update(dict(
-            (x['member_group_id'], myemma.model.group.Group(self.account, x))
+            (x['member_group_id'], emma.model.group.Group(self.account, x))
                 for x in added))
 
 
@@ -309,7 +309,7 @@ class AccountImportCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.imports.fetch_all()
             {123: <Import>, 321: <Import>, ...}
@@ -317,7 +317,7 @@ class AccountImportCollection(BaseApiModel):
         """
         path = '/members/imports'
         if not self._dict:
-            import_ = myemma.model.member_import
+            import_ = emma.model.member_import
             self._dict = dict(
                 (x['import_id'], import_.MemberImport(self.account, x))
                     for x in self.account.adapter.get(path, {}))
@@ -333,7 +333,7 @@ class AccountImportCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.imports.find_one_by_import_id(0) # does not exist
             None
@@ -345,7 +345,7 @@ class AccountImportCollection(BaseApiModel):
         import_id = int(import_id)
         path = '/members/imports/%s' % import_id
         if import_id not in self._dict:
-            import_ = myemma.model.member_import
+            import_ = emma.model.member_import
             raw = self.account.adapter.get(path)
             if raw:
                 self._dict[import_id] = import_.MemberImport(self.account, raw)
@@ -360,7 +360,7 @@ class AccountImportCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.imports.delete([123, 321]) # Deletes imports 123, and 321
             None
@@ -410,7 +410,7 @@ class AccountMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.factory()
             <Member{}>
@@ -429,7 +429,7 @@ class AccountMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.fetch_all()
             {123: <Member>, 321: <Member>, ...}
@@ -453,7 +453,7 @@ class AccountMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.fetch_all_by_import_id(123)
             {123: <Member>, 321: <Member>, ...}
@@ -477,7 +477,7 @@ class AccountMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.find_one_by_member_id(0) # does not exist
             None
@@ -508,7 +508,7 @@ class AccountMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.find_one_by_email("null@example.com") # does not exist
             None
@@ -545,7 +545,7 @@ class AccountMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.save() # no changes
             None
@@ -585,8 +585,8 @@ class AccountMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
-            >>> from myemma.enumerations import MemberStatus
+            >>> from emma.model.account import Account
+            >>> from emma.enumerations import MemberStatus
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.delete_by_status(MemberStatus.OptOut)
             None
@@ -608,7 +608,7 @@ class AccountMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.delete([123, 321]) # Deletes members 123, and 321
             None
@@ -635,8 +635,8 @@ class AccountMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
-            >>> from myemma.enumerations import MemberStatus
+            >>> from emma.model.account import Account
+            >>> from emma.enumerations import MemberStatus
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.change_status_by_member_id(
             ...     [123, 321],
@@ -670,8 +670,8 @@ class AccountMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
-            >>> from myemma.enumerations import MemberStatus
+            >>> from emma.model.account import Account
+            >>> from emma.enumerations import MemberStatus
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.change_status_by_status(
             ...     MemberStatus.Error,
@@ -695,7 +695,7 @@ class AccountMemberCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.drop_groups([200, 201], [1024, 1025])
             None
@@ -734,7 +734,7 @@ class AccountMailingCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.mailings.fetch_all()
             {123: <Mailing>, 321: <Mailing>, ...}
@@ -755,7 +755,7 @@ class AccountMailingCollection(BaseApiModel):
         if with_plaintext:
             params['with_plaintext'] = True
         if not self._dict:
-            mailing = myemma.model.mailing
+            mailing = emma.model.mailing
             self._dict = dict(
                 (x['mailing_id'], mailing.Mailing(self.account, x))
                     for x in self.account.adapter.get(path, params))
@@ -771,7 +771,7 @@ class AccountMailingCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.mailings.find_one_by_mailing_id(0) # does not exist
             None
@@ -783,7 +783,7 @@ class AccountMailingCollection(BaseApiModel):
         mailing_id = int(mailing_id)
         path = '/mailings/%s' % mailing_id
         if mailing_id not in self._dict:
-            mailing = myemma.model.mailing
+            mailing = emma.model.mailing
             raw = self.account.adapter.get(path)
             if raw:
                 self._dict[mailing_id] = mailing.Mailing(self.account, raw)
@@ -804,7 +804,7 @@ class AccountMailingCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.mailings.validate(subject="Test subject")
             True
@@ -853,12 +853,12 @@ class AccountSearchCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.searches.fetch_all()
             {123: <Search>, 321: <Search>, ...}
         """
-        search = myemma.model.search
+        search = emma.model.search
         path = '/searches'
         params = {"deleted":True} if deleted else {}
         if not self._dict:
@@ -879,7 +879,7 @@ class AccountSearchCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.searches.find_one_by_search_id(0) # does not exist
             None
@@ -892,7 +892,7 @@ class AccountSearchCollection(BaseApiModel):
         path = '/searches/%s' % search_id
         params = {"deleted":True} if deleted else {}
         if search_id not in self._dict:
-            search = myemma.model.search
+            search = emma.model.search
             raw = self.account.adapter.get(path, params)
             if raw:
                 self._dict[search_id] = search.Search(self.account, raw)
@@ -928,14 +928,14 @@ class AccountTriggerCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.triggers.factory()
             <Trigger{}>
             >>> acct.triggers.factory({'name': u"test Trigger", ...})
             <Trigger{'name': ...}>
         """
-        return myemma.model.trigger.Trigger(self.account, raw)
+        return emma.model.trigger.Trigger(self.account, raw)
 
     def fetch_all(self):
         """
@@ -945,12 +945,12 @@ class AccountTriggerCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.triggers.fetch_all()
             {123: <Trigger>, 321: <Trigger>, ...}
         """
-        trigger = myemma.model.trigger
+        trigger = emma.model.trigger
         path = '/triggers'
         if not self._dict:
             self._dict = dict(
@@ -968,7 +968,7 @@ class AccountTriggerCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.triggers.find_one_by_trigger_id(0) # does not exist
             None
@@ -980,7 +980,7 @@ class AccountTriggerCollection(BaseApiModel):
         trigger_id = int(trigger_id)
         path = '/triggers/%s' % trigger_id
         if trigger_id not in self._dict:
-            trigger = myemma.model.trigger
+            trigger = emma.model.trigger
             raw = self.account.adapter.get(path)
             if raw:
                 self._dict[trigger_id] = trigger.Trigger(self.account, raw)
@@ -1016,14 +1016,14 @@ class AccountWebHookCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.webhooks.factory()
             <WebHook{}>
             >>> acct.webhooks.factory({'url': u"http://example.com", ...})
             <WebHook{'url': u"http://example.com", ...}>
         """
-        return myemma.model.webhook.WebHook(self.account, raw)
+        return emma.model.webhook.WebHook(self.account, raw)
 
     def fetch_all(self):
         """
@@ -1033,12 +1033,12 @@ class AccountWebHookCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.webhooks.fetch_all()
             {123: <WebHook>, 321: <WebHook>, ...}
         """
-        webhook = myemma.model.webhook
+        webhook = emma.model.webhook
         path = '/webhooks'
         if not self._dict:
             self._dict = dict(
@@ -1056,7 +1056,7 @@ class AccountWebHookCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.webhooks.find_one_by_webhook_id(0) # does not exist
             None
@@ -1068,7 +1068,7 @@ class AccountWebHookCollection(BaseApiModel):
         webhook_id = int(webhook_id)
         path = '/webhooks/%s' % webhook_id
         if webhook_id not in self._dict:
-            webhook = myemma.model.webhook
+            webhook = emma.model.webhook
             raw = self.account.adapter.get(path)
             if raw:
                 self._dict[webhook_id] = webhook.WebHook(self.account, raw)
@@ -1083,7 +1083,7 @@ class AccountWebHookCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.webhooks.delete_all()
             None
@@ -1101,7 +1101,7 @@ class AccountWebHookCollection(BaseApiModel):
 
         Usage::
 
-            >>> from myemma.model.account import Account
+            >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.webhooks.list_events()
             [{"event_name": "mailing_finish", ...}, ...]
