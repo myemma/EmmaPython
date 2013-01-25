@@ -22,7 +22,7 @@ class CompositeQuery(object):
 
 
 class ConjunctionQuery(CompositeQuery):
-    """Represents a logical AND"""
+    """Represents a logical conjunction (AND)"""
     def __init__(self, left, right):
         self.left = left
         self.right = right
@@ -32,7 +32,7 @@ class ConjunctionQuery(CompositeQuery):
 
 
 class DisjunctionQuery(CompositeQuery):
-    """Represents a logical OR"""
+    """Represents a logical disjunction (OR)"""
     def __init__(self, left, right):
         self.left = left
         self.right = right
@@ -42,7 +42,7 @@ class DisjunctionQuery(CompositeQuery):
 
 
 class NegationQuery(CompositeQuery):
-    """Represents a logical NOT"""
+    """Represents a logical negation (NOT)"""
     def __init__(self, query):
         self.query = query
 

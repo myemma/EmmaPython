@@ -113,3 +113,23 @@ class PersonalizedMessageType(Enum):
     Html = "html"
     PlainText = "plaintext"
     Subject = "subject"
+
+
+class Report(Enum):
+    """Report Types"""
+    ResponseSummary = 0
+    MailingSummary = 1
+    SentList = 2
+    InProgressList = 3
+    DeliveredList = 4
+    OpenList = 5
+    LinkList = 6
+    ClickList = 7
+    ForwardList = 8
+    OptOutList = 9
+    SignUpList = 10
+    SharesList = 11
+    CustomerSharesList = 12
+    CustomerShareClicksList = 13
+    CustomerShare = 14
+    SharesOverview = 15

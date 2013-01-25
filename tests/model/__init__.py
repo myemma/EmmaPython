@@ -5,6 +5,7 @@ class MockAdapter(AbstractAdapter):
     raised = None
 
     def __init__(self, *args, **kwargs):
+        super(MockAdapter, self).__init__()
         self.called = 0
         self.call = ()
 
