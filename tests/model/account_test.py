@@ -156,7 +156,7 @@ class AccountFieldCollectionTest(unittest.TestCase):
         # Setup
         MockAdapter.expected = None
 
-        field = self.fields[204]
+        field = self.fields.get(204)
 
         self.assertEquals(0, len(self.fields))
         self.assertIsNone(field)
@@ -269,7 +269,7 @@ class AccountGroupCollectionTest(unittest.TestCase):
 
     def test_dictionary_access_lazy_loads_by_import_id2(self):
         MockAdapter.expected = None
-        group = self.groups[204]
+        group = self.groups.get(204)
         self.assertEquals(0, len(self.groups))
         self.assertIsNone(group)
         self.assertEquals(self.groups.account.adapter.called, 1)
@@ -403,7 +403,7 @@ class AccountImportCollectionTest(unittest.TestCase):
 
     def test_dictionary_access_lazy_loads_by_import_id2(self):
         MockAdapter.expected = None
-        emma_import = self.imports[204]
+        emma_import = self.imports.get(204)
         self.assertEquals(0, len(self.imports))
         self.assertIsNone(emma_import)
         self.assertEquals(self.imports.account.adapter.called, 1)
@@ -701,7 +701,7 @@ class AccountMemberCollectionTest(unittest.TestCase):
         # Setup
         MockAdapter.expected = None
 
-        member = self.members[204]
+        member = self.members.get(204)
 
         self.assertEquals(0, len(self.members))
         self.assertIsNone(member)
@@ -789,7 +789,7 @@ class AccountMemberCollectionTest(unittest.TestCase):
         # Setup
         MockAdapter.expected = None
 
-        member = self.members["test@example.com"]
+        member = self.members.get("test@example.com")
 
         self.assertEquals(0, len(self.members))
         self.assertIsNone(member)
@@ -802,7 +802,7 @@ class AccountMemberCollectionTest(unittest.TestCase):
         # Setup
         MockAdapter.expected = None
 
-        member = self.members[u"test@example.com"]
+        member = self.members.get(u"test@example.com")
 
         self.assertEquals(0, len(self.members))
         self.assertIsNone(member)
@@ -1606,7 +1606,7 @@ class AccountMailingCollectionTest(unittest.TestCase):
         # Setup
         MockAdapter.expected = None
 
-        mailing = self.mailings[204]
+        mailing = self.mailings.get(204)
 
         self.assertEquals(0, len(self.mailings))
         self.assertIsNone(mailing)
@@ -1750,7 +1750,7 @@ class AccountSearchCollectionTest(unittest.TestCase):
 
     def test_dictionary_access_lazy_loads_by_search_id2(self):
         MockAdapter.expected = None
-        search = self.searches[204]
+        search = self.searches.get(204)
         self.assertEquals(0, len(self.searches))
         self.assertIsNone(search)
         self.assertEquals(self.searches.account.adapter.called, 1)
@@ -1847,7 +1847,7 @@ class AccountTriggerCollectionTest(unittest.TestCase):
 
     def test_dictionary_access_lazy_loads_by_trigger_id2(self):
         MockAdapter.expected = None
-        search = self.triggers[204]
+        search = self.triggers.get(204)
         self.assertEquals(0, len(self.triggers))
         self.assertIsNone(search)
         self.assertEquals(self.triggers.account.adapter.called, 1)
@@ -1944,7 +1944,7 @@ class AccountWebHookCollectionTest(unittest.TestCase):
 
     def test_dictionary_access_lazy_loads_by_webhook_id2(self):
         MockAdapter.expected = None
-        webhook = self.webhooks[204]
+        webhook = self.webhooks.get(204)
         self.assertEquals(0, len(self.webhooks))
         self.assertIsNone(webhook)
         self.assertEquals(self.webhooks.account.adapter.called, 1)

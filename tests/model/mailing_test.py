@@ -31,10 +31,10 @@ class MailingTest(unittest.TestCase):
     def test_can_parse_special_fields_correctly(self):
         self.assertIsInstance(self.mailing['delivery_ts'], datetime)
         self.assertIsInstance(self.mailing['sent'], datetime)
-        self.assertIsNone(self.mailing['clicked'])
-        self.assertIsNone(self.mailing['opened'])
-        self.assertIsNone(self.mailing['forwarded'])
-        self.assertIsNone(self.mailing['shared'])
+        self.assertIsNone(self.mailing.get('clicked'))
+        self.assertIsNone(self.mailing.get('opened'))
+        self.assertIsNone(self.mailing.get('forwarded'))
+        self.assertIsNone(self.mailing.get('shared'))
 
     def test_can_update_the_status_of_a_mailing(self):
         with self.assertRaises(KeyError):
@@ -495,7 +495,7 @@ class MailingMessageCollectionTest(unittest.TestCase):
         # Setup
         MockAdapter.expected = None
 
-        message = self.messages[1024]
+        message = self.messages.get(1024)
 
         self.assertEquals(0, len(self.messages))
         self.assertIsNone(message)

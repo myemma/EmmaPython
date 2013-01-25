@@ -22,6 +22,8 @@ class BaseApiModel(collections.MutableMapping):
         return self._dict.__len__()
 
     def __getitem__(self, key):
+        if key not in self._dict:
+            raise KeyError(key)
         return self._dict.__getitem__(key)
 
     def __setitem__(self, key, value):

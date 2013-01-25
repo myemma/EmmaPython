@@ -23,7 +23,7 @@ class GroupTest(unittest.TestCase):
 
     def test_can_parse_special_fields_correctly(self):
         self.assertEquals(self.group['group_type'], GroupType.RegularGroup)
-        self.assertIsNone(self.group['deleted_at'])
+        self.assertIsNone(self.group.get('deleted_at'))
 
     def test_can_delete_a_group(self):
         grp = Group(self.group.account)

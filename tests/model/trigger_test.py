@@ -47,7 +47,7 @@ class TriggerTest(unittest.TestCase):
     def test_can_parse_special_fields_correctly(self):
         self.assertIsInstance(self.trigger['start_ts'], datetime)
         self.assertIsInstance(self.trigger['parent_mailing'], Mailing)
-        self.assertIsNone(self.trigger['deleted_at'])
+        self.assertIsNone(self.trigger.get('deleted_at'))
 
     def test_can_delete_a_trigger(self):
         del(self.trigger['trigger_id'])

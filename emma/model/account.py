@@ -69,7 +69,10 @@ class AccountFieldCollection(BaseApiModel):
         super(AccountFieldCollection, self).__init__()
 
     def __getitem__(self, key):
-        return self.find_one_by_field_id(key, True)
+        item = self.find_one_by_field_id(key, True)
+        if not item:
+            raise KeyError(key)
+        return item
 
     def __delitem__(self, key):
         self._dict[key].delete()
@@ -131,7 +134,7 @@ class AccountFieldCollection(BaseApiModel):
             >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.fields.find_one_by_field_id(0) # does not exist
-            None
+            raises <KeyError>
             >>> acct.fields.find_one_by_field_id(123)
             <Field>
             >>> acct.fields[123]
@@ -176,7 +179,10 @@ class AccountGroupCollection(BaseApiModel):
         super(AccountGroupCollection, self).__init__()
 
     def __getitem__(self, key):
-        return self.find_one_by_group_id(key)
+        item = self.find_one_by_group_id(key)
+        if not item:
+            raise KeyError(key)
+        return item
 
     def __delitem__(self, key):
         self[key].delete()
@@ -237,7 +243,7 @@ class AccountGroupCollection(BaseApiModel):
             >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.groups.find_one_by_group_id(0) # does not exist
-            None
+            raises <KeyError>
             >>> acct.groups.find_one_by_group_id(123)
             <Group>
             >>> acct.groups[123]
@@ -296,7 +302,10 @@ class AccountImportCollection(BaseApiModel):
         super(AccountImportCollection, self).__init__()
 
     def __getitem__(self, key):
-        return self.find_one_by_import_id(key)
+        item = self.find_one_by_import_id(key)
+        if not item:
+            raise KeyError(key)
+        return item
 
     def __delitem__(self, key):
         self.delete([key])
@@ -336,7 +345,7 @@ class AccountImportCollection(BaseApiModel):
             >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.imports.find_one_by_import_id(0) # does not exist
-            None
+            raises <KeyError>
             >>> acct.imports.find_one_by_import_id(123)
             <Import>
             >>> acct.imports[123]
@@ -392,9 +401,12 @@ class AccountMemberCollection(BaseApiModel):
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            return self.find_one_by_member_id(key)
+            item = self.find_one_by_member_id(key)
         if isinstance(key, str) or isinstance(key, unicode):
-            return self.find_one_by_email(str(key))
+            item = self.find_one_by_email(str(key))
+        if not item:
+            raise KeyError(key)
+        return item
 
     def __delitem__(self, key):
         self._dict[key].delete()
@@ -480,7 +492,7 @@ class AccountMemberCollection(BaseApiModel):
             >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.find_one_by_member_id(0) # does not exist
-            None
+            raises <KeyError>
             >>> acct.members.find_one_by_member_id(123)
             <Member{'member_id': 123, 'email': u"test@example.com", ...}>
             >>> acct.members[123]
@@ -511,7 +523,7 @@ class AccountMemberCollection(BaseApiModel):
             >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.members.find_one_by_email("null@example.com") # does not exist
-            None
+            raises <KeyError>
             >>> acct.members.find_one_by_email("test@example.com")
             <Member{'member_id': 123, 'email': u"test@example.com", ...}>
             >>> acct.members["test@example.com"]
@@ -722,7 +734,10 @@ class AccountMailingCollection(BaseApiModel):
         super(AccountMailingCollection, self).__init__()
 
     def __getitem__(self, key):
-        return self.find_one_by_mailing_id(key)
+        item = self.find_one_by_mailing_id(key)
+        if not item:
+            raise KeyError(key)
+        return item
 
     def fetch_all(self, include_archived=False, mailing_types=None,
                   mailing_statuses=None, is_scheduled=False,
@@ -774,7 +789,7 @@ class AccountMailingCollection(BaseApiModel):
             >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.mailings.find_one_by_mailing_id(0) # does not exist
-            None
+            raises <KeyError>
             >>> acct.mailings.find_one_by_mailing_id(123)
             <Import>
             >>> acct.mailings[123]
@@ -838,7 +853,10 @@ class AccountSearchCollection(BaseApiModel):
         super(AccountSearchCollection, self).__init__()
 
     def __getitem__(self, key):
-        return self.find_one_by_search_id(key)
+        item = self.find_one_by_search_id(key)
+        if not item:
+            raise KeyError(key)
+        return item
 
     def __delitem__(self, key):
         self._dict[key].delete()
@@ -882,7 +900,7 @@ class AccountSearchCollection(BaseApiModel):
             >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.searches.find_one_by_search_id(0) # does not exist
-            None
+            raises <KeyError>
             >>> acct.searches.find_one_by_search_id(123)
             <Search>
             >>> acct.searches[123]
@@ -913,7 +931,10 @@ class AccountTriggerCollection(BaseApiModel):
         super(AccountTriggerCollection, self).__init__()
 
     def __getitem__(self, key):
-        return self.find_one_by_trigger_id(key)
+        item = self.find_one_by_trigger_id(key)
+        if not item:
+            raise KeyError(key)
+        return item
 
     def __delitem__(self, key):
         self._dict[key].delete()
@@ -971,7 +992,7 @@ class AccountTriggerCollection(BaseApiModel):
             >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.triggers.find_one_by_trigger_id(0) # does not exist
-            None
+            raises <KeyError>
             >>> acct.triggers.find_one_by_trigger_id(123)
             <Trigger>
             >>> acct.triggers[123]
@@ -1001,7 +1022,10 @@ class AccountWebHookCollection(BaseApiModel):
         super(AccountWebHookCollection, self).__init__()
 
     def __getitem__(self, key):
-        return self.find_one_by_webhook_id(key)
+        item = self.find_one_by_webhook_id(key)
+        if not item:
+            raise KeyError(key)
+        return item
 
     def __delitem__(self, key):
         self._dict[key].delete()
@@ -1059,7 +1083,7 @@ class AccountWebHookCollection(BaseApiModel):
             >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.webhooks.find_one_by_webhook_id(0) # does not exist
-            None
+            raises <KeyError>
             >>> acct.webhooks.find_one_by_webhook_id(123)
             <WebHook>
             >>> acct.webhooks[123]

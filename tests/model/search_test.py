@@ -22,7 +22,7 @@ class SearchTest(unittest.TestCase):
 
     def test_can_parse_special_fields_correctly(self):
         self.assertIsInstance(self.search['last_run_at'], datetime)
-        self.assertIsNone(self.search['deleted_at'])
+        self.assertIsNone(self.search.get('deleted_at'))
 
     def test_can_delete_a_search(self):
         del(self.search['search_id'])

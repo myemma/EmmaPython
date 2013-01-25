@@ -26,7 +26,7 @@ class FieldTest(unittest.TestCase):
         )
 
     def test_can_parse_special_fields_correctly(self):
-        self.assertIsNone(self.field['deleted_at'])
+        self.assertIsNone(self.field.get('deleted_at'))
 
     def test_can_save_a_field(self):
         fld = Field(

@@ -354,7 +354,10 @@ class MailingMessageCollection(BaseApiModel):
         super(MailingMessageCollection, self).__init__()
 
     def __getitem__(self, key):
-        return self.find_one_by_member_id(key)
+        item = self.find_one_by_member_id(key)
+        if not item:
+            raise KeyError(key)
+        return item
 
     def find_one_by_member_id(self, member_id, message_type=None):
         """

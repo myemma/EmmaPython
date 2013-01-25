@@ -15,10 +15,10 @@ Full documentation located at [Read the Docs](https://emma-api-wrapper-python.re
 
     from emma.model.account import Account
     acct = Account(account_id="x", public_key="y", private_key="z")
-    member = acct.members[200] # Member() or None
+    member = acct.members.get(200) # Member() or None
 
 ### Lazy-load a single member by email
 
     from emma.model.account import Account
     acct = Account(account_id="x", public_key="y", private_key="z")
-    member = acct.members["test@example.com"] # Member() or None
+    member = acct.members.get("test@example.com") # Member() or None
