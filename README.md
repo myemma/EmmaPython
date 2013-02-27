@@ -1,5 +1,5 @@
 # Emma API Wrapper (Python)
-[![Build Status](https://secure.travis-ci.org/dalanhurst/emma-api-wrapper-python.png)](http://travis-ci.org/dalanhurst/emma-api-wrapper-python)
+[![Build Status](https://travis-ci.org/myemma/emma-wrapper-python.png)](https://travis-ci.org/myemma/emma-wrapper-python)
 
 ## Documentation
 Full documentation located at [Read the Docs](https://emma-api-wrapper-python.readthedocs.org/en/latest/)
