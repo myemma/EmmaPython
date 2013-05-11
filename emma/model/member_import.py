@@ -66,5 +66,5 @@ class ImportMemberCollection(BaseApiModel):
         if not self._dict:
             self._dict = dict(
                 (x['member_id'], Member(self.member_import.account, x))
-                    for x in self.member_import.account.adapter.get(path))
+                    for x in self.member_import.account.adapter.paginated_get(path))
         return self._dict

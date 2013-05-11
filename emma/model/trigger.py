@@ -178,5 +178,5 @@ class TriggerMailingCollection(BaseApiModel):
             mailing = emma.model.mailing
             self._dict = dict(
                 (x['mailing_id'], mailing.Mailing(self.trigger.account, x))
-                    for x in self.trigger.account.adapter.get(path))
+                    for x in self.trigger.account.adapter.paginated_get(path))
         return self._dict

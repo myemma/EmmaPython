@@ -168,11 +168,11 @@ class GroupMemberCollection(BaseApiModel):
 
         member = emma.model.member
         path = '/groups/%s/members' % self.group['member_group_id']
-        params = {'deleted':True} if deleted else {}
+        params = {'deleted': True} if deleted else {}
         if not self._dict:
             self._dict = dict(
                 (x['member_id'], member.Member(self.group.account, x))
-                    for x in self.group.account.adapter.get(path, params))
+                    for x in self.group.account.adapter.paginated_get(path, params))
         return self._dict
 
     def add_by_id(self, member_ids=None):

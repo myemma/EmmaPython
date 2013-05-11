@@ -297,7 +297,7 @@ class MemberMailingCollection(BaseApiModel):
         if not self._dict:
             self._dict = dict(
                 (x['mailing_id'], mailing.Mailing(self.member.account, x))
-                    for x in self.member.account.adapter.get(path))
+                    for x in self.member.account.adapter.paginated_get(path))
         return self._dict
 
 
@@ -356,7 +356,7 @@ class MemberGroupCollection(BaseApiModel):
         if not self._dict:
             self._dict = dict(
                 (x['member_group_id'], group.Group(self.member.account, x))
-                    for x in self.member.account.adapter.get(path))
+                    for x in self.member.account.adapter.paginated_get(path))
         return self._dict
 
     def save(self, groups=None):
