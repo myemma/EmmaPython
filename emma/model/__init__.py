@@ -66,6 +66,7 @@ class BaseApiModel(collections.MutableMapping):
         """
         return raw
 
+
 class BaseAPIEnum(object):
     """Abstract Factory for an enumeration"""
     _code = None

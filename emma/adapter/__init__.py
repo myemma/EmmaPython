@@ -12,8 +12,7 @@ class AbstractAdapter(object):
 
     def __init__(self):
         self.count_only = False
-        self.start = 0
-        self.end = self.__class__.MAX_PAGE_SIZE
+        self.reset_pagination()
 
     def post(self, path, params=None):
         """HTTP POST"""
@@ -31,6 +30,10 @@ class AbstractAdapter(object):
         """HTTP DELETE"""
         pass
 
+    def reset_pagination(self):
+        self.start = 0
+        self.end = self.__class__.MAX_PAGE_SIZE
+
     def pagination_add_ons(self):
         if self.count_only:
             return {'count': True}
@@ -42,3 +45,19 @@ class AbstractAdapter(object):
             }
 
         return {}
+
+    def paginated_get(self, path, params=None):
+        def get_next():
+            items = self.get(path, params)
+            self.start = self.end
+            self.end = self.start + self.MAX_PAGE_SIZE
+            return items
+
+        items = []
+        the_next = get_next()
+        while the_next:
+            items += the_next
+            the_next = get_next() if len(items) == self.start else None
+
+        self.reset_pagination()
+        return items

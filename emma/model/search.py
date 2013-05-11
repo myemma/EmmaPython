@@ -170,5 +170,5 @@ class SearchMemberCollection(BaseApiModel):
             member = emma.model.member
             self._dict = dict(
                 (x['member_id'], member.Member(self.search.account, x))
-                    for x in self.search.account.adapter.get(path))
+                    for x in self.search.account.adapter.paginated_get(path))
         return self._dict

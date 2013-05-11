@@ -6,6 +6,7 @@ import requests.auth
 from emma import exceptions as ex
 from emma.adapter import AbstractAdapter
 
+
 def process_response(response):
     """Takes a :class:`Response` and produces python built-ins"""
     if response.status_code == 400:
@@ -16,6 +17,7 @@ def process_response(response):
         raise ex.ApiRequestFailed(response)
 
     return response.json()
+
 
 class RequestsAdapter(AbstractAdapter):
     """

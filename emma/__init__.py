@@ -1,6 +1,7 @@
 """Emma API Wrapper for Python"""
 from enumerations import Report as r
 
+
 def get_report(account, report, id=None, params=None):
     """
     Gets a response report for the given report
@@ -30,6 +31,11 @@ def get_report(account, report, id=None, params=None):
         >>> get_report(acct, Report.SentList, 123)
         [...]
     """
+    needs_pagination = report in (r.SentList, r.InProgressList, r.DeliveredList,
+                                  r.OpenList, r.LinkList, r.ClickList,
+                                  r.ForwardList, r.OptOutList, r.SignUpList,
+                                  r.SharesList, r.CustomerSharesList,
+                                  r.CustomerShareClicksList)
     params = params if params else {}
     path = {
         r.ResponseSummary: "/response",
@@ -49,4 +55,6 @@ def get_report(account, report, id=None, params=None):
         r.CustomerShare: "/response/%s/customer_share" % id,
         r.SharesOverview: "/response/%s/shares/overview" % id,
     }[report]
-    return account.adapter.get(path, params)
+    return (account.adapter.paginated_get(path, params)
+            if needs_pagination
+            else account.adapter.get(path, params))

@@ -261,7 +261,7 @@ class MailingGroupCollection(BaseApiModel):
         if not self._dict:
             self._dict = dict(
                 (x['group_id'], group.Group(self.mailing.account, x))
-                    for x in self.mailing.account.adapter.get(path))
+                    for x in self.mailing.account.adapter.paginated_get(path))
         return self._dict
 
 
@@ -299,7 +299,7 @@ class MailingMemberCollection(BaseApiModel):
         if not self._dict:
             self._dict = dict(
                 (x['member_id'], member.Member(self.mailing.account, x))
-                    for x in self.mailing.account.adapter.get(path))
+                    for x in self.mailing.account.adapter.paginated_get(path))
         return self._dict
 
 
@@ -337,7 +337,7 @@ class MailingSearchCollection(BaseApiModel):
         if not self._dict:
             self._dict = dict(
                 (x['search_id'], search.Search(self.mailing.account, x))
-                    for x in self.mailing.account.adapter.get(path))
+                    for x in self.mailing.account.adapter.paginated_get(path))
         return self._dict
 
 
