@@ -134,12 +134,12 @@ class Member(BaseApiModel):
 
         return extracted
 
-    def _add(self, signup_form_id):
+    def _add(self, signup_form_id, group_ids):
         """Add a single member"""
         path = '/members/add'
         data = self.extract()
-        if len(self.groups):
-            data['group_ids'] = self.groups.keys()
+        if group_ids:
+            data['group_ids'] = group_ids
         if signup_form_id:
             data['signup_form_id'] = signup_form_id
 
@@ -158,7 +158,7 @@ class Member(BaseApiModel):
         if not self.account.adapter.put(path, data):
             raise ex.MemberUpdateError()
 
-    def save(self, signup_form_id=None):
+    def save(self, signup_form_id=None, group_ids=None):
         """
         Add or update this :class:`Member`
 
@@ -177,7 +177,7 @@ class Member(BaseApiModel):
             None
         """
         if 'member_id' not in self._dict:
-            return self._add(signup_form_id)
+            return self._add(signup_form_id, group_ids)
         else:
             return self._update()
 
