@@ -239,16 +239,13 @@ class MemberTest(unittest.TestCase):
                 'email':u"test@example.com",
                 'fields': {'first_name':u"Emma"}
             })
-        mbr.groups._dict = {
-            1025: mbr.groups.factory()
-        }
         MockAdapter.expected = {
             'status': u"a",
             'added': True,
             'member_id': 1024
         }
 
-        result = mbr.save()
+        result = mbr.save(group_ids=[1025])
 
         self.assertIsNone(result)
         self.assertEquals(mbr.account.adapter.called, 1)
