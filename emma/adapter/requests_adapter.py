@@ -102,6 +102,7 @@ class RequestsAdapter(AbstractAdapter):
             [{...}, {...}, ...] # 500-999
         """
 
+        params = params or {}
         params.update(self.pagination_add_ons())
 
         return process_response(
