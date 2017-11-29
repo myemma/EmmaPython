@@ -145,7 +145,7 @@ class Member(BaseApiModel):
 
         outcome = self.account.adapter.post(path, data)
         self['member_status_id'] = outcome['status']
-        if outcome['added']:
+        if 'member_id' in outcome:
             self['member_id'] = outcome['member_id']
 
     def _update(self):
