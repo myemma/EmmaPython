@@ -18,6 +18,7 @@ from emma.model.member import Member
 from emma.model.search import Search
 from emma.model.trigger import Trigger
 from emma.model.webhook import WebHook
+from emma.model.automation import Workflow
 from tests.model import MockAdapter
 
 
@@ -2027,3 +2028,52 @@ class AccountWebHookCollectionTest(unittest.TestCase):
             self.webhooks.account.adapter.call,
             ('GET', '/webhooks/events', {}))
         self.assertEquals(0, len(self.webhooks))
+
+
+class AccountWorkflowTest(unittest.TestCase):
+    def setUp(self):
+        Account.default_adapter = MockAdapter
+        self.workflows = Account(
+            account_id="100",
+            public_key="xxx",
+            private_key="yyy").workflows
+
+    def test_fetch_all_returns_a_dictionary(self):
+        MockAdapter.expected = [{'workflow_id': 201}]
+        self.assertIsInstance(self.workflows.fetch_all(), dict)
+        self.assertEquals(self.workflows.account.adapter.called, 1)
+        self.assertEquals(
+            self.workflows.account.adapter.call,
+            ('GET', '/automation/workflows', {}))
+
+    def test_fetch_all_returns_a_dictionary(self):
+        MockAdapter.expected = [{'workflow_id': 201}]
+        self.assertIsInstance(self.workflows.fetch_all(), dict)
+        self.assertEquals(self.workflows.account.adapter.called, 1)
+        self.assertEquals(
+            self.workflows.account.adapter.call,
+            ('GET', '/automation/workflows', {}))
+
+    def test_find_one_by_workflow_id_returns_an_import_object(self):
+        MockAdapter.expected = {'workflow_id': 201}
+        workflow = self.workflows.find_one_by_workflow_id(201)
+        self.assertIsInstance(workflow, Workflow)
+        self.assertEquals(workflow['workflow_id'], 201)
+        self.assertEquals(self.workflows.account.adapter.called, 1)
+        self.assertEquals(
+            self.workflows.account.adapter.call,
+            ('GET', '/automation/workflows/201', {}))
+
+    def test_find_one_by_workflow_id_populates_collection(self):
+        MockAdapter.expected = {'workflow_id': 201}
+        self.workflows.find_one_by_workflow_id(201)
+        self.assertIn(201, self.workflows)
+        self.assertIsInstance(self.workflows[201], Workflow)
+        self.assertEquals(self.workflows[201]['workflow_id'], 201)
+
+    def test_find_one_by_workflow_id_caches_result(self):
+        MockAdapter.expected = {'workflow_id': 201}
+        self.workflows.find_one_by_workflow_id(201)
+        self.workflows.find_one_by_workflow_id(201)
+        self.assertEquals(self.workflows.account.adapter.called, 1)
+
