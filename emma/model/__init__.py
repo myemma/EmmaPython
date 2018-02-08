@@ -5,12 +5,19 @@ from datetime import datetime
 
 
 SERIALIZED_DATETIME_FORMAT = "@D:%Y-%m-%dT%H:%M:%S"
+SERIALIZED_DATETIME_ALT_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 
 
 def str_fields_to_datetime(fields, raw):
     """Parses Emma date fields to :class:`datetime` objects"""
     return dict((x[0], datetime.strptime(x[1], SERIALIZED_DATETIME_FORMAT))
         for x in raw.items() if x[0] in fields and x[1] is not None)
+
+
+def str_fields_to_datetime_alt(fields, raw):
+    """Parses Emma date fields to :class:`datetime` objects"""
+    return dict((x[0], datetime.strptime(x[1], SERIALIZED_DATETIME_ALT_FORMAT))
+                for x in raw.items() if x[0] in fields and x[1] is not None)
 
 
 class BaseApiModel(collections.MutableMapping):

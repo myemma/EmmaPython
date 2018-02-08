@@ -2027,3 +2027,20 @@ class AccountWebHookCollectionTest(unittest.TestCase):
             self.webhooks.account.adapter.call,
             ('GET', '/webhooks/events', {}))
         self.assertEquals(0, len(self.webhooks))
+
+
+class AccountWorkflowTest(unittest.TestCase):
+    def setUp(self):
+        Account.default_adapter = MockAdapter
+        self.workflows = Account(
+            account_id="100",
+            public_key="xxx",
+            private_key="yyy").workflows
+
+    def test_fetch_all_returns_a_dictionary(self):
+        MockAdapter.expected = [{'workflow_id': 201}]
+        self.assertIsInstance(self.workflows.fetch_all(), dict)
+        self.assertEquals(self.workflows.account.adapter.called, 1)
+        self.assertEquals(
+            self.workflows.account.adapter.call,
+            ('GET', '/automation/workflows', {}))

@@ -12,6 +12,7 @@ import emma.model.group
 import emma.model.search
 import emma.model.trigger
 import emma.model.webhook
+import emma.model.automation
 
 
 class Account(object):
@@ -54,6 +55,7 @@ class Account(object):
         self.searches = AccountSearchCollection(self)
         self.triggers = AccountTriggerCollection(self)
         self.webhooks = AccountWebHookCollection(self)
+        self.workflows = AccountWorkflowCollect(self)
 
 
 class AccountFieldCollection(BaseApiModel):
@@ -1132,3 +1134,57 @@ class AccountWebHookCollection(BaseApiModel):
         """
         path = '/webhooks/events'
         return self.account.adapter.get(path)
+
+
+class AccountWorkflowCollect(BaseApiModel):
+    """
+    Encapsulates operations for the set of :class:`Workflow` objects of an
+    :class:`account`
+
+    :param account: The Account which owns this collection
+    :type account: :class:`Account`
+    """
+
+    def __init__(self, account):
+        self.account = account
+        super(AccountWorkflowCollect, self).__init__()
+
+    def factory(self, raw=None):
+        """
+        New :class:`Workflow` factory
+
+        :param raw: Raw data with which to populate class
+        :type raw: :class:`dict`
+        :rtype: :class:`Workflow`
+
+        Usage::
+
+            >>> from emma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.workflows.factory()
+            <Workflow{}>
+            >>> acct.triggers.factory({'id': u"test-automation-id", ...})
+            <Workflow{'id': ...}>
+        """
+        return emma.model.automation.Workflow(self.account, raw)
+
+    def fetch_all(self):
+        """
+        Lazy-loads the full set of :class:`Workflow` objects
+
+        :rtype: :class:`dict` of :class:`Workflow` objects
+
+        Usage::
+
+            >>> from emma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.workflows.fetch_all()
+            {123: <Workflow>, 321: <Workflow>, ...}
+        """
+        automation = emma.model.automation
+        path = '/automation/workflows'
+        if not self._dict:
+            self._dict = dict(
+                (x['workflow_id'], automation.Workflow(self.account, x))
+                for x in self.account.adapter.paginated_get(path))
+        return self._dict
