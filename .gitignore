@@ -38,3 +38,8 @@ nosetests.xml
 # Other
 .DS_Store
 doc/_build
+
+*.swp
+*.swo
+
+.idea
