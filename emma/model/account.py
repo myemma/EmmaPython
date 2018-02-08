@@ -1179,7 +1179,7 @@ class AccountWorkflowCollect(BaseApiModel):
             >>> from emma.model.account import Account
             >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
             >>> acct.workflows.fetch_all()
-            {123: <Workflow>, 321: <Workflow>, ...}
+            {'adfasdfasdf123123': <Workflow>, 'afadf23324': <Workflow>, ...}
         """
         automation = emma.model.automation
         path = '/automation/workflows'
@@ -1188,3 +1188,31 @@ class AccountWorkflowCollect(BaseApiModel):
                 (x['workflow_id'], automation.Workflow(self.account, x))
                 for x in self.account.adapter.paginated_get(path))
         return self._dict
+
+    def find_one_by_workflow_id(self, workflow_id):
+        """
+        Lazy-loads a single :class:`WorkFlow` by ID
+
+        :param workflow_id: The workflow identifier
+        :type workflow_id: :class:`int`
+        :rtype: :class:`Field` or :class:`None`
+
+        Usage::
+
+            >>> from emma.model.account import Account
+            >>> acct = Account(1234, "08192a3b4c5d6e7f", "f7e6d5c4b3a29180")
+            >>> acct.workflows.find_one_by_workflow_id('1kj131hj31239231') # does not exist
+            raises <KeyError>
+            >>> acct.workflows.find_one_by_workflow_id('21123123jnl123')
+            <Workflow>
+            >>> acct.workflows[123]
+            <Workflow>
+        """
+        path = '/automation/workflows/%s' % workflow_id
+        if workflow_id not in self._dict:
+            automation = emma.model.automation
+            raw = self.account.adapter.get(path)
+            if raw:
+                self._dict[workflow_id] = automation.Workflow(self.account, raw)
+
+        return (workflow_id in self._dict) and self._dict[workflow_id] or None
